@@ -56,6 +56,16 @@ export interface JournalView {
   entries: JournalEntry[];
 }
 
+export interface TutorAlternant {
+  alternantProfilId: string;
+  name: string;
+  email: string;
+  promotionName: string | null;
+  entrepriseName: string | null;
+  myRole: 'peda' | 'entreprise';
+  progress: { evaluated: number; total: number };
+}
+
 export const api = {
   myAlternantProfile: () => request<{ alternantProfilId: string }>('/me/alternant'),
   getCompetences: (alternantProfilId: string) =>
@@ -72,4 +82,13 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(input),
     }),
+  reviewJournalEntry: (
+    entryId: string,
+    input: { status: 'validated' | 'changes_requested'; comment?: string },
+  ) =>
+    request<{ id: string; status: JournalStatus }>(`/journal/${entryId}/review`, {
+      method: 'PUT',
+      body: JSON.stringify(input),
+    }),
+  getMyAlternants: () => request<TutorAlternant[]>('/me/alternants'),
 };
