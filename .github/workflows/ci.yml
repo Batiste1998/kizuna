@@ -71,6 +71,11 @@ jobs:
       - name: Apply database migrations
         run: pnpm db:migrate
 
+      - name: Seed reference data + demo users (for e2e)
+        run: |
+          pnpm db:seed
+          pnpm --filter @kizuna/api seed:users
+
       - name: Lint
         run: pnpm lint
 

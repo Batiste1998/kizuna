@@ -9,6 +9,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import { organization, user } from './auth';
+import { competenceLevel, evaluatorRole } from './enums';
 
 /**
  * Business domain — foundation entities (Jalon 1).
@@ -122,3 +123,25 @@ export const association = pgTable('association', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * Tri-evaluation : one row per (alternant, compétence, évaluateur).
+ * The same competence is assessed independently by the alternant (auto), the
+ * tuteur pédagogique (peda) and the tuteur d'entreprise (entreprise).
+ */
+export const evaluation = pgTable(
+  'evaluation',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    alternantProfilId: uuid('alternant_profil_id')
+      .notNull()
+      .references(() => alternantProfil.id, { onDelete: 'cascade' }),
+    competenceId: uuid('competence_id')
+      .notNull()
+      .references(() => competence.id, { onDelete: 'cascade' }),
+    evaluator: evaluatorRole('evaluator').notNull(),
+    level: competenceLevel('level').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique('evaluation_unique').on(t.alternantProfilId, t.competenceId, t.evaluator)],
+);

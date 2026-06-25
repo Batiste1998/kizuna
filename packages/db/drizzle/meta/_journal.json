@@ -8,6 +8,13 @@
       "when": 1782386085234,
       "tag": "0000_handy_the_spike",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782387966536,
+      "tag": "0001_awesome_corsair",
+      "breakpoints": true
     }
   ]
 }

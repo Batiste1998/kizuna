@@ -6,6 +6,7 @@ import {
   bloc,
   competence,
   entreprise,
+  evaluation,
   promotion,
   referentiel,
 } from './business';
@@ -46,8 +47,20 @@ export const blocRelations = relations(bloc, ({ one, many }) => ({
   competences: many(competence),
 }));
 
-export const competenceRelations = relations(competence, ({ one }) => ({
+export const competenceRelations = relations(competence, ({ one, many }) => ({
   bloc: one(bloc, { fields: [competence.blocId], references: [bloc.id] }),
+  evaluations: many(evaluation),
+}));
+
+export const evaluationRelations = relations(evaluation, ({ one }) => ({
+  alternantProfil: one(alternantProfil, {
+    fields: [evaluation.alternantProfilId],
+    references: [alternantProfil.id],
+  }),
+  competence: one(competence, {
+    fields: [evaluation.competenceId],
+    references: [competence.id],
+  }),
 }));
 
 export const promotionRelations = relations(promotion, ({ one, many }) => ({
@@ -62,7 +75,7 @@ export const promotionRelations = relations(promotion, ({ one, many }) => ({
   alternants: many(alternantProfil),
 }));
 
-export const alternantProfilRelations = relations(alternantProfil, ({ one }) => ({
+export const alternantProfilRelations = relations(alternantProfil, ({ one, many }) => ({
   user: one(user, { fields: [alternantProfil.userId], references: [user.id] }),
   organization: one(organization, {
     fields: [alternantProfil.organizationId],
@@ -73,6 +86,7 @@ export const alternantProfilRelations = relations(alternantProfil, ({ one }) => 
     references: [promotion.id],
   }),
   association: one(association),
+  evaluations: many(evaluation),
 }));
 
 export const associationRelations = relations(association, ({ one }) => ({

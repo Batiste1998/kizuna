@@ -24,3 +24,13 @@ export type MemberRole = (typeof MEMBER_ROLES)[number];
  * Competence mastery levels (tri-evaluation): Non acquis, En cours, Acquis, Maîtrisé.
  */
 export const competenceLevel = pgEnum('competence_level', ['NA', 'EC', 'A', 'M']);
+export const COMPETENCE_LEVELS = ['NA', 'EC', 'A', 'M'] as const;
+export type CompetenceLevel = (typeof COMPETENCE_LEVELS)[number];
+
+/**
+ * Who evaluated a competence in the tripartite model:
+ * the apprentice (auto), the school tutor (peda), the company tutor (entreprise).
+ */
+export const evaluatorRole = pgEnum('evaluator_role', ['auto', 'peda', 'entreprise']);
+export const EVALUATOR_ROLES = ['auto', 'peda', 'entreprise'] as const;
+export type EvaluatorRole = (typeof EVALUATOR_ROLES)[number];
