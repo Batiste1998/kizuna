@@ -30,11 +30,13 @@
     "clsx": "^2.1.1",
     "lucide-react": "^0.545.0",
     "nitro": "npm:nitro-nightly@latest",
+    "qrcode": "^1.5.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "sonner": "^1.7.1",
     "tailwind-merge": "^2.6.0",
-    "tailwindcss": "^4.1.18"
+    "tailwindcss": "^4.1.18",
+    "@kizuna/shared": "workspace:*"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",
@@ -44,6 +46,7 @@
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.0",
     "@types/node": "^22.10.2",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.0.1",

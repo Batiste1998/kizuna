@@ -1,8 +1,12 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { and, asc, eq, inArray } from 'drizzle-orm';
 import { schema } from '@kizuna/db';
 import { DatabaseService } from '../database/database.service';
+import { AUTH } from '../auth/auth.constants';
+import type { Auth } from '../auth/auth';
 import type { AuthUser } from '../auth/auth.types';
+import type { CreatableMemberRole } from '@kizuna/shared';
 
 export interface AdminOverview {
   organizationName: string;
@@ -11,7 +15,10 @@ export interface AdminOverview {
 
 @Injectable()
 export class AdminService {
-  constructor(private readonly database: DatabaseService) {}
+  constructor(
+    private readonly database: DatabaseService,
+    @Inject(AUTH) private readonly auth: Auth,
+  ) {}
 
   private get db() {
     return this.database.db;
@@ -137,6 +144,7 @@ export class AdminService {
     return this.db
       .select({
         id: schema.member.id,
+        userId: schema.member.userId,
         role: schema.member.role,
         name: schema.user.name,
         email: schema.user.email,
@@ -208,5 +216,173 @@ export class AdminService {
       })
       .returning();
     return created;
+  }
+
+  /**
+   * Onboards a member into the admin's establishment. Creates the user account
+   * if the email is unknown (returning a temporary password until email-based
+   * invitations are wired), ensures a member row with the requested role, and
+   * provisions the apprentice profile when role === 'alternant'.
+   */
+  async createMember(
+    user: AuthUser,
+    input: { name: string; email: string; role: CreatableMemberRole; promotionId?: string },
+  ) {
+    const orgId = await this.resolveOrg(user);
+
+    const [existingUser] = await this.db
+      .select({ id: schema.user.id })
+      .from(schema.user)
+      .where(eq(schema.user.email, input.email));
+
+    let userId = existingUser?.id;
+    let temporaryPassword: string | null = null;
+    if (!userId) {
+      temporaryPassword = `Kz-${randomBytes(12).toString('base64url')}`;
+      const res = await this.auth.api.signUpEmail({
+        body: { name: input.name, email: input.email, password: temporaryPassword },
+      });
+      userId = res.user.id;
+    }
+
+    const [existingMember] = await this.db
+      .select()
+      .from(schema.member)
+      .where(and(eq(schema.member.organizationId, orgId), eq(schema.member.userId, userId)));
+    if (!existingMember) {
+      await this.db
+        .insert(schema.member)
+        .values({ id: randomUUID(), organizationId: orgId, userId, role: input.role });
+    } else if (existingMember.role !== input.role) {
+      await this.db
+        .update(schema.member)
+        .set({ role: input.role })
+        .where(eq(schema.member.id, existingMember.id));
+    }
+
+    let alternantProfilId: string | null = null;
+    if (input.role === 'alternant') {
+      const promotionId = await this.assertPromotionInOrg(orgId, input.promotionId);
+      const [profil] = await this.db
+        .select()
+        .from(schema.alternantProfil)
+        .where(
+          and(
+            eq(schema.alternantProfil.userId, userId),
+            eq(schema.alternantProfil.organizationId, orgId),
+          ),
+        );
+      if (profil) {
+        alternantProfilId = profil.id;
+        if (promotionId && profil.promotionId !== promotionId) {
+          await this.db
+            .update(schema.alternantProfil)
+            .set({ promotionId })
+            .where(eq(schema.alternantProfil.id, profil.id));
+        }
+      } else {
+        const [created] = await this.db
+          .insert(schema.alternantProfil)
+          .values({ userId, organizationId: orgId, promotionId })
+          .returning();
+        alternantProfilId = created.id;
+      }
+    }
+
+    return { userId, role: input.role, alternantProfilId, temporaryPassword };
+  }
+
+  /** Creates or updates the trinôme (tuteurs + entreprise) of an apprentice. */
+  async upsertAssociation(
+    user: AuthUser,
+    alternantProfilId: string,
+    input: { tuteurPedaUserId?: string; tuteurEntrepriseUserId?: string; entrepriseId?: string },
+  ) {
+    const orgId = await this.resolveOrg(user);
+    const [profil] = await this.db
+      .select({ id: schema.alternantProfil.id })
+      .from(schema.alternantProfil)
+      .where(
+        and(
+          eq(schema.alternantProfil.id, alternantProfilId),
+          eq(schema.alternantProfil.organizationId, orgId),
+        ),
+      );
+    if (!profil) throw new NotFoundException('Alternant introuvable');
+
+    const tuteurPedaUserId = await this.assertMemberInOrg(orgId, input.tuteurPedaUserId);
+    const tuteurEntrepriseUserId = await this.assertMemberInOrg(orgId, input.tuteurEntrepriseUserId);
+    const entrepriseId = await this.assertEntrepriseInOrg(orgId, input.entrepriseId);
+
+    const [existing] = await this.db
+      .select()
+      .from(schema.association)
+      .where(eq(schema.association.alternantProfilId, alternantProfilId));
+
+    if (existing) {
+      const [updated] = await this.db
+        .update(schema.association)
+        .set({
+          tuteurPedaUserId:
+            input.tuteurPedaUserId !== undefined ? tuteurPedaUserId : existing.tuteurPedaUserId,
+          tuteurEntrepriseUserId:
+            input.tuteurEntrepriseUserId !== undefined
+              ? tuteurEntrepriseUserId
+              : existing.tuteurEntrepriseUserId,
+          entrepriseId: input.entrepriseId !== undefined ? entrepriseId : existing.entrepriseId,
+        })
+        .where(eq(schema.association.id, existing.id))
+        .returning();
+      return updated;
+    }
+
+    const [created] = await this.db
+      .insert(schema.association)
+      .values({ alternantProfilId, tuteurPedaUserId, tuteurEntrepriseUserId, entrepriseId })
+      .returning();
+    return created;
+  }
+
+  private async assertPromotionInOrg(
+    orgId: string,
+    promotionId?: string | null,
+  ): Promise<string | null> {
+    if (!promotionId) return null;
+    const [promo] = await this.db
+      .select({ id: schema.promotion.id })
+      .from(schema.promotion)
+      .where(
+        and(eq(schema.promotion.id, promotionId), eq(schema.promotion.organizationId, orgId)),
+      );
+    if (!promo) throw new NotFoundException('Promotion introuvable');
+    return promotionId;
+  }
+
+  private async assertMemberInOrg(
+    orgId: string,
+    userId?: string | null,
+  ): Promise<string | null> {
+    if (!userId) return null;
+    const [member] = await this.db
+      .select({ id: schema.member.id })
+      .from(schema.member)
+      .where(and(eq(schema.member.organizationId, orgId), eq(schema.member.userId, userId)));
+    if (!member) throw new NotFoundException('Tuteur introuvable dans l’établissement');
+    return userId;
+  }
+
+  private async assertEntrepriseInOrg(
+    orgId: string,
+    entrepriseId?: string | null,
+  ): Promise<string | null> {
+    if (!entrepriseId) return null;
+    const [entreprise] = await this.db
+      .select({ id: schema.entreprise.id })
+      .from(schema.entreprise)
+      .where(
+        and(eq(schema.entreprise.id, entrepriseId), eq(schema.entreprise.organizationId, orgId)),
+      );
+    if (!entreprise) throw new NotFoundException('Entreprise introuvable');
+    return entrepriseId;
   }
 }

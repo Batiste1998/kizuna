@@ -1,7 +1,10 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { validateEnv } from './config/env.validation';
 import { DatabaseModule } from './database/database.module';
+import { MailModule } from './mail/mail.module';
 import { AccessModule } from './access/access.module';
 import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
@@ -25,7 +28,16 @@ import { HealthModule } from './health/health.module';
       envFilePath: ['../../.env'],
       validate: validateEnv,
     }),
+    // Global rate limiting (per IP). Relaxed in tests to keep the e2e suite green.
+    ThrottlerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        const isTest = config.get<string>('NODE_ENV') === 'test';
+        return { throttlers: [{ ttl: 60_000, limit: isTest ? 100_000 : 300 }] };
+      },
+    }),
     DatabaseModule,
+    MailModule,
     AccessModule,
     AdminModule,
     AuthModule,
@@ -41,5 +53,6 @@ import { HealthModule } from './health/health.module';
     SupportModule,
     HealthModule,
   ],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

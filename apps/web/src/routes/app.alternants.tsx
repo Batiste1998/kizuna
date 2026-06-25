@@ -57,7 +57,13 @@ function AlternantsPage() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h2 className="font-semibold">{a.name}</h2>
+                      <Link
+                        to="/app/alternants/$alternantId"
+                        params={{ alternantId: a.alternantProfilId }}
+                        className="font-semibold hover:text-brand hover:underline"
+                      >
+                        {a.name}
+                      </Link>
                       <p className="text-xs text-muted-foreground">{a.email}</p>
                     </div>
                     <span className="rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand-strong">

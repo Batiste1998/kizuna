@@ -74,7 +74,13 @@ function LoginPage() {
             </Button>
           </form>
 
-          <p className="mt-4 text-center text-xs text-muted-foreground">
+          <p className="mt-3 text-center text-xs">
+            <Link to="/forgot-password" className="text-brand hover:underline">
+              Mot de passe oublié ?
+            </Link>
+          </p>
+
+          <p className="mt-2 text-center text-xs text-muted-foreground">
             <Link to="/" className="hover:text-brand">
               ← Retour à l’accueil
             </Link>

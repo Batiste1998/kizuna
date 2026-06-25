@@ -1,155 +1,320 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { toast } from 'sonner';
-import { signOut, useSession } from '#/lib/auth-client';
-import { Button } from '#/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
-import { NotificationsBell } from '#/components/notifications-bell';
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { ArrowRight } from 'lucide-react';
+import {
+  api,
+  type AdminOverview,
+  type Bilan,
+  type Echeance,
+  type JournalEntry,
+  type PlatformOverview,
+  type TutorAlternant,
+} from '#/lib/api';
+import { useMe } from '#/lib/me-context';
+import { BILAN_STATUS_META, JOURNAL_STATUS_META } from '#/lib/levels';
+import { cn } from '#/lib/utils';
 
 export const Route = createFileRoute('/app/')({
   component: AppHome,
 });
 
-interface ApiMe {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-}
-
-const apiURL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
-
-const LINKS: Array<{ to: string; label: string }> = [
-  { to: '/app/competences', label: 'Mes compétences' },
-  { to: '/app/journal', label: 'Mon journal' },
-  { to: '/app/bilans', label: 'Mes bilans' },
-  { to: '/app/echeancier', label: 'Échéancier' },
-  { to: '/app/messagerie', label: 'Messagerie' },
-  { to: '/app/documents', label: 'Mes documents' },
-  { to: '/app/support', label: 'Support' },
-  { to: '/app/alternants', label: 'Mes alternants (tuteur)' },
-  { to: '/app/admin', label: 'Administration' },
-  { to: '/app/superadmin', label: 'Super admin' },
-];
-
 function AppHome() {
-  const { data: session, isPending } = useSession();
-  const navigate = useNavigate();
-  const [apiMe, setApiMe] = useState<ApiMe | null>(null);
-
-  useEffect(() => {
-    if (!isPending && !session) void navigate({ to: '/login' });
-  }, [isPending, session, navigate]);
-
-  useEffect(() => {
-    if (!session) return;
-    // Authenticated API consumption against the NestJS backend (Bloc 4).
-    fetch(`${apiURL}/me`, { credentials: 'include' })
-      .then((r) => (r.ok ? r.json() : null))
-      .then(setApiMe)
-      .catch(() => setApiMe(null));
-  }, [session]);
-
-  if (isPending) {
-    return (
-      <main className="grid min-h-screen place-items-center text-muted-foreground">
-        Chargement…
-      </main>
-    );
-  }
-  if (!session) return null;
-
-  const appRole = apiMe?.role ?? 'user';
-  const dataRole = appRole === 'super_admin' || appRole === 'support' ? appRole : undefined;
-
-  async function handleSignOut() {
-    await signOut();
-    toast.success('Déconnecté');
-    void navigate({ to: '/login' });
-  }
+  const me = useMe();
+  const isAdmin = me.memberRoles.some((r) => r === 'admin' || r === 'owner');
+  const isTutor = me.memberRoles.some((r) => r === 'tuteur_pedagogique' || r === 'tuteur_entreprise');
 
   return (
-    <main data-role={dataRole} className="min-h-screen">
-      <header className="border-b border-border bg-card/70 backdrop-blur">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar text-sm font-bold text-white">
-              K
-            </div>
-            <span className="font-semibold">Kizuna</span>
-            <span className="ml-2 inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand-strong">
-              <span className="h-1.5 w-1.5 rounded-full bg-brand" />
-              {appRole}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <NotificationsBell />
-            <Button variant="outline" size="sm" onClick={handleSignOut}>
-              Se déconnecter
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <section className="mx-auto max-w-4xl px-6 py-10">
+    <div className="mx-auto max-w-5xl space-y-8 px-6 py-8">
+      <div>
         <h1 className="text-2xl font-bold tracking-tight">
-          Bonjour {session.user.name?.split(' ')[0] ?? ''} 👋
+          Bonjour {me.name?.split(' ')[0] ?? ''} 👋
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Votre espace est en cours de construction. La session et l’API sécurisée fonctionnent.
+          Voici un aperçu de votre suivi d’alternance.
         </p>
+      </div>
 
-        <nav className="mt-5 flex flex-wrap gap-3">
-          {LINKS.map((l) => (
-            <Link
-              key={l.to}
-              to={l.to as '/app/competences'}
-              className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:border-brand"
-            >
-              {l.label} →
-            </Link>
-          ))}
-        </nav>
-
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Session (Better Auth)</CardTitle>
-              <CardDescription>État côté client</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-1 text-sm">
-              <Row label="Nom" value={session.user.name} />
-              <Row label="Email" value={session.user.email} />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">API /me (NestJS)</CardTitle>
-              <CardDescription>Appel authentifié au back-end</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-1 text-sm">
-              {apiMe ? (
-                <>
-                  <Row label="Rôle" value={apiMe.role} />
-                  <Row label="ID" value={<span className="font-mono text-xs">{apiMe.id}</span>} />
-                </>
-              ) : (
-                <span className="text-muted-foreground">Chargement…</span>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-    </main>
+      {me.isAlternant && <AlternantDashboard />}
+      {isTutor && <TutorDashboard />}
+      {isAdmin && <AdminDashboard />}
+      {me.role === 'super_admin' && <SuperDashboard />}
+    </div>
   );
 }
 
-function Row({ label, value }: { label: string; value: ReactNode }) {
+/* ---------- Alternant ---------- */
+
+function AlternantDashboard() {
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [nextBilan, setNextBilan] = useState<Bilan | null>(null);
+  const [nextEcheance, setNextEcheance] = useState<Echeance | null>(null);
+  const [lastEntry, setLastEntry] = useState<JournalEntry | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    api
+      .myAlternantProfile()
+      .then(async ({ alternantProfilId: id }) => {
+        const [competences, bilans, echeancier, journal] = await Promise.all([
+          api.getCompetences(id).catch(() => null),
+          api.getBilans(id).catch(() => null),
+          api.getEcheances(id).catch(() => null),
+          api.getJournal(id).catch(() => null),
+        ]);
+        if (!active) return;
+        if (competences) {
+          const all = competences.blocs.flatMap((b) => b.competences);
+          setProgress({
+            done: all.filter((c) => c.evaluations.auto && c.evaluations.auto !== 'NA').length,
+            total: all.length,
+          });
+        }
+        if (bilans) {
+          const upcoming = bilans.bilans
+            .filter((b) => b.status === 'planned')
+            .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
+          setNextBilan(upcoming[0] ?? null);
+        }
+        if (echeancier) {
+          const today = new Date().toISOString().slice(0, 10);
+          const upcoming = echeancier.echeances
+            .filter((e) => e.dueDate >= today)
+            .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+          setNextEcheance(upcoming[0] ?? null);
+        }
+        if (journal) setLastEntry(journal.entries[0] ?? null);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const pct = progress && progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
+
   return (
-    <div className="flex items-center justify-between gap-4">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium">{value}</span>
+    <Section title="Mon suivi">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <DashCard title="Auto-évaluation des compétences" to="/app/competences">
+          {progress ? (
+            <>
+              <div className="flex items-baseline justify-between">
+                <span className="text-2xl font-bold">{pct}%</span>
+                <span className="text-xs text-muted-foreground">
+                  {progress.done}/{progress.total} compétences
+                </span>
+              </div>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+                <div className="h-full rounded-full bg-brand" style={{ width: `${pct}%` }} />
+              </div>
+            </>
+          ) : (
+            <Muted>Chargement…</Muted>
+          )}
+        </DashCard>
+
+        <DashCard title="Prochain bilan" to="/app/bilans">
+          {nextBilan ? (
+            <div className="space-y-1">
+              <div className="font-medium">{nextBilan.label}</div>
+              <div className="flex items-center gap-2 text-xs">
+                <Badge meta={BILAN_STATUS_META[nextBilan.status]} />
+                <span className="text-muted-foreground">{formatDate(nextBilan.scheduledAt)}</span>
+              </div>
+            </div>
+          ) : (
+            <Muted>Aucun bilan planifié.</Muted>
+          )}
+        </DashCard>
+
+        <DashCard title="Prochaine échéance" to="/app/echeancier">
+          {nextEcheance ? (
+            <div className="space-y-1">
+              <div className="font-medium">{nextEcheance.title}</div>
+              <div className="text-xs text-muted-foreground">{formatDate(nextEcheance.dueDate)}</div>
+            </div>
+          ) : (
+            <Muted>Aucune échéance à venir.</Muted>
+          )}
+        </DashCard>
+
+        <DashCard title="Dernière entrée de journal" to="/app/journal">
+          {lastEntry ? (
+            <div className="space-y-1">
+              <div className="font-medium">{lastEntry.title}</div>
+              <Badge meta={JOURNAL_STATUS_META[lastEntry.status]} />
+            </div>
+          ) : (
+            <Muted>Aucune entrée pour le moment.</Muted>
+          )}
+        </DashCard>
+      </div>
+    </Section>
+  );
+}
+
+/* ---------- Tuteur ---------- */
+
+function TutorDashboard() {
+  const [alternants, setAlternants] = useState<TutorAlternant[] | null>(null);
+
+  useEffect(() => {
+    api
+      .getMyAlternants()
+      .then(setAlternants)
+      .catch(() => setAlternants([]));
+  }, []);
+
+  return (
+    <Section title="Mes alternants" action={{ to: '/app/alternants', label: 'Voir tout' }}>
+      {!alternants ? (
+        <Muted>Chargement…</Muted>
+      ) : alternants.length === 0 ? (
+        <Muted>Aucun alternant ne vous est rattaché.</Muted>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {alternants.slice(0, 4).map((a) => {
+            const pct =
+              a.progress.total > 0 ? Math.round((a.progress.evaluated / a.progress.total) * 100) : 0;
+            return (
+              <Link
+                key={a.alternantProfilId}
+                to="/app/alternants/$alternantId/competences"
+                params={{ alternantId: a.alternantProfilId }}
+                className="rounded-xl border border-border bg-card p-4 shadow-sm transition-colors hover:border-brand"
+              >
+                <div className="font-medium">{a.name}</div>
+                <div className="text-xs text-muted-foreground">{a.promotionName ?? '—'}</div>
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+                  <div className="h-full rounded-full bg-brand" style={{ width: `${pct}%` }} />
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">{pct}% évalué</div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </Section>
+  );
+}
+
+/* ---------- Admin établissement ---------- */
+
+function AdminDashboard() {
+  const [overview, setOverview] = useState<AdminOverview | null>(null);
+
+  useEffect(() => {
+    api
+      .adminOverview()
+      .then(setOverview)
+      .catch(() => undefined);
+  }, []);
+
+  if (!overview) return null;
+
+  return (
+    <Section
+      title={`Établissement · ${overview.organizationName}`}
+      action={{ to: '/app/admin', label: 'Administration' }}
+    >
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Kpi label="Alternants" value={overview.counts.alternants} />
+        <Kpi label="Membres" value={overview.counts.members} />
+        <Kpi label="Entreprises" value={overview.counts.entreprises} />
+        <Kpi label="Promotions" value={overview.counts.promotions} />
+      </div>
+    </Section>
+  );
+}
+
+/* ---------- Super admin ---------- */
+
+function SuperDashboard() {
+  const [overview, setOverview] = useState<PlatformOverview | null>(null);
+
+  useEffect(() => {
+    api
+      .superOverview()
+      .then(setOverview)
+      .catch(() => undefined);
+  }, []);
+
+  if (!overview) return null;
+
+  return (
+    <Section title="Plateforme" action={{ to: '/app/superadmin', label: 'Super admin' }}>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Kpi label="Écoles" value={overview.counts.organizations} />
+        <Kpi label="Utilisateurs" value={overview.counts.users} />
+        <Kpi label="Alternants" value={overview.counts.alternants} />
+        <Kpi label="Tickets ouverts" value={overview.counts.openTickets} />
+      </div>
+    </Section>
+  );
+}
+
+/* ---------- Shared bits ---------- */
+
+function Section({
+  title,
+  action,
+  children,
+}: {
+  title: string;
+  action?: { to: string; label: string };
+  children: ReactNode;
+}) {
+  return (
+    <section className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-bold tracking-tight">{title}</h2>
+        {action && (
+          <Link
+            to={action.to as '/app'}
+            className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline"
+          >
+            {action.label} <ArrowRight className="h-3 w-3" />
+          </Link>
+        )}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function DashCard({ title, to, children }: { title: string; to: string; children: ReactNode }) {
+  return (
+    <Link
+      to={to as '/app'}
+      className="block rounded-xl border border-border bg-card p-4 shadow-sm transition-colors hover:border-brand"
+    >
+      <div className="mb-2 text-xs font-semibold text-muted-foreground">{title}</div>
+      {children}
+    </Link>
+  );
+}
+
+function Kpi({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+      <div className="text-2xl font-bold tracking-tight">{value}</div>
+      <div className="text-xs text-muted-foreground">{label}</div>
     </div>
   );
+}
+
+function Badge({ meta }: { meta: { label: string; className: string } }) {
+  return (
+    <span className={cn('inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold', meta.className)}>
+      {meta.label}
+    </span>
+  );
+}
+
+function Muted({ children }: { children: ReactNode }) {
+  return <p className="text-sm text-muted-foreground">{children}</p>;
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('fr-FR', { dateStyle: 'medium' });
 }

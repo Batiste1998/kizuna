@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { Fragment, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { useSession } from '#/lib/auth-client';
@@ -14,6 +14,16 @@ import { Button } from '#/components/ui/button';
 import { Input } from '#/components/ui/input';
 import { Centered } from '#/components/shell';
 
+const MEMBER_ROLE_OPTIONS: Array<{ value: AdminMember['role']; label: string }> = [
+  { value: 'alternant', label: 'Alternant' },
+  { value: 'tuteur_pedagogique', label: 'Tuteur pédagogique' },
+  { value: 'tuteur_entreprise', label: "Tuteur d'entreprise" },
+  { value: 'admin', label: 'Administrateur' },
+];
+
+const selectClass =
+  'h-9 rounded-lg border border-input bg-card px-3 text-sm shadow-sm focus:border-brand focus:outline-none';
+
 export const Route = createFileRoute('/app/admin')({
   component: AdminPage,
 });
@@ -27,6 +37,7 @@ function AdminPage() {
   const [promotions, setPromotions] = useState<AdminPromotion[]>([]);
   const [members, setMembers] = useState<AdminMember[]>([]);
   const [forbidden, setForbidden] = useState(false);
+  const [editingAssoc, setEditingAssoc] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isPending && !session) void navigate({ to: '/login' });
@@ -44,6 +55,24 @@ function AdminPage() {
       .then(setPromotions)
       .catch(() => undefined);
   }
+  function reloadAlternants() {
+    api
+      .adminAlternants()
+      .then(setAlternants)
+      .catch(() => undefined);
+  }
+  function reloadMembers() {
+    api
+      .adminMembers()
+      .then(setMembers)
+      .catch(() => undefined);
+  }
+  function reloadOverview() {
+    api
+      .adminOverview()
+      .then(setOverview)
+      .catch(() => undefined);
+  }
 
   useEffect(() => {
     if (!session) return;
@@ -51,14 +80,8 @@ function AdminPage() {
       .adminOverview()
       .then((o) => {
         setOverview(o);
-        api
-          .adminAlternants()
-          .then(setAlternants)
-          .catch(() => undefined);
-        api
-          .adminMembers()
-          .then(setMembers)
-          .catch(() => undefined);
+        reloadAlternants();
+        reloadMembers();
         reloadEntreprises();
         reloadPromotions();
       })
@@ -102,6 +125,17 @@ function AdminPage() {
           <Kpi label="Promotions" value={overview.counts.promotions} />
         </div>
 
+        <Block title="Onboarding">
+          <MemberForm
+            promotions={promotions}
+            onCreated={() => {
+              reloadMembers();
+              reloadAlternants();
+              reloadOverview();
+            }}
+          />
+        </Block>
+
         <Block title="Alternants">
           <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
             <table className="w-full text-sm">
@@ -112,26 +146,61 @@ function AdminPage() {
                   <th className="px-4 py-2 font-semibold">Entreprise</th>
                   <th className="px-4 py-2 font-semibold">Tuteur péda.</th>
                   <th className="px-4 py-2 font-semibold">Tuteur entr.</th>
+                  <th className="px-4 py-2 font-semibold"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {alternants.map((a) => (
-                  <tr key={a.alternantProfilId}>
-                    <td className="px-4 py-2.5">
-                      <div className="font-medium">{a.name}</div>
-                      <div className="text-xs text-muted-foreground">{a.email}</div>
-                    </td>
-                    <td className="px-4 py-2.5 text-muted-foreground">{a.promotionName ?? '—'}</td>
-                    <td className="px-4 py-2.5 text-muted-foreground">{a.entrepriseName ?? '—'}</td>
-                    <td className="px-4 py-2.5 text-muted-foreground">{a.tuteurPedaName ?? '—'}</td>
-                    <td className="px-4 py-2.5 text-muted-foreground">
-                      {a.tuteurEntrepriseName ?? '—'}
-                    </td>
-                  </tr>
+                  <Fragment key={a.alternantProfilId}>
+                    <tr>
+                      <td className="px-4 py-2.5">
+                        <div className="font-medium">{a.name}</div>
+                        <div className="text-xs text-muted-foreground">{a.email}</div>
+                      </td>
+                      <td className="px-4 py-2.5 text-muted-foreground">{a.promotionName ?? '—'}</td>
+                      <td className="px-4 py-2.5 text-muted-foreground">
+                        {a.entrepriseName ?? '—'}
+                      </td>
+                      <td className="px-4 py-2.5 text-muted-foreground">
+                        {a.tuteurPedaName ?? '—'}
+                      </td>
+                      <td className="px-4 py-2.5 text-muted-foreground">
+                        {a.tuteurEntrepriseName ?? '—'}
+                      </td>
+                      <td className="px-4 py-2.5 text-right">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() =>
+                            setEditingAssoc((id) =>
+                              id === a.alternantProfilId ? null : a.alternantProfilId,
+                            )
+                          }
+                        >
+                          {editingAssoc === a.alternantProfilId ? 'Fermer' : 'Trinôme'}
+                        </Button>
+                      </td>
+                    </tr>
+                    {editingAssoc === a.alternantProfilId && (
+                      <tr>
+                        <td colSpan={6} className="bg-muted/40 px-4 py-3">
+                          <AssociationEditor
+                            members={members}
+                            entreprises={entreprises}
+                            onSaved={() => {
+                              setEditingAssoc(null);
+                              reloadAlternants();
+                            }}
+                            alternantProfilId={a.alternantProfilId}
+                          />
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
                 ))}
                 {alternants.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-4 py-6 text-center text-muted-foreground">
+                    <td colSpan={6} className="px-4 py-6 text-center text-muted-foreground">
                       Aucun alternant.
                     </td>
                   </tr>
@@ -272,6 +341,196 @@ function EntrepriseForm({ onCreated }: { onCreated: () => void }) {
         Ajouter
       </Button>
     </form>
+  );
+}
+
+function MemberForm({
+  promotions,
+  onCreated,
+}: {
+  promotions: AdminPromotion[];
+  onCreated: () => void;
+}) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [role, setRole] = useState<AdminMember['role']>('alternant');
+  const [promotionId, setPromotionId] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const created = await api.createAdminMember({
+        name,
+        email,
+        role: role as 'alternant',
+        promotionId: role === 'alternant' && promotionId ? promotionId : undefined,
+      });
+      setName('');
+      setEmail('');
+      setPromotionId('');
+      onCreated();
+      if (created.temporaryPassword) {
+        toast.success('Compte créé', {
+          description: `Mot de passe temporaire : ${created.temporaryPassword}`,
+          duration: 15000,
+        });
+      } else {
+        toast.success('Membre rattaché à l’établissement');
+      }
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-2 rounded-xl border border-border bg-card p-4 shadow-sm">
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Input
+          required
+          maxLength={200}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Nom complet"
+        />
+        <Input
+          required
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email"
+        />
+      </div>
+      <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto] sm:items-center">
+        <select
+          className={selectClass}
+          value={role}
+          onChange={(e) => setRole(e.target.value as AdminMember['role'])}
+        >
+          {MEMBER_ROLE_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+        {role === 'alternant' ? (
+          <select
+            className={selectClass}
+            value={promotionId}
+            onChange={(e) => setPromotionId(e.target.value)}
+          >
+            <option value="">Promotion (optionnel)</option>
+            {promotions.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <div />
+        )}
+        <Button type="submit" disabled={busy || !name || !email}>
+          Créer
+        </Button>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Le compte est créé avec un mot de passe temporaire à transmettre (l’envoi d’invitation par
+        email arrive prochainement).
+      </p>
+    </form>
+  );
+}
+
+function AssociationEditor({
+  alternantProfilId,
+  members,
+  entreprises,
+  onSaved,
+}: {
+  alternantProfilId: string;
+  members: AdminMember[];
+  entreprises: AdminEntreprise[];
+  onSaved: () => void;
+}) {
+  const pedaMembers = useMemo(
+    () => members.filter((m) => m.role === 'tuteur_pedagogique'),
+    [members],
+  );
+  const entrepriseMembers = useMemo(
+    () => members.filter((m) => m.role === 'tuteur_entreprise'),
+    [members],
+  );
+  const [tuteurPedaUserId, setTuteurPedaUserId] = useState('');
+  const [tuteurEntrepriseUserId, setTuteurEntrepriseUserId] = useState('');
+  const [entrepriseId, setEntrepriseId] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function save() {
+    setBusy(true);
+    try {
+      await api.upsertAdminAssociation(alternantProfilId, {
+        tuteurPedaUserId: tuteurPedaUserId || undefined,
+        tuteurEntrepriseUserId: tuteurEntrepriseUserId || undefined,
+        entrepriseId: entrepriseId || undefined,
+      });
+      toast.success('Trinôme mis à jour');
+      onSaved();
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="grid gap-2 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-center">
+      <select
+        className={selectClass}
+        value={tuteurPedaUserId}
+        onChange={(e) => setTuteurPedaUserId(e.target.value)}
+      >
+        <option value="">Tuteur pédagogique…</option>
+        {pedaMembers.map((m) => (
+          <option key={m.userId} value={m.userId}>
+            {m.name ?? m.email}
+          </option>
+        ))}
+      </select>
+      <select
+        className={selectClass}
+        value={tuteurEntrepriseUserId}
+        onChange={(e) => setTuteurEntrepriseUserId(e.target.value)}
+      >
+        <option value="">Tuteur d’entreprise…</option>
+        {entrepriseMembers.map((m) => (
+          <option key={m.userId} value={m.userId}>
+            {m.name ?? m.email}
+          </option>
+        ))}
+      </select>
+      <select
+        className={selectClass}
+        value={entrepriseId}
+        onChange={(e) => setEntrepriseId(e.target.value)}
+      >
+        <option value="">Entreprise…</option>
+        {entreprises.map((en) => (
+          <option key={en.id} value={en.id}>
+            {en.name}
+          </option>
+        ))}
+      </select>
+      <Button
+        size="sm"
+        onClick={save}
+        disabled={busy || (!tuteurPedaUserId && !tuteurEntrepriseUserId && !entrepriseId)}
+      >
+        Enregistrer
+      </Button>
+    </div>
   );
 }
 

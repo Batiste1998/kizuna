@@ -1,7 +1,22 @@
 const apiURL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
-export type CompetenceLevel = 'NA' | 'EC' | 'A' | 'M';
-export type EvaluatorRole = 'auto' | 'peda' | 'entreprise';
+// Domain enums & contracts shared with the API (single source of truth).
+export type {
+  CompetenceLevel,
+  EvaluatorRole,
+  JournalStatus,
+  BilanStatus,
+  MemberRole,
+  MeResponse,
+  MeResponse as Me,
+} from '@kizuna/shared';
+import type {
+  CompetenceLevel,
+  EvaluatorRole,
+  JournalStatus,
+  BilanStatus,
+  MeResponse as Me,
+} from '@kizuna/shared';
 
 export interface CompetenceView {
   id: string;
@@ -37,8 +52,6 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export type JournalStatus = 'pending' | 'validated' | 'changes_requested';
-
 export interface JournalEntry {
   id: string;
   title: string;
@@ -55,8 +68,6 @@ export interface JournalView {
   editableAs: EvaluatorRole | null;
   entries: JournalEntry[];
 }
-
-export type BilanStatus = 'planned' | 'done' | 'signed';
 
 export interface Bilan {
   id: string;
@@ -112,9 +123,26 @@ export interface AdminAlternant {
 
 export interface AdminMember {
   id: string;
+  userId: string;
   role: string;
   name: string | null;
   email: string | null;
+}
+
+export interface CreatedMember {
+  userId: string;
+  role: string;
+  alternantProfilId: string | null;
+  /** Present only when the account was just created (until email invites land). */
+  temporaryPassword: string | null;
+}
+
+export interface Association {
+  id: string;
+  alternantProfilId: string;
+  tuteurPedaUserId: string | null;
+  tuteurEntrepriseUserId: string | null;
+  entrepriseId: string | null;
 }
 
 export interface AdminEntreprise {
@@ -240,6 +268,7 @@ export interface TutorAlternant {
 }
 
 export const api = {
+  me: () => request<Me>('/me'),
   myAlternantProfile: () => request<{ alternantProfilId: string }>('/me/alternant'),
   getCompetences: (alternantProfilId: string) =>
     request<AlternantCompetences>(`/alternants/${alternantProfilId}/competences`),
@@ -324,6 +353,20 @@ export const api = {
   adminOverview: () => request<AdminOverview>('/admin/overview'),
   adminAlternants: () => request<AdminAlternant[]>('/admin/alternants'),
   adminMembers: () => request<AdminMember[]>('/admin/members'),
+  createAdminMember: (input: {
+    name: string;
+    email: string;
+    role: 'admin' | 'tuteur_pedagogique' | 'tuteur_entreprise' | 'alternant';
+    promotionId?: string;
+  }) => request<CreatedMember>('/admin/members', { method: 'POST', body: JSON.stringify(input) }),
+  upsertAdminAssociation: (
+    alternantProfilId: string,
+    input: { tuteurPedaUserId?: string; tuteurEntrepriseUserId?: string; entrepriseId?: string },
+  ) =>
+    request<Association>(`/admin/alternants/${alternantProfilId}/association`, {
+      method: 'PUT',
+      body: JSON.stringify(input),
+    }),
   adminEntreprises: () => request<AdminEntreprise[]>('/admin/entreprises'),
   createAdminEntreprise: (input: { name: string; sector?: string; city?: string }) =>
     request<AdminEntreprise>('/admin/entreprises', {

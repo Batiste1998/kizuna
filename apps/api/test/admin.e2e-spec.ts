@@ -67,8 +67,49 @@ describe('Espace Admin (e2e)', () => {
     expect(body.name).toBe('Promo Test 2026');
   });
 
+  it('onboards an alternant + tutors and builds the trinôme', async () => {
+    const admin = await agentFor('admin@kizuna.dev');
+
+    const { body: alt } = await admin
+      .post('/admin/members')
+      .send({ name: 'E2E Alternant', email: 'e2e.alt@kizuna.dev', role: 'alternant' })
+      .expect(201);
+    expect(alt.alternantProfilId).toBeTruthy();
+
+    const { body: peda } = await admin
+      .post('/admin/members')
+      .send({ name: 'E2E Peda', email: 'e2e.peda@kizuna.dev', role: 'tuteur_pedagogique' })
+      .expect(201);
+    const { body: entr } = await admin
+      .post('/admin/members')
+      .send({ name: 'E2E Entr', email: 'e2e.entr@kizuna.dev', role: 'tuteur_entreprise' })
+      .expect(201);
+
+    const { body: assoc } = await admin
+      .put(`/admin/alternants/${alt.alternantProfilId}/association`)
+      .send({ tuteurPedaUserId: peda.userId, tuteurEntrepriseUserId: entr.userId })
+      .expect(200);
+    expect(assoc.tuteurPedaUserId).toBe(peda.userId);
+
+    const { body: list } = await admin.get('/admin/alternants').expect(200);
+    const created = list.find((a: { email: string }) => a.email === 'e2e.alt@kizuna.dev');
+    expect(created?.tuteurPedaName).toBe('E2E Peda');
+  });
+
+  it('rejects an invalid member role (400)', async () => {
+    const admin = await agentFor('admin@kizuna.dev');
+    await admin
+      .post('/admin/members')
+      .send({ name: 'Bad', email: 'bad-role@kizuna.dev', role: 'wizard' })
+      .expect(400);
+  });
+
   it('forbids a non-admin from the admin space (403)', async () => {
     const alternant = await agentFor('alternant@kizuna.dev');
     await alternant.get('/admin/overview').expect(403);
+    await alternant
+      .post('/admin/members')
+      .send({ name: 'X', email: 'x@kizuna.dev', role: 'alternant' })
+      .expect(403);
   });
 });

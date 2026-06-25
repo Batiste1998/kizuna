@@ -1,9 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { AuthUser } from '../auth/auth.types';
 import { AdminService } from './admin.service';
-import { CreateEntrepriseDto, CreatePromotionDto } from './dto/admin.dto';
+import {
+  CreateEntrepriseDto,
+  CreateMemberDto,
+  CreatePromotionDto,
+  UpsertAssociationDto,
+} from './dto/admin.dto';
 
 @UseGuards(AuthGuard)
 @Controller('admin')
@@ -23,6 +28,20 @@ export class AdminController {
   @Get('members')
   members(@CurrentUser() user: AuthUser) {
     return this.service.listMembers(user);
+  }
+
+  @Post('members')
+  createMember(@CurrentUser() user: AuthUser, @Body() dto: CreateMemberDto) {
+    return this.service.createMember(user, dto);
+  }
+
+  @Put('alternants/:alternantProfilId/association')
+  upsertAssociation(
+    @CurrentUser() user: AuthUser,
+    @Param('alternantProfilId') alternantProfilId: string,
+    @Body() dto: UpsertAssociationDto,
+  ) {
+    return this.service.upsertAssociation(user, alternantProfilId, dto);
   }
 
   @Get('entreprises')

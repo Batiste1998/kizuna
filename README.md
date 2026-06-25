@@ -27,7 +27,7 @@ apps/
   web/        # TanStack Start — front SSR
 packages/
   db/         # schéma Drizzle + migrations + seed
-  shared/     # types & schémas Zod partagés (contrats API)
+  shared/     # contrats d'API partagés (enums & types front/back)
 maquettes/    # maquettes d'origine (.dc.html) — référence visuelle, hors build
 ```
 

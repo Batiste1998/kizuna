@@ -1,4 +1,15 @@
-import { IsInt, IsOptional, IsString, Max, MaxLength, Min, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  MaxLength,
+  Min,
+  MinLength,
+} from 'class-validator';
+import { CREATABLE_MEMBER_ROLES, type CreatableMemberRole } from '@kizuna/shared';
 
 export class CreateEntrepriseDto {
   @IsString()
@@ -36,4 +47,36 @@ export class CreatePromotionDto {
   @IsOptional()
   @IsString()
   periodEnd?: string;
+}
+
+export class CreateMemberDto {
+  @IsString()
+  @MinLength(1)
+  @MaxLength(200)
+  name!: string;
+
+  @IsEmail()
+  email!: string;
+
+  @IsIn(CREATABLE_MEMBER_ROLES)
+  role!: CreatableMemberRole;
+
+  /** Only used when role === 'alternant' (optional cohort assignment). */
+  @IsOptional()
+  @IsString()
+  promotionId?: string;
+}
+
+export class UpsertAssociationDto {
+  @IsOptional()
+  @IsString()
+  tuteurPedaUserId?: string;
+
+  @IsOptional()
+  @IsString()
+  tuteurEntrepriseUserId?: string;
+
+  @IsOptional()
+  @IsString()
+  entrepriseId?: string;
 }
