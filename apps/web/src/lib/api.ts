@@ -72,6 +72,20 @@ export interface BilansView {
   bilans: Bilan[];
 }
 
+export interface Echeance {
+  id: string;
+  title: string;
+  description: string | null;
+  dueDate: string;
+}
+
+export interface EcheancierView {
+  alternantProfilId: string;
+  promotionId: string | null;
+  canManage: boolean;
+  echeances: Echeance[];
+}
+
 export interface TutorAlternant {
   alternantProfilId: string;
   name: string;
@@ -118,4 +132,14 @@ export const api = {
     bilanId: string,
     input: { status?: BilanStatus; label?: string; scheduledAt?: string; summary?: string },
   ) => request<Bilan>(`/bilans/${bilanId}`, { method: 'PATCH', body: JSON.stringify(input) }),
+  getEcheances: (alternantProfilId: string) =>
+    request<EcheancierView>(`/alternants/${alternantProfilId}/echeances`),
+  createEcheance: (
+    alternantProfilId: string,
+    input: { title: string; dueDate: string; description?: string },
+  ) =>
+    request<Echeance>(`/alternants/${alternantProfilId}/echeances`, {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
 };

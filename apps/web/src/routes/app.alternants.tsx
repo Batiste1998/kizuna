@@ -104,6 +104,13 @@ function AlternantsPage() {
                     >
                       Bilans
                     </Link>
+                    <Link
+                      to="/app/alternants/$alternantId/echeancier"
+                      params={{ alternantId: a.alternantProfilId }}
+                      className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium hover:border-brand"
+                    >
+                      Échéancier
+                    </Link>
                   </div>
                 </div>
               );
