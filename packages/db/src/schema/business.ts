@@ -9,7 +9,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import { organization, user } from './auth';
-import { competenceLevel, evaluatorRole, journalStatus } from './enums';
+import { bilanStatus, competenceLevel, evaluatorRole, journalStatus } from './enums';
 
 /**
  * Business domain — foundation entities (Jalon 1).
@@ -164,6 +164,24 @@ export const journalEntry = pgTable('journal_entry', {
   reviewerUserId: text('reviewer_user_id').references(() => user.id, { onDelete: 'set null' }),
   reviewComment: text('review_comment'),
   reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Bilan tripartite : réunion alternant + tuteur pédagogique + tuteur d'entreprise,
+ * planifiée puis réalisée et signée.
+ */
+export const bilan = pgTable('bilan', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  alternantProfilId: uuid('alternant_profil_id')
+    .notNull()
+    .references(() => alternantProfil.id, { onDelete: 'cascade' }),
+  label: text('label').notNull(),
+  scheduledAt: timestamp('scheduled_at', { withTimezone: true }).notNull(),
+  status: bilanStatus('status').notNull().default('planned'),
+  summary: text('summary'),
+  createdByUserId: text('created_by_user_id').references(() => user.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });

@@ -3,6 +3,7 @@ import { member, organization, user } from './auth';
 import {
   alternantProfil,
   association,
+  bilan,
   bloc,
   competence,
   entreprise,
@@ -89,6 +90,14 @@ export const alternantProfilRelations = relations(alternantProfil, ({ one, many 
   association: one(association),
   evaluations: many(evaluation),
   journalEntries: many(journalEntry),
+  bilans: many(bilan),
+}));
+
+export const bilanRelations = relations(bilan, ({ one }) => ({
+  alternantProfil: one(alternantProfil, {
+    fields: [bilan.alternantProfilId],
+    references: [alternantProfil.id],
+  }),
 }));
 
 export const journalEntryRelations = relations(journalEntry, ({ one }) => ({

@@ -7,11 +7,17 @@ import type { AuthUser } from '../auth/auth.types';
 type AlternantProfil = typeof schema.alternantProfil.$inferSelect;
 type Association = typeof schema.association.$inferSelect;
 
+export type AlternantRelation = 'alternant' | 'peda' | 'entreprise' | 'admin' | 'platform';
+
 export interface AlternantAccess {
   profil: AlternantProfil;
   association: Association | null;
+  /** The user's relation to this apprentice. */
+  relation: AlternantRelation;
   /** Evaluator role the user may act as (auto/peda/entreprise), or null if read-only. */
   editableAs: EvaluatorRole | null;
+  /** True for tutors and establishment admins (may manage bilans, etc.). */
+  canManage: boolean;
 }
 
 /**
@@ -42,18 +48,36 @@ export class AccessService {
       .where(eq(schema.association.alternantProfilId, alternantProfilId));
 
     if (profil.userId === user.id)
-      return { profil, association: association ?? null, editableAs: 'auto' };
+      return {
+        profil,
+        association: association ?? null,
+        relation: 'alternant',
+        editableAs: 'auto',
+        canManage: false,
+      };
     if (association?.tuteurPedaUserId === user.id)
-      return { profil, association, editableAs: 'peda' };
+      return { profil, association, relation: 'peda', editableAs: 'peda', canManage: true };
     if (association?.tuteurEntrepriseUserId === user.id)
-      return { profil, association, editableAs: 'entreprise' };
+      return {
+        profil,
+        association,
+        relation: 'entreprise',
+        editableAs: 'entreprise',
+        canManage: true,
+      };
 
     // Platform roles read everything (no edit rights).
     if (user.role === 'super_admin' || user.role === 'support') {
-      return { profil, association: association ?? null, editableAs: null };
+      return {
+        profil,
+        association: association ?? null,
+        relation: 'platform',
+        editableAs: null,
+        canManage: false,
+      };
     }
 
-    // Establishment admins read their own org's apprentices.
+    // Establishment admins manage their own org's apprentices.
     const [membership] = await this.db
       .select()
       .from(schema.member)
@@ -64,7 +88,14 @@ export class AccessService {
           eq(schema.member.role, 'admin'),
         ),
       );
-    if (membership) return { profil, association: association ?? null, editableAs: null };
+    if (membership)
+      return {
+        profil,
+        association: association ?? null,
+        relation: 'admin',
+        editableAs: null,
+        canManage: true,
+      };
 
     throw new ForbiddenException('Accès non autorisé à cet alternant');
   }

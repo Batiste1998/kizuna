@@ -45,3 +45,10 @@ export const journalStatus = pgEnum('journal_status', [
 ]);
 export const JOURNAL_STATUSES = ['pending', 'validated', 'changes_requested'] as const;
 export type JournalStatus = (typeof JOURNAL_STATUSES)[number];
+
+/**
+ * Statut d'un bilan tripartite : planifié, réalisé, signé.
+ */
+export const bilanStatus = pgEnum('bilan_status', ['planned', 'done', 'signed']);
+export const BILAN_STATUSES = ['planned', 'done', 'signed'] as const;
+export type BilanStatus = (typeof BILAN_STATUSES)[number];
