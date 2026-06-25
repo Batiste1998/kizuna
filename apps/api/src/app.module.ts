@@ -4,6 +4,7 @@ import { validateEnv } from './config/env.validation';
 import { DatabaseModule } from './database/database.module';
 import { AccessModule } from './access/access.module';
 import { AuthModule } from './auth/auth.module';
+import { AlternantsModule } from './alternants/alternants.module';
 import { CompetencesModule } from './competences/competences.module';
 import { JournalModule } from './journal/journal.module';
 import { HealthModule } from './health/health.module';
@@ -19,6 +20,7 @@ import { HealthModule } from './health/health.module';
     DatabaseModule,
     AccessModule,
     AuthModule,
+    AlternantsModule,
     CompetencesModule,
     JournalModule,
     HealthModule,
