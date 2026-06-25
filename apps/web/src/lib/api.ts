@@ -56,6 +56,22 @@ export interface JournalView {
   entries: JournalEntry[];
 }
 
+export type BilanStatus = 'planned' | 'done' | 'signed';
+
+export interface Bilan {
+  id: string;
+  label: string;
+  scheduledAt: string;
+  status: BilanStatus;
+  summary: string | null;
+}
+
+export interface BilansView {
+  alternantProfilId: string;
+  canManage: boolean;
+  bilans: Bilan[];
+}
+
 export interface TutorAlternant {
   alternantProfilId: string;
   name: string;
@@ -91,4 +107,15 @@ export const api = {
       body: JSON.stringify(input),
     }),
   getMyAlternants: () => request<TutorAlternant[]>('/me/alternants'),
+  getBilans: (alternantProfilId: string) =>
+    request<BilansView>(`/alternants/${alternantProfilId}/bilans`),
+  createBilan: (alternantProfilId: string, input: { label: string; scheduledAt: string }) =>
+    request<Bilan>(`/alternants/${alternantProfilId}/bilans`, {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+  updateBilan: (
+    bilanId: string,
+    input: { status?: BilanStatus; label?: string; scheduledAt?: string; summary?: string },
+  ) => request<Bilan>(`/bilans/${bilanId}`, { method: 'PATCH', body: JSON.stringify(input) }),
 };
