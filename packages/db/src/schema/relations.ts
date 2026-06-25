@@ -1,0 +1,97 @@
+import { relations } from 'drizzle-orm';
+import { member, organization, user } from './auth';
+import {
+  alternantProfil,
+  association,
+  bloc,
+  competence,
+  entreprise,
+  promotion,
+  referentiel,
+} from './business';
+
+export const organizationRelations = relations(organization, ({ many }) => ({
+  members: many(member),
+  entreprises: many(entreprise),
+  promotions: many(promotion),
+  alternants: many(alternantProfil),
+}));
+
+export const memberRelations = relations(member, ({ one }) => ({
+  organization: one(organization, {
+    fields: [member.organizationId],
+    references: [organization.id],
+  }),
+  user: one(user, { fields: [member.userId], references: [user.id] }),
+}));
+
+export const entrepriseRelations = relations(entreprise, ({ one, many }) => ({
+  organization: one(organization, {
+    fields: [entreprise.organizationId],
+    references: [organization.id],
+  }),
+  associations: many(association),
+}));
+
+export const referentielRelations = relations(referentiel, ({ many }) => ({
+  blocs: many(bloc),
+  promotions: many(promotion),
+}));
+
+export const blocRelations = relations(bloc, ({ one, many }) => ({
+  referentiel: one(referentiel, {
+    fields: [bloc.referentielId],
+    references: [referentiel.id],
+  }),
+  competences: many(competence),
+}));
+
+export const competenceRelations = relations(competence, ({ one }) => ({
+  bloc: one(bloc, { fields: [competence.blocId], references: [bloc.id] }),
+}));
+
+export const promotionRelations = relations(promotion, ({ one, many }) => ({
+  organization: one(organization, {
+    fields: [promotion.organizationId],
+    references: [organization.id],
+  }),
+  referentiel: one(referentiel, {
+    fields: [promotion.referentielId],
+    references: [referentiel.id],
+  }),
+  alternants: many(alternantProfil),
+}));
+
+export const alternantProfilRelations = relations(alternantProfil, ({ one }) => ({
+  user: one(user, { fields: [alternantProfil.userId], references: [user.id] }),
+  organization: one(organization, {
+    fields: [alternantProfil.organizationId],
+    references: [organization.id],
+  }),
+  promotion: one(promotion, {
+    fields: [alternantProfil.promotionId],
+    references: [promotion.id],
+  }),
+  association: one(association),
+}));
+
+export const associationRelations = relations(association, ({ one }) => ({
+  alternantProfil: one(alternantProfil, {
+    fields: [association.alternantProfilId],
+    references: [alternantProfil.id],
+  }),
+  tuteurPeda: one(user, {
+    fields: [association.tuteurPedaUserId],
+    references: [user.id],
+    relationName: 'tuteurPeda',
+  }),
+  tuteurEntreprise: one(user, {
+    fields: [association.tuteurEntrepriseUserId],
+    references: [user.id],
+    relationName: 'tuteurEntreprise',
+  }),
+  entreprise: one(entreprise, {
+    fields: [association.entrepriseId],
+    references: [entreprise.id],
+  }),
+}));
