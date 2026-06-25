@@ -12,3 +12,7 @@ dist-ssr
 __unconfig*
 todos.json
 src/routeTree.gen.ts
+test-results
+playwright-report
+blob-report
+playwright/.cache

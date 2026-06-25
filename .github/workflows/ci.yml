@@ -87,3 +87,17 @@ jobs:
 
       - name: API e2e tests
         run: pnpm --filter @kizuna/api test:e2e
+
+      - name: Start API (background) for browser e2e
+        run: |
+          node apps/api/dist/main.js > /tmp/api.log 2>&1 &
+          for i in $(seq 1 30); do
+            [ "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3001/health)" = "200" ] && break
+            sleep 1
+          done
+
+      - name: Install Playwright browser
+        run: pnpm --filter @kizuna/web exec playwright install --with-deps chromium
+
+      - name: Web e2e tests (Playwright)
+        run: pnpm --filter @kizuna/web test:e2e
