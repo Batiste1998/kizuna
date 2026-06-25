@@ -1,12 +1,14 @@
 # syntax=docker/dockerfile:1
 
-# ─── Build stage : install + build @kizuna/db et @kizuna/api ───
+# ─── Build stage : install + build @kizuna/db, @kizuna/shared et @kizuna/api ───
 FROM node:22-slim AS build
 WORKDIR /app
 RUN corepack enable
 COPY . .
 RUN pnpm install --frozen-lockfile
-RUN pnpm --filter @kizuna/db build && pnpm --filter @kizuna/api build
+RUN pnpm --filter @kizuna/db build \
+  && pnpm --filter @kizuna/shared build \
+  && pnpm --filter @kizuna/api build
 
 # ─── Runtime ───────────────────────────────────────────────────
 FROM node:22-slim AS runtime
