@@ -72,6 +72,29 @@ export interface BilansView {
   bilans: Bilan[];
 }
 
+export interface PlatformOverview {
+  counts: { organizations: number; users: number; alternants: number; openTickets: number };
+}
+
+export interface SuperOrganization {
+  id: string;
+  name: string;
+  type: string | null;
+  city: string | null;
+  memberCount: number;
+  alternantCount: number;
+}
+
+export interface SuperUser {
+  id: string;
+  name: string | null;
+  email: string;
+  role: string;
+  banned: boolean;
+  orgCount: number;
+  memberRoles: string[];
+}
+
 export interface AdminOverview {
   organizationName: string;
   counts: { alternants: number; members: number; entreprises: number; promotions: number };
@@ -288,6 +311,16 @@ export const api = {
   },
   deleteDocument: (documentId: string) =>
     request<{ id: string }>(`/documents/${documentId}`, { method: 'DELETE' }),
+  superOverview: () => request<PlatformOverview>('/superadmin/overview'),
+  superOrganizations: () => request<SuperOrganization[]>('/superadmin/organizations'),
+  createSuperOrganization: (input: { name: string; type?: string; city?: string }) =>
+    request<SuperOrganization>('/superadmin/organizations', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+  superUsers: () => request<SuperUser[]>('/superadmin/users'),
+  updateSuperUser: (id: string, input: { banned?: boolean; role?: string }) =>
+    request<SuperUser>(`/superadmin/users/${id}`, { method: 'PATCH', body: JSON.stringify(input) }),
   adminOverview: () => request<AdminOverview>('/admin/overview'),
   adminAlternants: () => request<AdminAlternant[]>('/admin/alternants'),
   adminMembers: () => request<AdminMember[]>('/admin/members'),
