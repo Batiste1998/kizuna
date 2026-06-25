@@ -51,6 +51,29 @@ export const DOCUMENT_CATEGORY_LABELS: Record<
   autre: 'Autre',
 };
 
+export const TICKET_STATUS_META: Record<
+  'open' | 'in_progress' | 'resolved',
+  { label: string; className: string }
+> = {
+  open: { label: 'Ouvert', className: 'bg-[#F7EFDA] text-[#9A6B12]' },
+  in_progress: { label: 'En cours', className: 'bg-[#E8EEF7] text-[#3D5E8E]' },
+  resolved: { label: 'Résolu', className: 'bg-[#E4F2EC] text-[#2C7A63]' },
+};
+
+export const TICKET_PRIORITY_META: Record<
+  'basse' | 'moyenne' | 'haute',
+  { label: string; className: string }
+> = {
+  basse: { label: 'Basse', className: 'bg-[#EDEDE9] text-[#76766F]' },
+  moyenne: { label: 'Moyenne', className: 'bg-[#E8EEF7] text-[#3D5E8E]' },
+  haute: { label: 'Haute', className: 'bg-[#FBEBE3] text-[#B54F2C]' },
+};
+
+export const TICKET_TYPE_LABELS: Record<'bug' | 'demande', string> = {
+  bug: 'Bug',
+  demande: 'Demande',
+};
+
 export const EVALUATOR_LABELS: Record<EvaluatorRole, string> = {
   auto: 'Auto',
   peda: 'Tuteur péda.',

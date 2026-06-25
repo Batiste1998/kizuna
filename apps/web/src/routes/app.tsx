@@ -120,6 +120,12 @@ function AppPage() {
             Mes documents →
           </Link>
           <Link
+            to="/app/support"
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:border-brand"
+          >
+            Support →
+          </Link>
+          <Link
             to="/app/alternants"
             className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:border-brand"
           >

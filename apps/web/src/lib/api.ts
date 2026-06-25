@@ -72,6 +72,37 @@ export interface BilansView {
   bilans: Bilan[];
 }
 
+export type TicketType = 'bug' | 'demande';
+export type TicketPriority = 'basse' | 'moyenne' | 'haute';
+export type TicketStatus = 'open' | 'in_progress' | 'resolved';
+
+export interface TicketSummary {
+  id: string;
+  ref: string;
+  subject: string;
+  type: TicketType;
+  priority: TicketPriority;
+  status: TicketStatus;
+  requesterName: string | null;
+  assigneeName: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TicketMessage {
+  id: string;
+  body: string;
+  createdAt: string;
+  authorName: string | null;
+  authorIsSupport: boolean;
+}
+
+export interface TicketDetail {
+  canTriage: boolean;
+  ticket: TicketSummary;
+  messages: TicketMessage[];
+}
+
 export type DocumentCategory = 'convention' | 'livret' | 'compte_rendu' | 'bulletin' | 'autre';
 
 export interface DocumentItem {
@@ -203,6 +234,24 @@ export const api = {
   },
   deleteDocument: (documentId: string) =>
     request<{ id: string }>(`/documents/${documentId}`, { method: 'DELETE' }),
+  getTickets: () => request<{ canTriage: boolean; tickets: TicketSummary[] }>('/tickets'),
+  createTicket: (input: {
+    subject: string;
+    type: TicketType;
+    priority?: TicketPriority;
+    description: string;
+  }) => request<TicketSummary>('/tickets', { method: 'POST', body: JSON.stringify(input) }),
+  getTicket: (ticketId: string) => request<TicketDetail>(`/tickets/${ticketId}`),
+  replyTicket: (ticketId: string, body: string) =>
+    request<TicketMessage>(`/tickets/${ticketId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ body }),
+    }),
+  updateTicket: (ticketId: string, input: { status?: TicketStatus; assignToMe?: boolean }) =>
+    request<TicketSummary>(`/tickets/${ticketId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    }),
   downloadDocument: async (documentId: string, fileName: string) => {
     const res = await fetch(`${apiURL}/documents/${documentId}/download`, {
       credentials: 'include',
