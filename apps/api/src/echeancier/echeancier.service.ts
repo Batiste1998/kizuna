@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import { schema } from '@kizuna/db';
 import { DatabaseService } from '../database/database.service';
 import { AccessService } from '../access/access.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import type { AuthUser } from '../auth/auth.types';
 
 type Echeance = typeof schema.echeance.$inferSelect;
@@ -19,6 +20,7 @@ export class EcheancierService {
   constructor(
     private readonly database: DatabaseService,
     private readonly access: AccessService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   private get db() {
@@ -60,6 +62,16 @@ export class EcheancierService {
         createdByUserId: user.id,
       })
       .returning();
+
+    if (profil.userId !== user.id) {
+      await this.notifications.create({
+        userId: profil.userId,
+        type: 'echeance',
+        title: 'Nouvelle échéance',
+        detail: input.title,
+        href: '/app/echeancier',
+      });
+    }
     return created;
   }
 }

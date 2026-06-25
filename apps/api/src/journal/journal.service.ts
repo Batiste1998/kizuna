@@ -3,6 +3,7 @@ import { desc, eq } from 'drizzle-orm';
 import { schema, type EvaluatorRole, type JournalStatus } from '@kizuna/db';
 import { DatabaseService } from '../database/database.service';
 import { AccessService } from '../access/access.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import type { AuthUser } from '../auth/auth.types';
 
 export interface JournalEntryView {
@@ -28,6 +29,7 @@ export class JournalService {
   constructor(
     private readonly database: DatabaseService,
     private readonly access: AccessService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   private get db() {
@@ -105,6 +107,14 @@ export class JournalService {
         updatedAt: new Date(),
       })
       .where(eq(schema.journalEntry.id, entryId));
+
+    await this.notifications.create({
+      userId: entry.authorUserId,
+      type: 'journal',
+      title: input.status === 'validated' ? 'Entrée de journal validée' : 'Modifications demandées',
+      detail: entry.title,
+      href: '/app/journal',
+    });
 
     return { id: entryId, status: input.status };
   }

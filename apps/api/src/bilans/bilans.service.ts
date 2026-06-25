@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import { schema, type BilanStatus } from '@kizuna/db';
 import { DatabaseService } from '../database/database.service';
 import { AccessService } from '../access/access.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import type { AuthUser } from '../auth/auth.types';
 
 type Bilan = typeof schema.bilan.$inferSelect;
@@ -18,6 +19,7 @@ export class BilansService {
   constructor(
     private readonly database: DatabaseService,
     private readonly access: AccessService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   private get db() {
@@ -39,7 +41,7 @@ export class BilansService {
     alternantProfilId: string,
     input: { label: string; scheduledAt: string },
   ): Promise<Bilan> {
-    const { canManage } = await this.access.resolveAlternantAccess(user, alternantProfilId);
+    const { profil, canManage } = await this.access.resolveAlternantAccess(user, alternantProfilId);
     if (!canManage)
       throw new ForbiddenException('Seuls les tuteurs ou l’admin planifient un bilan');
 
@@ -52,6 +54,16 @@ export class BilansService {
         createdByUserId: user.id,
       })
       .returning();
+
+    if (profil.userId !== user.id) {
+      await this.notifications.create({
+        userId: profil.userId,
+        type: 'bilan',
+        title: 'Bilan planifié',
+        detail: input.label,
+        href: '/app/bilans',
+      });
+    }
     return created;
   }
 

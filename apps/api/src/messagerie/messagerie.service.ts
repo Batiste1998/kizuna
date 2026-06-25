@@ -3,6 +3,10 @@ import { eq } from 'drizzle-orm';
 import { schema } from '@kizuna/db';
 import { DatabaseService } from '../database/database.service';
 import { AccessService, type AlternantAccess } from '../access/access.service';
+import {
+  NotificationsService,
+  type NotificationInput,
+} from '../notifications/notifications.service';
 import type { AuthUser } from '../auth/auth.types';
 
 export type AuthorRelation = 'alternant' | 'peda' | 'entreprise' | 'other';
@@ -27,6 +31,7 @@ export class MessagerieService {
   constructor(
     private readonly database: DatabaseService,
     private readonly access: AccessService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   private get db() {
@@ -75,6 +80,23 @@ export class MessagerieService {
       .insert(schema.message)
       .values({ alternantProfilId, authorUserId: user.id, body })
       .returning();
+
+    // Notify the other trinôme members.
+    const tutorHref = `/app/alternants/${alternantProfilId}/messagerie`;
+    const recipients: NotificationInput[] = [
+      { userId: access.profil.userId, href: '/app/messagerie' },
+      { userId: access.association?.tuteurPedaUserId ?? '', href: tutorHref },
+      { userId: access.association?.tuteurEntrepriseUserId ?? '', href: tutorHref },
+    ]
+      .filter((r) => r.userId && r.userId !== user.id)
+      .map((r) => ({
+        userId: r.userId,
+        type: 'message' as const,
+        title: `Nouveau message de ${user.name}`,
+        detail: body.slice(0, 120),
+        href: r.href,
+      }));
+    await this.notifications.createMany(recipients);
 
     return {
       id: created.id,

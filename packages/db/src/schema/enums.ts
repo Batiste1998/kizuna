@@ -84,3 +84,22 @@ export type TicketPriority = (typeof TICKET_PRIORITIES)[number];
 export const ticketStatus = pgEnum('ticket_status', ['open', 'in_progress', 'resolved']);
 export const TICKET_STATUSES = ['open', 'in_progress', 'resolved'] as const;
 export type TicketStatus = (typeof TICKET_STATUSES)[number];
+
+/** Type d'une notification (sert d'icône/couleur côté front). */
+export const notificationType = pgEnum('notification_type', [
+  'journal',
+  'message',
+  'bilan',
+  'echeance',
+  'ticket',
+  'system',
+]);
+export const NOTIFICATION_TYPES = [
+  'journal',
+  'message',
+  'bilan',
+  'echeance',
+  'ticket',
+  'system',
+] as const;
+export type NotificationType = (typeof NOTIFICATION_TYPES)[number];

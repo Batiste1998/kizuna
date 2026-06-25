@@ -1,4 +1,5 @@
 import {
+  boolean,
   date,
   integer,
   pgTable,
@@ -16,6 +17,7 @@ import {
   documentCategory,
   evaluatorRole,
   journalStatus,
+  notificationType,
   ticketPriority,
   ticketStatus,
   ticketType,
@@ -226,6 +228,23 @@ export const message = pgTable('message', {
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' }),
   body: text('body').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Notification destinée à un utilisateur, émise par les événements métier
+ * (journal validé, nouveau message, bilan planifié, réponse support…).
+ */
+export const notification = pgTable('notification', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  type: notificationType('type').notNull(),
+  title: text('title').notNull(),
+  detail: text('detail'),
+  href: text('href'),
+  read: boolean('read').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 

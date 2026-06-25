@@ -11,6 +11,7 @@ import { DocumentsModule } from './documents/documents.module';
 import { EcheancierModule } from './echeancier/echeancier.module';
 import { JournalModule } from './journal/journal.module';
 import { MessagerieModule } from './messagerie/messagerie.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { SupportModule } from './support/support.module';
 import { HealthModule } from './health/health.module';
 
@@ -32,6 +33,7 @@ import { HealthModule } from './health/health.module';
     EcheancierModule,
     JournalModule,
     MessagerieModule,
+    NotificationsModule,
     SupportModule,
     HealthModule,
   ],

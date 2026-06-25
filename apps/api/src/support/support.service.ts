@@ -2,6 +2,7 @@ import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/commo
 import { desc, eq, inArray } from 'drizzle-orm';
 import { schema, type TicketPriority, type TicketStatus, type TicketType } from '@kizuna/db';
 import { DatabaseService } from '../database/database.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import type { AuthUser } from '../auth/auth.types';
 
 export interface TicketSummary {
@@ -29,7 +30,10 @@ type TicketRow = typeof schema.ticket.$inferSelect;
 
 @Injectable()
 export class SupportService {
-  constructor(private readonly database: DatabaseService) {}
+  constructor(
+    private readonly database: DatabaseService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   private get db() {
     return this.database.db;
@@ -154,6 +158,18 @@ export class SupportService {
       if (!row.assigneeUserId) patch.assigneeUserId = user.id;
     }
     await this.db.update(schema.ticket).set(patch).where(eq(schema.ticket.id, ticketId));
+
+    // Notify the other party of the reply.
+    const recipientId = this.canTriage(user) ? row.requesterUserId : row.assigneeUserId;
+    if (recipientId && recipientId !== user.id) {
+      await this.notifications.create({
+        userId: recipientId,
+        type: 'ticket',
+        title: `Réponse au ticket ${this.ref(row.number)}`,
+        detail: body.slice(0, 120),
+        href: `/app/support/${ticketId}`,
+      });
+    }
 
     return {
       id: created.id,
