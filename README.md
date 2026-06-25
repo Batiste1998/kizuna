@@ -49,17 +49,33 @@ pnpm install
 # 3. Base de données (PostgreSQL + Adminer sur http://localhost:8081)
 pnpm docker:up
 
-# 4. Migrations + données de démo
+# 4. Migrations + données de référence
 pnpm db:migrate
 pnpm db:seed
 
-# 5. Lancer API + Web
+# 5. Comptes de démo (1 par rôle) — nécessite l'API construite (pnpm --filter @kizuna/api build)
+pnpm --filter @kizuna/api seed:users
+
+# 6. Lancer API + Web
 pnpm dev
 ```
 
 - API : http://localhost:3001
 - Web : http://localhost:3000
 - Adminer : http://localhost:8081
+
+### Comptes de démo
+
+Tous avec le mot de passe `Password123!` :
+
+| Email                   | Rôle                |
+| ----------------------- | ------------------- |
+| `superadmin@kizuna.dev` | Super Admin         |
+| `support@kizuna.dev`    | Support             |
+| `admin@kizuna.dev`      | Administrateur      |
+| `peda@kizuna.dev`       | Tuteur pédagogique  |
+| `entreprise@kizuna.dev` | Tuteur d'entreprise |
+| `alternant@kizuna.dev`  | Alternant           |
 
 ## Scripts utiles
 

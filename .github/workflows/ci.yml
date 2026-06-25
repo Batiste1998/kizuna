@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: kizuna
+          POSTGRES_PASSWORD: kizuna
+          POSTGRES_DB: kizuna
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kizuna -d kizuna"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://kizuna:kizuna@localhost:5432/kizuna
+      API_PORT: '3001'
+      API_URL: http://localhost:3001
+      CORS_ORIGINS: http://localhost:3000
+      BETTER_AUTH_SECRET: ci-secret-please-change-32-characters-min
+      BETTER_AUTH_URL: http://localhost:3001
+      VITE_API_URL: http://localhost:3001
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.14.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Write .env for tooling
+        run: |
+          {
+            echo "DATABASE_URL=$DATABASE_URL"
+            echo "API_PORT=$API_PORT"
+            echo "API_URL=$API_URL"
+            echo "CORS_ORIGINS=$CORS_ORIGINS"
+            echo "BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET"
+            echo "BETTER_AUTH_URL=$BETTER_AUTH_URL"
+            echo "VITE_API_URL=$VITE_API_URL"
+          } > .env
+
+      - name: Build packages (db, api, web)
+        run: pnpm build
+
+      - name: Apply database migrations
+        run: pnpm db:migrate
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: API e2e tests
+        run: pnpm --filter @kizuna/api test:e2e
