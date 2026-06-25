@@ -1,4 +1,4 @@
-import type { CompetenceLevel, EvaluatorRole } from './api';
+import type { CompetenceLevel, EvaluatorRole, JournalStatus } from './api';
 
 /** Competence levels with their Kizuna badge colors (from the mockups). */
 export const LEVELS: Array<{
@@ -17,6 +17,12 @@ export const LEVEL_BY_KEY = Object.fromEntries(LEVELS.map((l) => [l.key, l])) as
   CompetenceLevel,
   (typeof LEVELS)[number]
 >;
+
+export const JOURNAL_STATUS_META: Record<JournalStatus, { label: string; className: string }> = {
+  pending: { label: 'En attente de validation', className: 'bg-[#F7EFDA] text-[#9A6B12]' },
+  validated: { label: 'Validé', className: 'bg-[#E4F2EC] text-[#2C7A63]' },
+  changes_requested: { label: 'Modifications demandées', className: 'bg-[#FBEBE3] text-[#B54F2C]' },
+};
 
 export const EVALUATOR_LABELS: Record<EvaluatorRole, string> = {
   auto: 'Auto',

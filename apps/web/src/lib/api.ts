@@ -37,6 +37,25 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+export type JournalStatus = 'pending' | 'validated' | 'changes_requested';
+
+export interface JournalEntry {
+  id: string;
+  title: string;
+  content: string;
+  status: JournalStatus;
+  reviewComment: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+  authorName: string | null;
+}
+
+export interface JournalView {
+  alternantProfilId: string;
+  editableAs: EvaluatorRole | null;
+  entries: JournalEntry[];
+}
+
 export const api = {
   myAlternantProfile: () => request<{ alternantProfilId: string }>('/me/alternant'),
   getCompetences: (alternantProfilId: string) =>
@@ -46,4 +65,11 @@ export const api = {
       `/alternants/${alternantProfilId}/competences/${competenceId}/evaluation`,
       { method: 'PUT', body: JSON.stringify({ level }) },
     ),
+  getJournal: (alternantProfilId: string) =>
+    request<JournalView>(`/alternants/${alternantProfilId}/journal`),
+  createJournalEntry: (alternantProfilId: string, input: { title: string; content: string }) =>
+    request<JournalEntry>(`/alternants/${alternantProfilId}/journal`, {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
 };

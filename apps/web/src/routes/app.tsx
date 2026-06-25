@@ -82,12 +82,18 @@ function AppPage() {
           Votre espace est en cours de construction. La session et l’API sécurisée fonctionnent.
         </p>
 
-        <nav className="mt-5">
+        <nav className="mt-5 flex flex-wrap gap-3">
           <Link
             to="/app/competences"
             className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:border-brand"
           >
             Mes compétences →
+          </Link>
+          <Link
+            to="/app/journal"
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:border-brand"
+          >
+            Mon journal →
           </Link>
         </nav>
 
