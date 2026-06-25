@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { AlternantsModule } from './alternants/alternants.module';
 import { BilansModule } from './bilans/bilans.module';
 import { CompetencesModule } from './competences/competences.module';
+import { DocumentsModule } from './documents/documents.module';
 import { EcheancierModule } from './echeancier/echeancier.module';
 import { JournalModule } from './journal/journal.module';
 import { MessagerieModule } from './messagerie/messagerie.module';
@@ -26,6 +27,7 @@ import { HealthModule } from './health/health.module';
     AlternantsModule,
     BilansModule,
     CompetencesModule,
+    DocumentsModule,
     EcheancierModule,
     JournalModule,
     MessagerieModule,

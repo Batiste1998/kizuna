@@ -52,3 +52,22 @@ export type JournalStatus = (typeof JOURNAL_STATUSES)[number];
 export const bilanStatus = pgEnum('bilan_status', ['planned', 'done', 'signed']);
 export const BILAN_STATUSES = ['planned', 'done', 'signed'] as const;
 export type BilanStatus = (typeof BILAN_STATUSES)[number];
+
+/**
+ * Catégorie d'un document de l'alternant.
+ */
+export const documentCategory = pgEnum('document_category', [
+  'convention',
+  'livret',
+  'compte_rendu',
+  'bulletin',
+  'autre',
+]);
+export const DOCUMENT_CATEGORIES = [
+  'convention',
+  'livret',
+  'compte_rendu',
+  'bulletin',
+  'autre',
+] as const;
+export type DocumentCategory = (typeof DOCUMENT_CATEGORIES)[number];

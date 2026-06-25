@@ -11,6 +11,8 @@ export const envSchema = z.object({
     .transform((value) => value.split(',').map((origin) => origin.trim())),
   BETTER_AUTH_SECRET: z.string().min(1).optional(),
   BETTER_AUTH_URL: z.url().optional(),
+  UPLOAD_DIR: z.string().default('var/uploads'),
+  MAX_UPLOAD_MB: z.coerce.number().int().positive().default(10),
 });
 
 export type Env = z.infer<typeof envSchema>;

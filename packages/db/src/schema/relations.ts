@@ -6,6 +6,7 @@ import {
   bilan,
   bloc,
   competence,
+  document,
   echeance,
   entreprise,
   evaluation,
@@ -102,6 +103,14 @@ export const alternantProfilRelations = relations(alternantProfil, ({ one, many 
   journalEntries: many(journalEntry),
   bilans: many(bilan),
   messages: many(message),
+  documents: many(document),
+}));
+
+export const documentRelations = relations(document, ({ one }) => ({
+  alternantProfil: one(alternantProfil, {
+    fields: [document.alternantProfilId],
+    references: [alternantProfil.id],
+  }),
 }));
 
 export const messageRelations = relations(message, ({ one }) => ({

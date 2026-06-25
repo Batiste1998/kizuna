@@ -9,7 +9,13 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import { organization, user } from './auth';
-import { bilanStatus, competenceLevel, evaluatorRole, journalStatus } from './enums';
+import {
+  bilanStatus,
+  competenceLevel,
+  documentCategory,
+  evaluatorRole,
+  journalStatus,
+} from './enums';
 
 /**
  * Business domain — foundation entities (Jalon 1).
@@ -216,5 +222,23 @@ export const message = pgTable('message', {
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' }),
   body: text('body').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Document de l'alternant (convention, livret, compte-rendu, bulletin…).
+ * Le fichier est stocké sur disque ; la table conserve les métadonnées.
+ */
+export const document = pgTable('document', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  alternantProfilId: uuid('alternant_profil_id')
+    .notNull()
+    .references(() => alternantProfil.id, { onDelete: 'cascade' }),
+  uploadedByUserId: text('uploaded_by_user_id').references(() => user.id, { onDelete: 'set null' }),
+  category: documentCategory('category').notNull().default('autre'),
+  originalName: text('original_name').notNull(),
+  storageKey: text('storage_key').notNull(),
+  mimeType: text('mime_type').notNull(),
+  sizeBytes: integer('size_bytes').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
