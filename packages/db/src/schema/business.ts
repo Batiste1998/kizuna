@@ -185,3 +185,20 @@ export const bilan = pgTable('bilan', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * Échéance : jalon / date butoir rattaché à une promotion (livrable, examen, bilan…),
+ * partagé par tous les alternants de la promotion.
+ */
+export const echeance = pgTable('echeance', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  promotionId: uuid('promotion_id')
+    .notNull()
+    .references(() => promotion.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  description: text('description'),
+  dueDate: timestamp('due_date', { withTimezone: true }).notNull(),
+  createdByUserId: text('created_by_user_id').references(() => user.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});

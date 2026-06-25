@@ -6,6 +6,7 @@ import {
   bilan,
   bloc,
   competence,
+  echeance,
   entreprise,
   evaluation,
   journalEntry,
@@ -75,6 +76,14 @@ export const promotionRelations = relations(promotion, ({ one, many }) => ({
     references: [referentiel.id],
   }),
   alternants: many(alternantProfil),
+  echeances: many(echeance),
+}));
+
+export const echeanceRelations = relations(echeance, ({ one }) => ({
+  promotion: one(promotion, {
+    fields: [echeance.promotionId],
+    references: [promotion.id],
+  }),
 }));
 
 export const alternantProfilRelations = relations(alternantProfil, ({ one, many }) => ({

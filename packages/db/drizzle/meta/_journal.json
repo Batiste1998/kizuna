@@ -29,6 +29,13 @@
       "when": 1782389613122,
       "tag": "0003_sour_silver_samurai",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1782389877200,
+      "tag": "0004_bouncy_korvac",
+      "breakpoints": true
     }
   ]
 }
