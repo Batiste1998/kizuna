@@ -15,6 +15,13 @@
       "when": 1782387966536,
       "tag": "0001_awesome_corsair",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782388442036,
+      "tag": "0002_chemical_may_parker",
+      "breakpoints": true
     }
   ]
 }

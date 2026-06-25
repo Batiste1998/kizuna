@@ -34,3 +34,14 @@ export type CompetenceLevel = (typeof COMPETENCE_LEVELS)[number];
 export const evaluatorRole = pgEnum('evaluator_role', ['auto', 'peda', 'entreprise']);
 export const EVALUATOR_ROLES = ['auto', 'peda', 'entreprise'] as const;
 export type EvaluatorRole = (typeof EVALUATOR_ROLES)[number];
+
+/**
+ * Status of a journal entry: en attente de validation, validé, ou modifications demandées.
+ */
+export const journalStatus = pgEnum('journal_status', [
+  'pending',
+  'validated',
+  'changes_requested',
+]);
+export const JOURNAL_STATUSES = ['pending', 'validated', 'changes_requested'] as const;
+export type JournalStatus = (typeof JOURNAL_STATUSES)[number];

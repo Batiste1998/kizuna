@@ -7,6 +7,7 @@ import {
   competence,
   entreprise,
   evaluation,
+  journalEntry,
   promotion,
   referentiel,
 } from './business';
@@ -87,6 +88,15 @@ export const alternantProfilRelations = relations(alternantProfil, ({ one, many 
   }),
   association: one(association),
   evaluations: many(evaluation),
+  journalEntries: many(journalEntry),
+}));
+
+export const journalEntryRelations = relations(journalEntry, ({ one }) => ({
+  alternantProfil: one(alternantProfil, {
+    fields: [journalEntry.alternantProfilId],
+    references: [alternantProfil.id],
+  }),
+  author: one(user, { fields: [journalEntry.authorUserId], references: [user.id] }),
 }));
 
 export const associationRelations = relations(association, ({ one }) => ({

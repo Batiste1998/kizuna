@@ -9,7 +9,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import { organization, user } from './auth';
-import { competenceLevel, evaluatorRole } from './enums';
+import { competenceLevel, evaluatorRole, journalStatus } from './enums';
 
 /**
  * Business domain — foundation entities (Jalon 1).
@@ -145,3 +145,25 @@ export const evaluation = pgTable(
   },
   (t) => [unique('evaluation_unique').on(t.alternantProfilId, t.competenceId, t.evaluator)],
 );
+
+/**
+ * Journal d'activités : entrées rédigées par l'alternant, validées par le tuteur
+ * d'entreprise (workflow pending → validated / changes_requested).
+ */
+export const journalEntry = pgTable('journal_entry', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  alternantProfilId: uuid('alternant_profil_id')
+    .notNull()
+    .references(() => alternantProfil.id, { onDelete: 'cascade' }),
+  authorUserId: text('author_user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  status: journalStatus('status').notNull().default('pending'),
+  reviewerUserId: text('reviewer_user_id').references(() => user.id, { onDelete: 'set null' }),
+  reviewComment: text('review_comment'),
+  reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
