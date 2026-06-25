@@ -135,6 +135,12 @@ function AppPage() {
           >
             Mes alternants (tuteur) →
           </Link>
+          <Link
+            to="/app/admin"
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:border-brand"
+          >
+            Administration →
+          </Link>
         </nav>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2">

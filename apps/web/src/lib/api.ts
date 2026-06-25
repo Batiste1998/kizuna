@@ -72,6 +72,43 @@ export interface BilansView {
   bilans: Bilan[];
 }
 
+export interface AdminOverview {
+  organizationName: string;
+  counts: { alternants: number; members: number; entreprises: number; promotions: number };
+}
+
+export interface AdminAlternant {
+  alternantProfilId: string;
+  name: string | null;
+  email: string | null;
+  promotionName: string | null;
+  entrepriseName: string | null;
+  tuteurPedaName: string | null;
+  tuteurEntrepriseName: string | null;
+}
+
+export interface AdminMember {
+  id: string;
+  role: string;
+  name: string | null;
+  email: string | null;
+}
+
+export interface AdminEntreprise {
+  id: string;
+  name: string;
+  sector: string | null;
+  city: string | null;
+}
+
+export interface AdminPromotion {
+  id: string;
+  name: string;
+  rncpLevel: number | null;
+  periodStart: string | null;
+  periodEnd: string | null;
+}
+
 export type NotificationType = 'journal' | 'message' | 'bilan' | 'echeance' | 'ticket' | 'system';
 
 export interface NotificationItem {
@@ -251,6 +288,25 @@ export const api = {
   },
   deleteDocument: (documentId: string) =>
     request<{ id: string }>(`/documents/${documentId}`, { method: 'DELETE' }),
+  adminOverview: () => request<AdminOverview>('/admin/overview'),
+  adminAlternants: () => request<AdminAlternant[]>('/admin/alternants'),
+  adminMembers: () => request<AdminMember[]>('/admin/members'),
+  adminEntreprises: () => request<AdminEntreprise[]>('/admin/entreprises'),
+  createAdminEntreprise: (input: { name: string; sector?: string; city?: string }) =>
+    request<AdminEntreprise>('/admin/entreprises', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+  deleteAdminEntreprise: (id: string) =>
+    request<{ id: string }>(`/admin/entreprises/${id}`, { method: 'DELETE' }),
+  adminPromotions: () => request<AdminPromotion[]>('/admin/promotions'),
+  createAdminPromotion: (input: {
+    name: string;
+    rncpLevel?: number;
+    periodStart?: string;
+    periodEnd?: string;
+  }) =>
+    request<AdminPromotion>('/admin/promotions', { method: 'POST', body: JSON.stringify(input) }),
   getNotifications: () => request<NotificationsList>('/notifications'),
   markNotificationRead: (id: string) =>
     request<{ ok: true }>(`/notifications/${id}/read`, { method: 'POST' }),
