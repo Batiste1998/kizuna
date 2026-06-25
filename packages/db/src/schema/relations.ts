@@ -14,6 +14,8 @@ import {
   message,
   promotion,
   referentiel,
+  ticket,
+  ticketMessage,
 } from './business';
 
 export const organizationRelations = relations(organization, ({ many }) => ({
@@ -111,6 +113,25 @@ export const documentRelations = relations(document, ({ one }) => ({
     fields: [document.alternantProfilId],
     references: [alternantProfil.id],
   }),
+}));
+
+export const ticketRelations = relations(ticket, ({ one, many }) => ({
+  requester: one(user, {
+    fields: [ticket.requesterUserId],
+    references: [user.id],
+    relationName: 'ticketRequester',
+  }),
+  assignee: one(user, {
+    fields: [ticket.assigneeUserId],
+    references: [user.id],
+    relationName: 'ticketAssignee',
+  }),
+  messages: many(ticketMessage),
+}));
+
+export const ticketMessageRelations = relations(ticketMessage, ({ one }) => ({
+  ticket: one(ticket, { fields: [ticketMessage.ticketId], references: [ticket.id] }),
+  author: one(user, { fields: [ticketMessage.authorUserId], references: [user.id] }),
 }));
 
 export const messageRelations = relations(message, ({ one }) => ({

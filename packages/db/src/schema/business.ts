@@ -2,6 +2,7 @@ import {
   date,
   integer,
   pgTable,
+  serial,
   smallint,
   text,
   timestamp,
@@ -15,6 +16,9 @@ import {
   documentCategory,
   evaluatorRole,
   journalStatus,
+  ticketPriority,
+  ticketStatus,
+  ticketType,
 } from './enums';
 
 /**
@@ -240,5 +244,36 @@ export const document = pgTable('document', {
   storageKey: text('storage_key').notNull(),
   mimeType: text('mime_type').notNull(),
   sizeBytes: integer('size_bytes').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Ticket de support (transverse, non lié au trinôme). Le `number` (séquence)
+ * donne la référence affichée KZ-####.
+ */
+export const ticket = pgTable('ticket', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  number: serial('number').notNull(),
+  subject: text('subject').notNull(),
+  type: ticketType('type').notNull(),
+  priority: ticketPriority('priority').notNull().default('moyenne'),
+  status: ticketStatus('status').notNull().default('open'),
+  requesterUserId: text('requester_user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  assigneeUserId: text('assignee_user_id').references(() => user.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const ticketMessage = pgTable('ticket_message', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  ticketId: uuid('ticket_id')
+    .notNull()
+    .references(() => ticket.id, { onDelete: 'cascade' }),
+  authorUserId: text('author_user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  body: text('body').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });

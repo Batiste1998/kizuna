@@ -71,3 +71,16 @@ export const DOCUMENT_CATEGORIES = [
   'autre',
 ] as const;
 export type DocumentCategory = (typeof DOCUMENT_CATEGORIES)[number];
+
+/** Tickets de support : type, priorité, statut. */
+export const ticketType = pgEnum('ticket_type', ['bug', 'demande']);
+export const TICKET_TYPES = ['bug', 'demande'] as const;
+export type TicketType = (typeof TICKET_TYPES)[number];
+
+export const ticketPriority = pgEnum('ticket_priority', ['basse', 'moyenne', 'haute']);
+export const TICKET_PRIORITIES = ['basse', 'moyenne', 'haute'] as const;
+export type TicketPriority = (typeof TICKET_PRIORITIES)[number];
+
+export const ticketStatus = pgEnum('ticket_status', ['open', 'in_progress', 'resolved']);
+export const TICKET_STATUSES = ['open', 'in_progress', 'resolved'] as const;
+export type TicketStatus = (typeof TICKET_STATUSES)[number];

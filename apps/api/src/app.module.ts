@@ -11,6 +11,7 @@ import { DocumentsModule } from './documents/documents.module';
 import { EcheancierModule } from './echeancier/echeancier.module';
 import { JournalModule } from './journal/journal.module';
 import { MessagerieModule } from './messagerie/messagerie.module';
+import { SupportModule } from './support/support.module';
 import { HealthModule } from './health/health.module';
 
 @Module({
@@ -31,6 +32,7 @@ import { HealthModule } from './health/health.module';
     EcheancierModule,
     JournalModule,
     MessagerieModule,
+    SupportModule,
     HealthModule,
   ],
 })
