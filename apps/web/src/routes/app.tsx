@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { signOut, useSession } from '#/lib/auth-client';
 import { Button } from '#/components/ui/button';
@@ -81,6 +81,15 @@ function AppPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           Votre espace est en cours de construction. La session et l’API sécurisée fonctionnent.
         </p>
+
+        <nav className="mt-5">
+          <Link
+            to="/app/competences"
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:border-brand"
+          >
+            Mes compétences →
+          </Link>
+        </nav>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <Card>
