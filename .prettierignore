@@ -1,0 +1,11 @@
+node_modules
+dist
+build
+.output
+.nitro
+.tanstack
+.turbo
+coverage
+pnpm-lock.yaml
+maquettes
+packages/db/drizzle

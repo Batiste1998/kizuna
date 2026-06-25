@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--accent:#2E9E82;--accent-strong:#1F7A63;--accent-soft:#E7F4EE;--brand:#15463B;--brand-muted:#A7C7BC;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Geist',-apple-system,system-ui,sans-serif;background:#F6F6F4;color:#1B1B19;-webkit-font-smoothing:antialiased;}
+  button{font-family:inherit;}
+  input{font-family:inherit;}
+  a{text-decoration:none;color:inherit;}
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-thumb{background:#DEDED8;border-radius:6px;border:2px solid #F6F6F4;}
+</style>
+</helmet>
+
+<div style="min-height:100vh;width:100%;display:flex;flex-direction:column">
+  <dc-import name="Accessibilite" hint-size="0,0"></dc-import>
+
+  <!-- ===================== PORTAIL ===================== -->
+  <sc-if value="{{ isPortal }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:1;min-height:100vh;background:#F6F6F4;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px">
+      <div style="display:flex;align-items:center;gap:11px;margin-bottom:8px">
+        <img src="uploads/logo.png" alt="Kizuna" style="width:54px;height:54px;object-fit:contain;margin:-7px 0" />
+        <span style="font-size:24px;font-weight:700;letter-spacing:-.02em">Kizuna</span>
+      </div>
+      <h1 style="font-size:24px;font-weight:700;letter-spacing:-.02em;margin:14px 0 6px;text-align:center">Bienvenue</h1>
+      <p style="font-size:14.5px;color:#76766F;margin:0 0 32px;text-align:center">Choisissez votre espace pour vous connecter.</p>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;width:100%;max-width:760px">
+        <sc-for list="{{ roleCards }}" as="r" hint-placeholder-count="6">
+          <button onClick="{{ r.onClick }}" style="{{ r.cardStyle }}" style-hover="border-color:{{ r.accent }};box-shadow:0 6px 22px rgba(0,0,0,.06);transform:translateY(-2px)">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="width:46px;height:46px;border-radius:12px;background:{{ r.soft }};color:{{ r.accent }};display:flex;align-items:center;justify-content:center">{{ r.icon }}</div>
+              <span style="display:flex;color:#CFCFC8">{{ icons.arrowRight }}</span>
+            </div>
+            <div style="font-size:16px;font-weight:600;margin-top:16px;letter-spacing:-.01em">{{ r.name }}</div>
+            <div style="font-size:12.5px;color:#86867F;margin-top:4px;line-height:1.45">{{ r.blurb }}</div>
+          </button>
+        </sc-for>
+      </div>
+      <div style="font-size:12.5px;color:#A8A89F;margin-top:30px">© 2026 Kizuna · Suivi de l'alternance</div>
+    </div>
+  </sc-if>
+
+  <!-- ===================== LOGIN — SPLIT (admin / tuteur péda / tuteur entreprise) ===================== -->
+  <sc-if value="{{ isSplitLogin }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;display:flex;min-height:100vh;flex-direction:{{ splitDir }}">
+      <div style="width:46%;max-width:560px;flex:none;background:var(--brand);color:#fff;padding:40px 46px;display:flex;flex-direction:column;position:relative;overflow:hidden">
+        <div style="position:absolute;top:-90px;right:-70px;width:280px;height:280px;border-radius:50%;background:rgba(255,255,255,.06)"></div>
+        <div style="position:absolute;bottom:-70px;left:-50px;width:210px;height:210px;border-radius:50%;background:rgba(255,255,255,.05)"></div>
+        <div style="display:flex;align-items:center;gap:10px;position:relative">
+          <img src="uploads/logo.png" alt="Kizuna" style="width:50px;height:50px;object-fit:contain;margin:-7px 0" />
+          <span style="font-size:19px;font-weight:700;letter-spacing:-.02em">Kizuna</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;max-width:380px">
+          <div style="display:inline-flex;align-items:center;gap:8px;align-self:flex-start;padding:6px 13px;border-radius:999px;background:rgba(255,255,255,.12);font-size:12.5px;font-weight:600">{{ roleIconLight }}{{ roleName }}</div>
+          <h2 style="font-size:29px;font-weight:700;line-height:1.2;letter-spacing:-.02em;margin:18px 0 0">{{ tagline }}</h2>
+          <p style="font-size:15px;line-height:1.6;color:var(--brand-muted);margin:16px 0 0">{{ blurb }}</p>
+        </div>
+        <div style="font-size:12.5px;color:var(--brand-muted);position:relative">© 2026 Kizuna</div>
+      </div>
+
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:40px 28px;min-width:0;background:#fff">
+        <div style="width:100%;max-width:384px">
+          <button onClick="{{ goPortal }}" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#9A9A93;font-weight:500;background:none;border:none;cursor:pointer;padding:0;margin-bottom:22px" style-hover="color:#1B1B19">{{ icons.arrowLeft }}Changer d'espace</button>
+          <h1 style="font-size:25px;font-weight:700;letter-spacing:-.02em;margin:0">Connexion</h1>
+          <p style="font-size:14px;color:#76766F;margin:8px 0 26px">{{ loginHint }}</p>
+
+          <label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:6px">Adresse email</label>
+          <div style="position:relative;margin-bottom:16px">
+            <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#A4A49C;display:flex">{{ icons.mail }}</span>
+            <input value="{{ form.email }}" onChange="{{ onEmail }}" placeholder="vous@email.fr" style="width:100%;padding:11px 13px 11px 40px;border:1px solid #E0E0DB;border-radius:10px;font-size:14px;background:#fff;outline:none;color:#1B1B19" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" />
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <label style="font-size:12.5px;font-weight:600;color:#44443F">Mot de passe</label>
+            <button onClick="{{ goForgot }}" style="font-size:12.5px;color:var(--accent-strong);font-weight:500;background:none;border:none;cursor:pointer;padding:0">Oublié ?</button>
+          </div>
+          <div style="position:relative;margin-bottom:22px">
+            <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#A4A49C;display:flex">{{ icons.lock }}</span>
+            <input value="{{ form.password }}" onChange="{{ onPassword }}" type="{{ pwdType }}" placeholder="••••••••" style="width:100%;padding:11px 42px 11px 40px;border:1px solid #E0E0DB;border-radius:10px;font-size:14px;background:#fff;outline:none;color:#1B1B19" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" />
+            <button onClick="{{ togglePwd }}" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:none;background:none;color:#9A9A93;display:flex;align-items:center;justify-content:center;cursor:pointer">{{ eyeIcon }}</button>
+          </div>
+          <button onClick="{{ submitLogin }}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:14.5px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.12)" style-hover="background:var(--accent-strong)">Se connecter{{ icons.arrowRight }}</button>
+          <div style="display:flex;align-items:center;gap:10px;font-size:12.5px;color:#A8A89F;margin-top:24px;padding-top:18px;border-top:1px solid #ECECE7;line-height:1.5">{{ icons.shield }}<span>Compte créé par votre établissement ? <button onClick="{{ goInviteEmail }}" style="color:var(--accent-strong);font-weight:600;background:none;border:none;cursor:pointer;padding:0;font-size:12.5px">Activez-le ici.</button></span></div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===================== LOGIN — CENTRÉ SOMBRE (super admin / support) ===================== -->
+  <sc-if value="{{ isCenteredLogin }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:100vh;background:var(--brand);display:flex;align-items:center;justify-content:center;padding:40px 24px;position:relative;overflow:hidden">
+      <div style="position:absolute;top:-120px;left:50%;transform:translateX(-50%);width:520px;height:380px;border-radius:50%;background:radial-gradient(circle,{{ glow }} 0%,transparent 70%)"></div>
+      <div style="width:100%;max-width:400px;position:relative">
+        <button onClick="{{ goPortal }}" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:rgba(255,255,255,.5);font-weight:500;background:none;border:none;cursor:pointer;padding:0;margin-bottom:22px" style-hover="color:#fff">{{ icons.arrowLeftLight }}Changer d'espace</button>
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:32px 30px;backdrop-filter:blur(8px)">
+          <div style="display:flex;align-items:center;gap:11px;margin-bottom:24px">
+            <div style="width:44px;height:44px;border-radius:12px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff">{{ roleIconLight }}</div>
+            <div><div style="font-size:16px;font-weight:700;color:#fff;letter-spacing:-.01em">{{ roleName }}</div><div style="font-size:12.5px;color:rgba(255,255,255,.5)">{{ tagline }}</div></div>
+          </div>
+
+          <label style="display:block;font-size:12.5px;font-weight:600;color:rgba(255,255,255,.8);margin-bottom:6px">Adresse email</label>
+          <div style="position:relative;margin-bottom:15px">
+            <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.4);display:flex">{{ icons.mail }}</span>
+            <input value="{{ form.email }}" onChange="{{ onEmail }}" placeholder="vous@kizuna.app" style="width:100%;padding:11px 13px 11px 40px;border:1px solid rgba(255,255,255,.14);border-radius:10px;font-size:14px;background:rgba(255,255,255,.06);outline:none;color:#fff" style-focus="border-color:var(--accent);background:rgba(255,255,255,.1)" />
+          </div>
+          <label style="display:block;font-size:12.5px;font-weight:600;color:rgba(255,255,255,.8);margin-bottom:6px">Mot de passe</label>
+          <div style="position:relative;margin-bottom:15px">
+            <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.4);display:flex">{{ icons.lock }}</span>
+            <input value="{{ form.password }}" onChange="{{ onPassword }}" type="{{ pwdType }}" placeholder="••••••••" style="width:100%;padding:11px 42px 11px 40px;border:1px solid rgba(255,255,255,.14);border-radius:10px;font-size:14px;background:rgba(255,255,255,.06);outline:none;color:#fff" style-focus="border-color:var(--accent);background:rgba(255,255,255,.1)" />
+            <button onClick="{{ togglePwd }}" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:none;background:none;color:rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;cursor:pointer">{{ eyeIcon }}</button>
+          </div>
+
+          <sc-if value="{{ showTwofa }}" hint-placeholder-val="{{ true }}">
+            <label style="display:block;font-size:12.5px;font-weight:600;color:rgba(255,255,255,.8);margin-bottom:6px">Code d'authentification (2FA)</label>
+            <div style="display:flex;gap:8px;margin-bottom:18px">
+              <sc-for list="{{ twofaBoxes }}" as="b" hint-placeholder-count="6"><input value="{{ b.val }}" placeholder="0" style="flex:1;text-align:center;padding:11px 0;border:1px solid rgba(255,255,255,.14);border-radius:9px;font-size:16px;font-weight:600;background:rgba(255,255,255,.06);outline:none;color:#fff;font-family:'Geist Mono',monospace" style-focus="border-color:var(--accent);background:rgba(255,255,255,.1)" /></sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ showAgentNote }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;gap:9px;padding:11px 13px;border-radius:10px;background:rgba(255,255,255,.05);margin-bottom:18px"><span style="display:flex;color:var(--accent)">{{ icons.lifebuoy }}</span><span style="font-size:12.5px;color:rgba(255,255,255,.7);line-height:1.45">Connexion à la console de traitement des tickets.</span></div>
+          </sc-if>
+
+          <button onClick="{{ submitLogin }}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:14.5px;font-weight:600;cursor:pointer" style-hover="background:var(--accent-strong)">Se connecter{{ icons.arrowRight }}</button>
+          <div style="display:flex;align-items:center;justify-content:center;gap:7px;font-size:12px;color:rgba(255,255,255,.4);margin-top:18px">{{ icons.shield }}Connexion sécurisée · accès restreint</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===================== LOGIN — WELCOME (alternant) ===================== -->
+  <sc-if value="{{ isWelcomeLogin }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:100vh;background:#F3EFE6;display:flex;align-items:center;justify-content:center;padding:40px 24px;position:relative;overflow:hidden">
+      <div style="position:absolute;top:8%;left:10%;width:130px;height:130px;border-radius:50%;background:var(--accent-soft);opacity:.6"></div>
+      <div style="position:absolute;bottom:10%;right:12%;width:90px;height:90px;border-radius:50%;background:var(--accent-soft);opacity:.5"></div>
+      <div style="width:100%;max-width:430px;position:relative">
+        <button onClick="{{ goPortal }}" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#9A9A93;font-weight:500;background:none;border:none;cursor:pointer;padding:0;margin-bottom:18px" style-hover="color:#1B1B19">{{ icons.arrowLeft }}Changer d'espace</button>
+        <div style="background:#fff;border:1px solid #EAE6DC;border-radius:22px;padding:34px 32px;box-shadow:0 14px 50px rgba(0,0,0,.07);text-align:center">
+          <div style="display:flex;flex-direction:column;align-items:center">
+            <img src="uploads/logo.png" alt="Kizuna" style="width:62px;height:62px;object-fit:contain" />
+            <h1 style="font-size:24px;font-weight:700;letter-spacing:-.02em;margin:14px 0 0">Bonjour 👋</h1>
+            <p style="font-size:14.5px;color:#76766F;margin:8px 0 26px;line-height:1.55">{{ blurb }}</p>
+          </div>
+          <div style="text-align:left">
+            <label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:6px">Adresse email</label>
+            <div style="position:relative;margin-bottom:15px">
+              <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#A4A49C;display:flex">{{ icons.mail }}</span>
+              <input value="{{ form.email }}" onChange="{{ onEmail }}" placeholder="vous@email.fr" style="width:100%;padding:12px 13px 12px 40px;border:1px solid #E6E2D8;border-radius:12px;font-size:14px;background:#FBFAF6;outline:none;color:#1B1B19" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);background:#fff" />
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+              <label style="font-size:12.5px;font-weight:600;color:#44443F">Mot de passe</label>
+              <button onClick="{{ goForgot }}" style="font-size:12.5px;color:var(--accent-strong);font-weight:500;background:none;border:none;cursor:pointer;padding:0">Oublié ?</button>
+            </div>
+            <div style="position:relative;margin-bottom:22px">
+              <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#A4A49C;display:flex">{{ icons.lock }}</span>
+              <input value="{{ form.password }}" onChange="{{ onPassword }}" type="{{ pwdType }}" placeholder="••••••••" style="width:100%;padding:12px 42px 12px 40px;border:1px solid #E6E2D8;border-radius:12px;font-size:14px;background:#FBFAF6;outline:none;color:#1B1B19" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);background:#fff" />
+              <button onClick="{{ togglePwd }}" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:none;background:none;color:#9A9A93;display:flex;align-items:center;justify-content:center;cursor:pointer">{{ eyeIcon }}</button>
+            </div>
+            <button onClick="{{ submitLogin }}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-size:14.5px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.12)" style-hover="background:var(--accent-strong)">Se connecter{{ icons.arrowRight }}</button>
+          </div>
+        </div>
+        <div style="text-align:center;font-size:13px;color:#86867F;margin-top:18px">Première connexion ? <button onClick="{{ goInviteEmail }}" style="color:var(--accent-strong);font-weight:600;background:none;border:none;cursor:pointer;padding:0;font-size:13px">Activez votre compte</button></div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===================== FORGOT (thémé, centré clair) ===================== -->
+  <sc-if value="{{ isForgot }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:100vh;background:#F6F6F4;display:flex;align-items:center;justify-content:center;padding:40px 24px">
+      <div style="width:100%;max-width:400px;background:#fff;border:1px solid #ECECE7;border-radius:18px;padding:30px 30px">
+        <button onClick="{{ goLogin }}" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#9A9A93;font-weight:500;background:none;border:none;cursor:pointer;padding:0;margin-bottom:20px" style-hover="color:#1B1B19">{{ icons.arrowLeft }}Retour</button>
+        <div style="width:46px;height:46px;border-radius:12px;background:var(--accent-soft);color:var(--accent-strong);display:flex;align-items:center;justify-content:center;margin-bottom:16px">{{ icons.lock }}</div>
+        <h1 style="font-size:22px;font-weight:700;letter-spacing:-.02em;margin:0">Mot de passe oublié</h1>
+        <p style="font-size:14px;color:#76766F;margin:8px 0 22px;line-height:1.55">Saisissez votre email, nous vous enverrons un lien de réinitialisation.</p>
+        <div style="position:relative;margin-bottom:20px">
+          <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#A4A49C;display:flex">{{ icons.mail }}</span>
+          <input value="{{ form.email }}" onChange="{{ onEmail }}" placeholder="vous@email.fr" style="width:100%;padding:11px 13px 11px 40px;border:1px solid #E0E0DB;border-radius:10px;font-size:14px;background:#fff;outline:none;color:#1B1B19" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" />
+        </div>
+        <button onClick="{{ goInviteEmail }}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:14.5px;font-weight:600;cursor:pointer" style-hover="background:var(--accent-strong)">Envoyer le lien{{ icons.arrowRight }}</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===================== EMAIL D'INVITATION (thémé) ===================== -->
+  <sc-if value="{{ isEmail }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:100vh;background:#EBEBE6;display:flex;align-items:center;justify-content:center;padding:40px 24px">
+      <div style="width:100%;max-width:560px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:9px;font-size:13px;color:#86867F">{{ icons.inbox }}Boîte de réception · Aperçu</div>
+          <button onClick="{{ goLogin }}" style="font-size:13px;color:#86867F;font-weight:500;background:none;border:none;cursor:pointer;padding:0" style-hover="color:#1B1B19">Fermer</button>
+        </div>
+        <div style="background:#fff;border:1px solid #E2E2DC;border-radius:16px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.07)">
+          <div style="padding:18px 24px;border-bottom:1px solid #F0F0EC">
+            <div style="font-size:17px;font-weight:700;letter-spacing:-.01em">Activez votre compte Kizuna</div>
+            <div style="display:flex;align-items:center;gap:9px;margin-top:11px">
+              <div style="width:34px;height:34px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;flex:none"><img src="uploads/logo.png" alt="K" style="width:24px;height:24px;object-fit:contain" /></div>
+              <div style="flex:1"><div style="font-size:13px;font-weight:600">Kizuna <span style="color:#A0A099;font-weight:400">&lt;noreply@kizuna.app&gt;</span></div><div style="font-size:12px;color:#A0A099">à {{ persona.email }}</div></div>
+            </div>
+          </div>
+          <div style="padding:26px 28px">
+            <p style="font-size:14.5px;line-height:1.6;margin:0 0 14px">Bonjour {{ persona.firstName }},</p>
+            <p style="font-size:14.5px;line-height:1.6;color:#44443F;margin:0 0 14px">{{ persona.org }} vous a créé un compte sur <strong style="font-weight:600">Kizuna</strong> en tant que <strong style="font-weight:600">{{ roleLower }}</strong>. Activez votre compte en définissant votre mot de passe.</p>
+            <div style="background:#FAFAF8;border:1px solid #EDEDE7;border-radius:11px;padding:13px 15px;margin:18px 0;display:flex;align-items:center;gap:11px">
+              <div style="width:36px;height:36px;border-radius:9px;background:var(--accent-soft);color:var(--accent-strong);display:flex;align-items:center;justify-content:center;flex:none">{{ icons.mail }}</div>
+              <div><div style="font-size:11px;color:#A0A099">Compte</div><div style="font-size:13.5px;font-weight:600">{{ persona.email }}</div></div>
+            </div>
+            <button onClick="{{ goActivate }}" style="display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:14.5px;font-weight:600;cursor:pointer" style-hover="background:var(--accent-strong)">Activer mon compte{{ icons.arrowRight }}</button>
+            <p style="font-size:12.5px;color:#A0A099;line-height:1.55;margin:20px 0 0">Ce lien est valable 7 jours. Si vous n'êtes pas concerné, ignorez cet email.</p>
+          </div>
+          <div style="padding:15px 28px;border-top:1px solid #F0F0EC;font-size:11.5px;color:#B0B0A8">Kizuna · La plateforme de suivi de l'alternance</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===================== ACTIVATION (thémé, centré clair) ===================== -->
+  <sc-if value="{{ isActivate }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:100vh;background:#F6F6F4;display:flex;align-items:center;justify-content:center;padding:40px 24px">
+      <div style="width:100%;max-width:404px;background:#fff;border:1px solid #ECECE7;border-radius:18px;padding:30px 30px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+          <img src="uploads/logo.png" alt="Kizuna" style="width:42px;height:42px;object-fit:contain;margin:-5px 0" />
+          <div style="display:inline-flex;align-items:center;gap:7px;padding:4px 11px;border-radius:999px;background:var(--accent-soft);color:var(--accent-strong);font-size:12px;font-weight:600">{{ roleIcon }}{{ roleName }}</div>
+        </div>
+        <h1 style="font-size:23px;font-weight:700;letter-spacing:-.02em;margin:0">Activez votre compte</h1>
+        <p style="font-size:14px;color:#76766F;margin:8px 0 20px;line-height:1.55">Définissez votre mot de passe pour finaliser la création de votre compte.</p>
+
+        <div style="display:flex;align-items:center;gap:11px;padding:12px 14px;border-radius:11px;background:#FAFAF8;border:1px solid #EDEDE7;margin-bottom:20px">
+          <div style="width:38px;height:38px;border-radius:50%;background:var(--accent-soft);color:var(--accent-strong);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex:none">{{ persona.initials }}</div>
+          <div style="min-width:0"><div style="font-size:13.5px;font-weight:600">{{ persona.name }}</div><div style="font-size:12px;color:#9A9A93;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ persona.email }}</div></div>
+        </div>
+
+        <label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:6px">Nouveau mot de passe</label>
+        <div style="position:relative;margin-bottom:12px">
+          <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#A4A49C;display:flex">{{ icons.lock }}</span>
+          <input value="{{ form.password }}" onChange="{{ onPassword }}" type="{{ pwdType }}" placeholder="Choisissez un mot de passe" style="width:100%;padding:11px 42px 11px 40px;border:1px solid #E0E0DB;border-radius:10px;font-size:14px;background:#fff;outline:none;color:#1B1B19" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" />
+          <button onClick="{{ togglePwd }}" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:none;background:none;color:#9A9A93;display:flex;align-items:center;justify-content:center;cursor:pointer">{{ eyeIcon }}</button>
+        </div>
+        <div style="display:flex;gap:5px;margin-bottom:10px">
+          <sc-for list="{{ strengthSegments }}" as="s" hint-placeholder-count="4"><div style="flex:1;height:5px;border-radius:999px;background:{{ s.color }}"></div></sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:18px">
+          <sc-for list="{{ requirements }}" as="r" hint-placeholder-count="3"><div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:{{ r.color }}"><span style="display:flex">{{ r.icon }}</span>{{ r.label }}</div></sc-for>
+        </div>
+        <label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:6px">Confirmer le mot de passe</label>
+        <div style="position:relative;margin-bottom:8px">
+          <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#A4A49C;display:flex">{{ icons.lock }}</span>
+          <input value="{{ form.password2 }}" onChange="{{ onPassword2 }}" type="{{ pwdType }}" placeholder="Retapez le mot de passe" style="width:100%;padding:11px 13px 11px 40px;border:1px solid {{ confirmBorder }};border-radius:10px;font-size:14px;background:#fff;outline:none;color:#1B1B19" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" />
+        </div>
+        <sc-if value="{{ showMismatch }}" hint-placeholder-val="{{ false }}"><div style="font-size:12px;color:#B5432A;margin-bottom:8px">Les mots de passe ne correspondent pas.</div></sc-if>
+        <div style="height:14px"></div>
+        <button onClick="{{ submitActivate }}" style="{{ setBtnStyle }}">Activer mon compte{{ icons.arrowRight }}</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===================== SUCCÈS (thémé) ===================== -->
+  <sc-if value="{{ isSuccess }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:100vh;background:#F6F6F4;display:flex;align-items:center;justify-content:center;padding:40px 24px">
+      <div style="width:100%;max-width:404px;background:#fff;border:1px solid #ECECE7;border-radius:18px;padding:38px 32px;text-align:center">
+        <div style="width:64px;height:64px;border-radius:50%;background:var(--accent-soft);color:var(--accent-strong);display:flex;align-items:center;justify-content:center;margin:0 auto 20px">{{ icons.checkBig }}</div>
+        <h1 style="font-size:24px;font-weight:700;letter-spacing:-.02em;margin:0">{{ successTitle }}</h1>
+        <p style="font-size:14px;color:#76766F;margin:10px 0 26px;line-height:1.55">{{ successSubtitle }}</p>
+        <a href="{{ persona.space }}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:14.5px;font-weight:600;cursor:pointer" style-hover="background:var(--accent-strong)">{{ persona.spaceLabel }}{{ icons.arrowRight }}</a>
+        <button onClick="{{ goPortal }}" style="font-size:13px;color:#76766F;font-weight:500;background:none;border:none;cursor:pointer;padding:0;margin-top:18px" style-hover="color:#1B1B19">Revenir au portail</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===================== SÉLECTEUR D'ÉCRANS (démo) ===================== -->
+  <div style="position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border:1px solid #E2E2DC;border-radius:999px;padding:6px 8px 6px 14px;box-shadow:0 8px 30px rgba(0,0,0,.14)">
+    <span style="font-size:11px;font-weight:600;color:#A8A89F;letter-spacing:.04em">APERÇU</span>
+    <div style="width:1px;height:18px;background:#E2E2DC"></div>
+    <div style="display:flex;gap:3px">
+      <sc-for list="{{ screenChips }}" as="c" hint-placeholder-count="6"><button onClick="{{ c.onClick }}" style="{{ c.style }}">{{ c.label }}</button></sc-for>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+class Component extends DCLogic {
+  state = {
+    screen: 'portal',
+    role: 'Alternant',
+    successMode: 'login',
+    showPwd: false,
+    form: { email: '', password: '', password2: '' }
+  };
+
+  roleConfig = {
+    'Super administrateur': { layout: 'centered', accent: '#4F7CF0', strong: '#3B63CC', soft: '#E7ECFB', brand: '#14161C', muted: '#8A8FA0', icon: 'shield', tagline: 'Console de super administration', blurb: 'Gérez les écoles, les comptes et la plateforme Kizuna.', persona: { name: 'Super admin', firstName: 'Super', email: 'admin@kizuna.app', org: 'Kizuna', space: 'Super Admin - Utilisateurs.dc.html', spaceLabel: 'Accéder à la console' }, twofa: true },
+    'Administrateur': { layout: 'split', side: 'left', accent: '#3F6FB0', strong: '#2E5288', soft: '#E8EFF8', brand: '#1E3A5F', muted: '#9DB4D0', icon: 'building', tagline: "Pilotez vos écoles et vos alternants.", blurb: 'Gérez les comptes, les associations et les promotions de vos établissements.', persona: { name: 'Camille Moreau', firstName: 'Camille', email: 'camille.moreau@hetic.fr', org: 'HETIC', space: 'Espace Administrateur.dc.html', spaceLabel: 'Accéder à mon espace' } },
+    'Tuteur pédagogique': { layout: 'split', side: 'left', accent: '#2E9E82', strong: '#1F7A63', soft: '#E7F4EE', brand: '#15463B', muted: '#A7C7BC', icon: 'cap', tagline: 'Suivez la progression de vos alternants.', blurb: 'Évaluez les compétences, planifiez les bilans, gardez le lien avec l’entreprise.', persona: { name: 'Julien Mercier', firstName: 'Julien', email: 'j.mercier@epitech.eu', org: 'EPITECH Paris', space: 'Espace Tuteur.dc.html', spaceLabel: 'Accéder à mon espace' } },
+    "Tuteur d'entreprise": { layout: 'split', side: 'right', accent: '#E06A41', strong: '#B54F2C', soft: '#FBEADF', brand: '#5A3526', muted: '#C9A491', icon: 'briefcase', tagline: 'Encadrez votre alternant au quotidien.', blurb: 'Évaluez ses missions, validez son journal d’activités et participez aux bilans.', persona: { name: 'Marc Dubois', firstName: 'Marc', email: 'm.dubois@capgemini.com', org: 'Capgemini', space: 'Espace Tuteur.dc.html', spaceLabel: 'Accéder à mon espace' } },
+    'Alternant': { layout: 'welcome', accent: '#2E9E82', strong: '#1F7A63', soft: '#E7F4EE', brand: '#15463B', muted: '#A7C7BC', icon: 'user', tagline: 'Votre alternance, suivie pas à pas.', blurb: 'Suivez vos compétences, votre journal et vos bilans, au même endroit.', persona: { name: 'Lucas Girard', firstName: 'Lucas', email: 'lucas.girard@epitech.eu', org: 'EPITECH Paris', space: 'Espace Alternant.dc.html', spaceLabel: 'Accéder à mon espace' } },
+    'Support': { layout: 'centered', accent: '#6B5BD2', strong: '#4F40B0', soft: '#ECE9FB', brand: '#1B2230', muted: '#8E94A8', icon: 'lifebuoy', tagline: 'Centre de support Kizuna', blurb: 'Traitez les demandes et les bugs remontés par les utilisateurs.', persona: { name: 'Karim Haddad', firstName: 'Karim', email: 'k.haddad@kizuna.app', org: 'Kizuna', space: 'Super Admin - Utilisateurs.dc.html', spaceLabel: 'Accéder à la console support' }, agent: true }
+  };
+  roleOrder = ['Administrateur', 'Tuteur pédagogique', "Tuteur d'entreprise", 'Alternant', 'Support', 'Super administrateur'];
+
+  componentDidMount() { this.applyTheme(); this.prefill(); }
+  componentDidUpdate() { this.applyTheme(); }
+  cfg() { return this.roleConfig[this.state.role] || this.roleConfig['Alternant']; }
+  applyTheme() {
+    const c = this.cfg();
+    const r = document.documentElement;
+    r.style.setProperty('--accent', c.accent); r.style.setProperty('--accent-strong', c.strong); r.style.setProperty('--accent-soft', c.soft);
+    r.style.setProperty('--brand', c.brand); r.style.setProperty('--brand-muted', c.muted);
+  }
+  prefill() { this.setState(s => ({ form: { ...s.form, email: this.cfg().persona.email } })); }
+
+  selectRole(role) { this.setState({ role, screen: 'login', form: { email: this.roleConfig[role].persona.email, password: '', password2: '' }, showPwd: false }); }
+  setScreen(scr, mode) { this.setState(s => ({ screen: scr, successMode: mode || s.successMode, form: { ...s.form, password: '', password2: '' }, showPwd: false })); }
+  setField(k, v) { this.setState(s => ({ form: { ...s.form, [k]: v } })); }
+  togglePwd() { this.setState(s => ({ showPwd: !s.showPwd })); }
+
+  strengthInfo() {
+    const p = this.state.form.password;
+    const reqs = [
+      { label: 'Au moins 8 caractères', ok: p.length >= 8 },
+      { label: 'Une lettre majuscule', ok: /[A-Z]/.test(p) },
+      { label: 'Un chiffre', ok: /[0-9]/.test(p) }
+    ];
+    const met = reqs.filter(r => r.ok).length;
+    let score = 0;
+    if (p.length > 0) score = Math.min(met + (p.length >= 12 && met === 3 ? 1 : 0), 4);
+    return { reqs, met, score, allOk: met === 3 };
+  }
+
+  renderVals() {
+    const st = this.state;
+    const icons = this.buildIcons();
+    const c = this.cfg();
+    const screen = st.screen;
+    const persona = c.persona;
+
+    const iconFor = (k) => ({ shield: icons.shield, building: icons.building, cap: icons.cap, briefcase: icons.briefcase, user: icons.user, lifebuoy: icons.lifebuoy }[k] || icons.user);
+    const iconForLight = (k) => ({ shield: icons.shieldL, building: icons.buildingL, cap: icons.capL, briefcase: icons.briefcaseL, user: icons.userL, lifebuoy: icons.lifebuoyL }[k] || icons.userL);
+
+    // portal cards
+    const roleCards = this.roleOrder.map(role => {
+      const rc = this.roleConfig[role];
+      return { name: role, blurb: rc.tagline, accent: rc.accent, soft: rc.soft, icon: iconFor(rc.icon),
+        onClick: () => this.selectRole(role),
+        cardStyle: 'text-align:left;background:#fff;border:1px solid #E6E6E1;border-radius:16px;padding:18px;cursor:pointer;transition:transform .14s ease,box-shadow .14s ease,border-color .14s ease;display:flex;flex-direction:column' };
+    });
+
+    // login layout flags
+    const isPortal = screen === 'portal';
+    const isLoginScreen = screen === 'login';
+    const isSplitLogin = isLoginScreen && c.layout === 'split';
+    const isCenteredLogin = isLoginScreen && c.layout === 'centered';
+    const isWelcomeLogin = isLoginScreen && c.layout === 'welcome';
+
+    // strength
+    const si = this.strengthInfo();
+    const strengthColors = ['#E0A93B', '#E0A93B', '#3FA98C', '#1F7A63'];
+    const strengthSegments = [0, 1, 2, 3].map(i => ({ color: i < si.score ? strengthColors[si.score - 1] : '#ECECE7' }));
+    const requirements = si.reqs.map(r => ({ label: r.label, color: r.ok ? '#1F7A63' : '#A8A89F', icon: r.ok ? icons.checkSm : icons.dot }));
+    const pwdsMatch = st.form.password.length > 0 && st.form.password === st.form.password2;
+    const showMismatch = st.form.password2.length > 0 && !pwdsMatch;
+    const canSet = si.allOk && pwdsMatch;
+
+    const successByMode = {
+      login: { title: 'Connexion réussie', sub: 'Bienvenue ' + persona.firstName + ', vous allez accéder à votre espace.' },
+      activate: { title: 'Compte activé 🎉', sub: 'Votre mot de passe est défini. Votre compte est maintenant actif.' }
+    };
+    const scc = successByMode[st.successMode] || successByMode.login;
+
+    // screen picker
+    const chipDefs = [['portal', 'Portail'], ['login', 'Connexion'], ['forgot', 'Oubli'], ['invite-email', 'Email'], ['activate', 'Activation'], ['success', 'Succès']];
+    const screenChips = chipDefs.map(([k, label]) => {
+      const a = k === screen;
+      return { label, onClick: () => this.setScreen(k, k === 'activate' ? 'activate' : st.successMode), style: `padding:6px 12px;border:none;border-radius:999px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;background:${a ? 'var(--accent)' : 'transparent'};color:${a ? '#fff' : '#76766F'}` };
+    });
+
+    const twofaBoxes = [0, 1, 2, 3, 4, 5].map(() => ({ val: '' }));
+
+    return {
+      icons,
+      isPortal, isSplitLogin, isCenteredLogin, isWelcomeLogin,
+      isForgot: screen === 'forgot', isEmail: screen === 'invite-email', isActivate: screen === 'activate', isSuccess: screen === 'success',
+      roleCards,
+      roleName: st.role, roleLower: st.role.toLowerCase(), roleIcon: iconFor(c.icon), roleIconLight: iconForLight(c.icon),
+      tagline: c.tagline, blurb: c.blurb, persona,
+      splitDir: c.side === 'right' ? 'row-reverse' : 'row',
+      glow: c.accent + '33',
+      showTwofa: !!c.twofa, showAgentNote: !!c.agent, twofaBoxes,
+      loginHint: 'Accédez à votre espace ' + st.role.toLowerCase() + '.',
+      form: st.form,
+      onEmail: e => this.setField('email', e.target.value), onPassword: e => this.setField('password', e.target.value), onPassword2: e => this.setField('password2', e.target.value),
+      pwdType: st.showPwd ? 'text' : 'password', togglePwd: () => this.togglePwd(), eyeIcon: st.showPwd ? icons.eyeOff : icons.eye,
+      goPortal: () => this.setScreen('portal'), goLogin: () => this.setScreen('login'), goForgot: () => this.setScreen('forgot'), goInviteEmail: () => this.setScreen('invite-email'), goActivate: () => this.setScreen('activate', 'activate'),
+      submitLogin: () => this.setScreen('success', 'login'),
+      submitActivate: () => { if (canSet) this.setScreen('success', 'activate'); },
+      strengthSegments, requirements,
+      confirmBorder: showMismatch ? '#E6B8AC' : (pwdsMatch ? '#B6DECB' : '#E0E0DB'), showMismatch,
+      setBtnStyle: `display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:14.5px;font-weight:600;cursor:${canSet ? 'pointer' : 'not-allowed'};opacity:${canSet ? 1 : .5}`,
+      successTitle: scc.title, successSubtitle: scc.sub,
+      screenChips
+    };
+  }
+
+  svg(parts, size, stroke) { return React.createElement('svg', { width: size || 19, height: size || 19, viewBox: '0 0 24 24', fill: 'none', stroke: stroke || 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' }, parts.map((p, i) => React.createElement(p[0], Object.assign({ key: i }, p[1])))); }
+  buildIcons() {
+    const S = (a, b) => this.svg(a, b);
+    const shield = [['path', { d: 'M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z' }]];
+    const building = [['rect', { x: 4, y: 2, width: 16, height: 20, rx: 2 }], ['path', { d: 'M9 22v-4h6v4' }], ['path', { d: 'M8 6h.01M16 6h.01M12 6h.01M12 10h.01M16 10h.01M8 10h.01' }]];
+    const cap = [['path', { d: 'M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z' }], ['path', { d: 'M22 10v6' }], ['path', { d: 'M6 12.5V16a6 3 0 0 0 12 0v-3.5' }]];
+    const briefcase = [['rect', { x: 2, y: 7, width: 20, height: 14, rx: 2 }], ['path', { d: 'M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16' }]];
+    const user = [['path', { d: 'M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2' }], ['circle', { cx: 12, cy: 7, r: 4 }]];
+    const lifebuoy = [['circle', { cx: 12, cy: 12, r: 10 }], ['path', { d: 'm4.93 4.93 4.24 4.24' }], ['path', { d: 'm14.83 9.17 4.24-4.24' }], ['path', { d: 'm14.83 14.83 4.24 4.24' }], ['path', { d: 'm9.17 14.83-4.24 4.24' }], ['circle', { cx: 12, cy: 12, r: 4 }]];
+    return {
+      mail: S([['rect', { x: 2, y: 4, width: 20, height: 16, rx: 2 }], ['path', { d: 'm22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7' }]], 17),
+      lock: S([['rect', { x: 3, y: 11, width: 18, height: 11, rx: 2 }], ['path', { d: 'M7 11V7a5 5 0 0 1 10 0v4' }]], 17),
+      eye: S([['path', { d: 'M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0' }], ['circle', { cx: 12, cy: 12, r: 3 }]], 17),
+      eyeOff: S([['path', { d: 'M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68' }], ['path', { d: 'M6.61 6.61A13.5 13.5 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61' }], ['line', { x1: 2, x2: 22, y1: 2, y2: 22 }]], 17),
+      arrowRight: S([['path', { d: 'M5 12h14' }], ['path', { d: 'm12 5 7 7-7 7' }]], 17),
+      arrowLeft: S([['path', { d: 'm12 19-7-7 7-7' }], ['path', { d: 'M19 12H5' }]], 16),
+      arrowLeftLight: S([['path', { d: 'm12 19-7-7 7-7' }], ['path', { d: 'M19 12H5' }]], 16),
+      shield: S(shield, 15), shieldL: S(shield, 20),
+      building: S(building, 15), buildingL: S(building, 22),
+      cap: S(cap, 15), capL: S(cap, 22),
+      briefcase: S(briefcase, 15), briefcaseL: S(briefcase, 22),
+      user: S(user, 15), userL: S(user, 22),
+      lifebuoy: S(lifebuoy, 16), lifebuoyL: S(lifebuoy, 22),
+      checkSm: S([['path', { d: 'M20 6 9 17l-5-5' }]], 14),
+      dot: S([['circle', { cx: 12, cy: 12, r: 3 }]], 14),
+      checkBig: S([['path', { d: 'M20 6 9 17l-5-5' }]], 30),
+      inbox: S([['path', { d: 'M22 12h-6l-2 3h-4l-2-3H2' }], ['path', { d: 'M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z' }]], 17)
+    };
+  }
+}
+</script>
+</body>
+</html>

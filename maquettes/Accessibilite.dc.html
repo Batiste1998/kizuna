@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+</helmet>
+<div style="font-family:'Geist',system-ui,sans-serif">
+  <div style="position:fixed;right:18px;bottom:18px;z-index:2147483000">
+    <sc-if value="{{ open }}" hint-placeholder-val="{{ false }}">
+      <div role="dialog" aria-label="Options d'accessibilité" style="position:absolute;right:0;bottom:60px;width:312px;max-width:calc(100vw - 36px);background:#fff;border:1px solid #E4E4DE;border-radius:16px;box-shadow:0 22px 64px rgba(0,0,0,.24);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 17px 13px;border-bottom:1px solid #F0F0EC">
+          <div style="display:flex;align-items:center;gap:9px"><span style="display:flex;color:#1B1B19">{{ icons.access }}</span><span style="font-size:15px;font-weight:700;letter-spacing:-.01em;color:#1B1B19">Accessibilité</span></div>
+          <button onClick="{{ close }}" aria-label="Fermer" style="width:30px;height:30px;border-radius:8px;border:1px solid #ECECE7;background:#fff;color:#76766F;display:flex;align-items:center;justify-content:center;cursor:pointer">{{ icons.x }}</button>
+        </div>
+        <div style="padding:15px 17px;max-height:70vh;overflow-y:auto">
+          <div style="font-size:11.5px;font-weight:600;color:#9A9A93;letter-spacing:.04em;margin-bottom:9px">TAILLE DU TEXTE</div>
+          <div role="group" aria-label="Taille du texte" style="display:flex;gap:5px;background:#F0F0EC;padding:4px;border-radius:10px;margin-bottom:18px">
+            <sc-for list="{{ sizeTabs }}" as="t" hint-placeholder-count="3"><button onClick="{{ t.onClick }}" aria-pressed="{{ t.active }}" style="{{ t.style }}">{{ t.label }}</button></sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <sc-for list="{{ toggles }}" as="o" hint-placeholder-count="5">
+              <button onClick="{{ o.onClick }}" role="switch" aria-checked="{{ o.on }}" aria-label="{{ o.label }}" style="display:flex;align-items:center;gap:13px;width:100%;text-align:left;background:none;border:none;padding:11px 4px;cursor:pointer;border-bottom:1px solid #F4F4F0">
+                <span style="flex:1;min-width:0"><span style="display:block;font-size:13.5px;font-weight:600;color:#1B1B19">{{ o.label }}</span><span style="display:block;font-size:11.5px;color:#86867F;margin-top:2px">{{ o.desc }}</span></span>
+                <span style="{{ o.trackStyle }}"><span style="{{ o.knobStyle }}"></span></span>
+              </button>
+            </sc-for>
+          </div>
+          <button onClick="{{ reset }}" style="margin-top:14px;width:100%;padding:9px;border:1px solid #E4E4DE;border-radius:9px;background:#fff;color:#5B5B55;font-size:13px;font-weight:600;cursor:pointer">Réinitialiser</button>
+        </div>
+      </div>
+    </sc-if>
+    <button onClick="{{ toggle }}" aria-label="Options d'accessibilité" aria-expanded="{{ open }}" style="width:52px;height:52px;border-radius:50%;border:none;background:#1B1B19;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 22px rgba(0,0,0,.28)">{{ icons.access }}</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: { &quot;width&quot;: 360, &quot;height&quot;: 460 }
+}">
+class Component extends DCLogic {
+  STORE_KEY = 'kizuna_a11y';
+  STYLE_ID = 'kizuna-a11y-rules';
+  state = { open: false, s: { dys: false, spacing: false, underline: false, contrast: false, motion: false, size: 0 } };
+
+  componentDidMount() {
+    this.ensureStyle();
+    try { const raw = window.localStorage.getItem(this.STORE_KEY); if (raw) { const v = JSON.parse(raw); this.setState({ s: { ...this.state.s, ...v } }, () => this.apply()); return; } } catch (e) {}
+    this.apply();
+  }
+
+  ensureStyle() {
+    if (document.getElementById(this.STYLE_ID)) return;
+    const css = [
+      ":root{--a11y-focus:#1B6FE0;}",
+      "*:focus-visible{outline:3px solid var(--a11y-focus)!important;outline-offset:2px!important;border-radius:5px;}",
+      ".a11y-dys *{font-family:'Atkinson Hyperlegible',sans-serif!important;}",
+      ".a11y-spacing *{line-height:1.75!important;letter-spacing:.03em!important;word-spacing:.1em!important;}",
+      ".a11y-underline a{text-decoration:underline!important;}",
+      ".a11y-motion *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;}",
+      ".a11y-contrast body{filter:contrast(1.14) saturate(1.05);}",
+      ".a11y-size-1 body{zoom:1.12;}",
+      ".a11y-size-2 body{zoom:1.25;}"
+    ].join('\n');
+    const el = document.createElement('style'); el.id = this.STYLE_ID; el.textContent = css; document.head.appendChild(el);
+  }
+  apply() {
+    const el = document.documentElement, s = this.state.s;
+    el.classList.toggle('a11y-dys', !!s.dys);
+    el.classList.toggle('a11y-spacing', !!s.spacing);
+    el.classList.toggle('a11y-underline', !!s.underline);
+    el.classList.toggle('a11y-motion', !!s.motion);
+    el.classList.toggle('a11y-contrast', !!s.contrast);
+    el.classList.toggle('a11y-size-1', s.size === 1);
+    el.classList.toggle('a11y-size-2', s.size === 2);
+    try { window.localStorage.setItem(this.STORE_KEY, JSON.stringify(s)); } catch (e) {}
+  }
+  setOpt(k, v) { this.setState(st => ({ s: { ...st.s, [k]: v } }), () => this.apply()); }
+  reset() { this.setState({ s: { dys: false, spacing: false, underline: false, contrast: false, motion: false, size: 0 } }, () => this.apply()); }
+
+  renderVals() {
+    const icons = this.buildIcons();
+    const s = this.state.s;
+    const sizeTabs = ['Normal', 'Grand', 'Très grand'].map((label, i) => { const active = s.size === i; return { label, active, onClick: () => this.setOpt('size', i), style: `flex:1;padding:7px 6px;border:none;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;background:${active ? '#fff' : 'transparent'};color:${active ? '#1B1B19' : '#76766F'};box-shadow:${active ? '0 1px 2px rgba(0,0,0,.1)' : 'none'}` }; });
+    const defs = [
+      { key: 'dys', label: 'Police adaptée', desc: 'Police plus lisible (dyslexie)' },
+      { key: 'spacing', label: 'Espacement aéré', desc: 'Interligne et espacement augmentés' },
+      { key: 'underline', label: 'Liens soulignés', desc: 'Souligne tous les liens' },
+      { key: 'contrast', label: 'Contraste renforcé', desc: 'Augmente le contraste visuel' },
+      { key: 'motion', label: 'Réduire les animations', desc: "Limite les mouvements à l'écran" }
+    ];
+    const toggles = defs.map(d => {
+      const on = !!s[d.key];
+      return { ...d, on, onClick: () => this.setOpt(d.key, !on),
+        trackStyle: `position:relative;width:42px;height:24px;border-radius:999px;flex:none;transition:background .15s;background:${on ? '#1F7A63' : '#D8D8D2'}`,
+        knobStyle: `position:absolute;top:3px;left:${on ? '21px' : '3px'};width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s;box-shadow:0 1px 2px rgba(0,0,0,.2)` };
+    });
+    return { icons, open: this.state.open, toggle: () => this.setState(st => ({ open: !st.open })), close: () => this.setState({ open: false }), sizeTabs, toggles, reset: () => this.reset() };
+  }
+
+  svg(parts, size) { return React.createElement('svg', { width: size || 22, height: size || 22, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' }, parts.map((p, i) => React.createElement(p[0], Object.assign({ key: i }, p[1])))); }
+  buildIcons() {
+    const S = (a, b) => this.svg(a, b);
+    return {
+      access: S([['circle', { cx: 16, cy: 4, r: 1 }], ['path', { d: 'm18 19 1-7-6 1' }], ['path', { d: 'm5 8 3-3 5.5 3-2.36 3.5' }], ['path', { d: 'M4.24 14.5a5 5 0 0 0 6.88 6' }], ['path', { d: 'M13.76 17.5a5 5 0 0 0-6.88-6' }]], 22),
+      x: S([['path', { d: 'M18 6 6 18' }], ['path', { d: 'm6 6 12 12' }]], 17)
+    };
+  }
+}
+</script>
+</body>
+</html>

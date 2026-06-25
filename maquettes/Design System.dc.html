@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--accent:#4F7CF0;--accent-strong:#3B63CC;--accent-soft:#EEF2FD;--sidebar:#14161C;--accent-glow:rgba(79,124,240,.28);--accent-shadow:rgba(79,124,240,.3);}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Geist',-apple-system,system-ui,sans-serif;background:#EEEDE7;color:#1B1B19;-webkit-font-smoothing:antialiased;}
+  button{font-family:inherit;}
+  input{font-family:inherit;}
+  ::-webkit-scrollbar{width:11px;height:11px;}
+  ::-webkit-scrollbar-thumb{background:#D6D6CE;border-radius:6px;border:3px solid #EEEDE7;}
+  ::-webkit-scrollbar-thumb:hover{background:#C4C4BA;}
+  .mono{font-family:'Geist Mono',monospace;}
+  @keyframes kz-up{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+  @media (prefers-reduced-motion:reduce){[style*="kz-up"]{animation:none!important;}}
+</style>
+</helmet>
+
+<div id="kz-ds-root" style="min-height:100vh;width:100%;display:flex;flex-direction:column;align-items:center;padding:0 24px 110px">
+
+  <!-- ============ STICKY HEADER ============ -->
+  <div style="width:100%;max-width:1060px;position:sticky;top:0;z-index:30;background:rgba(238,237,231,.85);backdrop-filter:blur(12px);padding:20px 0 15px;border-bottom:1px solid #DFDED7">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:13px">
+        <div style="width:40px;height:40px;border-radius:11px;background:var(--sidebar);color:#fff;display:flex;align-items:center;justify-content:center">{{ logoMark }}</div>
+        <div>
+          <div style="font-size:17px;font-weight:700;letter-spacing:-.02em;line-height:1.05">Kizuna — Design System</div>
+          <div style="font-size:12px;color:#86867F;margin-top:2px">Tokens & composants · une identité par espace</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;background:#fff;border:1px solid #E0DFD8;border-radius:13px;padding:4px;box-shadow:0 1px 3px rgba(0,0,0,.04)">
+        <sc-for list="{{ roleChips }}" as="r" hint-placeholder-count="5">
+          <button onClick="{{ r.onClick }}" title="{{ r.name }}" style="{{ r.chipStyle }}">
+            <span style="width:10px;height:10px;border-radius:50%;background:{{ r.accent }};flex:none"></span>
+            <span style="font-size:12.5px;font-weight:600">{{ r.short }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <div style="width:100%;max-width:1060px">
+
+    <!-- ============ HERO ============ -->
+    <div style="margin-top:28px;border-radius:22px;overflow:hidden;border:1px solid #E0DFD8;box-shadow:0 18px 44px rgba(0,0,0,.08);display:flex;flex-wrap:wrap">
+      <div style="flex:1;min-width:320px;background:var(--sidebar);color:#fff;padding:36px 38px;position:relative;overflow:hidden">
+        <div style="position:absolute;top:-90px;right:-70px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,var(--accent-glow) 0%,transparent 70%)"></div>
+        <div style="position:absolute;bottom:-60px;left:-40px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.03)"></div>
+        <div style="position:relative">
+          <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 13px;border-radius:999px;background:rgba(255,255,255,.1);font-size:12px;font-weight:600;letter-spacing:.02em">{{ roleIcon }}{{ roleName }}</div>
+          <h1 style="font-size:33px;font-weight:800;letter-spacing:-.03em;margin:20px 0 0;line-height:1.06">Une identité couleur,<br>cinq espaces.</h1>
+          <p style="font-size:14.5px;line-height:1.6;color:rgba(255,255,255,.64);margin:15px 0 0;max-width:400px">Chaque rôle porte sa propre teinte — du portail de connexion jusqu'au moindre bouton. Un seul système, décliné avec rigueur.</p>
+          <div style="display:flex;gap:22px;margin-top:30px">
+            <div><div class="mono" style="font-size:27px;font-weight:600;letter-spacing:-.03em">05</div><div style="font-size:11.5px;color:rgba(255,255,255,.5);margin-top:3px">espaces</div></div>
+            <div style="width:1px;background:rgba(255,255,255,.13)"></div>
+            <div><div class="mono" style="font-size:27px;font-weight:600;letter-spacing:-.03em">09</div><div style="font-size:11.5px;color:rgba(255,255,255,.5);margin-top:3px">pas de grille</div></div>
+            <div style="width:1px;background:rgba(255,255,255,.13)"></div>
+            <div><div class="mono" style="font-size:27px;font-weight:600;letter-spacing:-.03em">05</div><div style="font-size:11.5px;color:rgba(255,255,255,.5);margin-top:3px">élévations</div></div>
+          </div>
+        </div>
+      </div>
+      <div style="width:330px;flex:none;background:#fff;padding:30px;display:flex;flex-direction:column;gap:14px">
+        <div style="font-size:11px;font-weight:600;color:#AEAEA6;letter-spacing:.08em">RAMPE D'ACCENT · {{ roleShort }}</div>
+        <sc-for list="{{ accentRamp }}" as="c" hint-placeholder-count="4">
+          <div style="display:flex;align-items:center;gap:13px">
+            <div style="width:48px;height:48px;border-radius:12px;background:{{ c.hex }};flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)"></div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:600">{{ c.label }}</div>
+              <div class="mono" style="font-size:11.5px;color:#9A9A93;margin-top:1px">{{ c.hex }}</div>
+            </div>
+            <div style="font-size:10px;color:#B6B6AE;font-weight:600;letter-spacing:.02em">{{ c.token }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- ============ 01 ROLE MATRIX ============ -->
+    <div style="margin-top:50px">
+      <div style="font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.09em;margin-bottom:5px">01 · COULEUR</div>
+      <h2 style="font-size:22px;font-weight:700;letter-spacing:-.025em;margin:0 0 4px">Identité par rôle</h2>
+      <p style="font-size:14px;color:#76766F;margin:0 0 20px;max-width:620px;line-height:1.55">Cinq familles. Chaque espace hérite de son accent, sa version <em>forte</em> (hover, texte), sa version <em>douce</em> (fonds, halos) et sa teinte de sidebar sombre.</p>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:13px">
+        <sc-for list="{{ roleMatrix }}" as="r" hint-placeholder-count="5">
+          <div onClick="{{ r.onClick }}" style="{{ r.cardStyle }}">
+            <div style="height:84px;background:{{ r.sidebar }};display:flex;align-items:flex-end;padding:12px;position:relative">
+              <div style="position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:9px;background:{{ r.accent }};display:flex;align-items:center;justify-content:center;color:#fff">{{ r.icon }}</div>
+              <div style="font-size:12.5px;font-weight:600;color:#fff;line-height:1.25">{{ r.name }}</div>
+            </div>
+            <div style="display:flex">
+              <div style="flex:1.4;height:34px;background:{{ r.accent }}"></div>
+              <div style="flex:1;height:34px;background:{{ r.strong }}"></div>
+              <div style="flex:1;height:34px;background:{{ r.soft }}"></div>
+            </div>
+            <div style="padding:10px 12px;background:#fff">
+              <div class="mono" style="font-size:11px;color:#9A9A93">{{ r.accent }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- ============ 02 NEUTRALS ============ -->
+    <div style="margin-top:48px">
+      <div style="font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.09em;margin-bottom:5px">02 · NEUTRES</div>
+      <h2 style="font-size:22px;font-weight:700;letter-spacing:-.025em;margin:0 0 4px">Gris chauds</h2>
+      <p style="font-size:14px;color:#76766F;margin:0 0 20px;max-width:620px;line-height:1.55">Une rampe neutre légèrement chaude, du fond applicatif à l'encre. Jamais froid, jamais clinique.</p>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:11px">
+        <sc-for list="{{ neutrals }}" as="n" hint-placeholder-count="10">
+          <div style="border:1px solid #E0DFD8;border-radius:13px;overflow:hidden;background:#fff">
+            <div style="height:60px;background:{{ n.hex }};border-bottom:1px solid rgba(0,0,0,.04)"></div>
+            <div style="padding:9px 11px">
+              <div style="font-size:12px;font-weight:600">{{ n.name }}</div>
+              <div class="mono" style="font-size:10.5px;color:#9A9A93;margin-top:1px">{{ n.hex }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- ============ 03 TYPOGRAPHY ============ -->
+    <div style="margin-top:48px">
+      <div style="font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.09em;margin-bottom:5px">03 · TYPOGRAPHIE</div>
+      <h2 style="font-size:22px;font-weight:700;letter-spacing:-.025em;margin:0 0 4px">Geist · une famille, deux usages</h2>
+      <p style="font-size:14px;color:#76766F;margin:0 0 20px;max-width:620px;line-height:1.55">Geist pour tout le texte ; Geist Mono pour les chiffres, codes et identifiants.</p>
+      <div style="background:#fff;border:1px solid #E0DFD8;border-radius:18px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04)">
+        <sc-for list="{{ typeScale }}" as="t" hint-placeholder-count="6">
+          <div style="display:flex;align-items:baseline;gap:24px;padding:17px 24px;border-bottom:1px solid #F0EFE9">
+            <div style="width:128px;flex:none">
+              <div style="font-size:11.5px;font-weight:600;color:#1B1B19">{{ t.token }}</div>
+              <div class="mono" style="font-size:11px;color:#A0A099;margin-top:2px">{{ t.spec }}</div>
+            </div>
+            <div style="flex:1;min-width:0;font-size:{{ t.size }};font-weight:{{ t.weight }};letter-spacing:{{ t.tracking }};color:#1B1B19;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ t.sample }}</div>
+          </div>
+        </sc-for>
+        <div style="display:flex;align-items:baseline;gap:24px;padding:17px 24px">
+          <div style="width:128px;flex:none"><div style="font-size:11.5px;font-weight:600">mono</div><div class="mono" style="font-size:11px;color:#A0A099;margin-top:2px">Geist Mono · 18</div></div>
+          <div class="mono" style="flex:1;font-size:18px;font-weight:500;color:#1B1B19">0123456789 · 87% · {{ accentHex }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 04/05 SPACING + RADII ============ -->
+    <div style="margin-top:48px;display:grid;grid-template-columns:1fr 1fr;gap:18px">
+      <div>
+        <div style="font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.09em;margin-bottom:5px">04 · ESPACEMENT</div>
+        <h2 style="font-size:19px;font-weight:700;letter-spacing:-.02em;margin:0 0 14px">Base 4px</h2>
+        <div style="background:#fff;border:1px solid #E0DFD8;border-radius:18px;padding:20px 22px;display:flex;flex-direction:column;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.04)">
+          <sc-for list="{{ spacing }}" as="s" hint-placeholder-count="6">
+            <div style="display:flex;align-items:center;gap:14px">
+              <div class="mono" style="width:42px;font-size:11.5px;font-weight:500;color:#76766F">{{ s.px }}</div>
+              <div style="height:15px;width:{{ s.px }};background:var(--accent-soft);border-left:2.5px solid var(--accent)"></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.09em;margin-bottom:5px">05 · RAYONS</div>
+        <h2 style="font-size:19px;font-weight:700;letter-spacing:-.02em;margin:0 0 14px">Coins</h2>
+        <div style="background:#fff;border:1px solid #E0DFD8;border-radius:18px;padding:22px;display:flex;gap:16px;flex-wrap:wrap;box-shadow:0 1px 3px rgba(0,0,0,.04)">
+          <sc-for list="{{ radii }}" as="r" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+              <div style="width:60px;height:60px;background:var(--accent-soft);border:2px solid var(--accent);border-radius:{{ r.px }};border-bottom:none;border-right:none"></div>
+              <div style="font-size:11px;font-weight:600;color:#76766F">{{ r.name }}</div>
+              <div class="mono" style="font-size:10.5px;color:#A0A099">{{ r.px }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 06 SHADOWS ============ -->
+    <div style="margin-top:30px">
+      <div style="font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.09em;margin-bottom:5px">06 · ÉLÉVATION</div>
+      <h2 style="font-size:19px;font-weight:700;letter-spacing:-.02em;margin:0 0 14px">Ombres</h2>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;background:#fff;border:1px solid #E0DFD8;border-radius:18px;padding:32px 24px;box-shadow:0 1px 3px rgba(0,0,0,.04)">
+        <sc-for list="{{ shadows }}" as="s" hint-placeholder-count="5">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+            <div style="width:100%;height:64px;background:#fff;border-radius:13px;box-shadow:{{ s.css }}"></div>
+            <div style="text-align:center"><div style="font-size:11.5px;font-weight:600">{{ s.name }}</div><div style="font-size:10.5px;color:#A0A099;margin-top:1px">{{ s.use }}</div></div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- ============ COMPONENTS DIVIDER ============ -->
+    <div style="margin-top:58px;display:flex;align-items:center;gap:14px">
+      <div style="height:1px;flex:1;background:#DFDED7"></div>
+      <div style="font-size:11.5px;font-weight:600;color:#9A9A93;letter-spacing:.07em">BIBLIOTHÈQUE DE COMPOSANTS</div>
+      <div style="height:1px;flex:1;background:#DFDED7"></div>
+    </div>
+
+    <!-- ============ 07 BUTTONS ============ -->
+    <div style="margin-top:32px">
+      <div style="font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.09em;margin-bottom:5px">07 · ACTIONS</div>
+      <h2 style="font-size:19px;font-weight:700;letter-spacing:-.02em;margin:0 0 14px">Boutons</h2>
+      <div style="background:#fff;border:1px solid #E0DFD8;border-radius:18px;padding:28px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:0 1px 3px rgba(0,0,0,.04)">
+        <button style="display:inline-flex;align-items:center;gap:8px;padding:11px 17px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px var(--accent-shadow)" style-hover="background:var(--accent-strong)">{{ plusIcon }}Action primaire</button>
+        <button style="display:inline-flex;align-items:center;gap:8px;padding:11px 17px;border:1px solid #E0E0DB;border-radius:10px;background:#fff;color:#33332F;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s ease" style-hover="background:#F4F4F0;border-color:#CFCFC8">Secondaire</button>
+        <button style="display:inline-flex;align-items:center;gap:8px;padding:11px 17px;border:none;border-radius:10px;background:var(--accent-soft);color:var(--accent-strong);font-size:14px;font-weight:600;cursor:pointer;transition:filter .15s ease" style-hover="filter:brightness(.96)">Discrète</button>
+        <button style="display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border:none;border-radius:9px;background:none;color:var(--accent-strong);font-size:13.5px;font-weight:600;cursor:pointer;transition:background .15s ease" style-hover="background:var(--accent-soft)">Lien{{ arrowIcon }}</button>
+        <button style="width:38px;height:38px;border-radius:10px;border:1px solid #E0E0DB;background:#fff;color:#6E6E68;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s ease" style-hover="background:#F4F4F0">{{ bellIcon }}</button>
+        <button disabled style="display:inline-flex;align-items:center;padding:11px 17px;border:none;border-radius:10px;background:#EDEDE8;color:#B0B0A8;font-size:14px;font-weight:600;cursor:not-allowed">Désactivé</button>
+      </div>
+    </div>
+
+    <!-- ============ 08/09 INPUTS + BADGES ============ -->
+    <div style="margin-top:28px;display:grid;grid-template-columns:1fr 1fr;gap:18px">
+      <div>
+        <div style="font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.09em;margin-bottom:5px">08 · SAISIE</div>
+        <h2 style="font-size:19px;font-weight:700;letter-spacing:-.02em;margin:0 0 14px">Champs</h2>
+        <div style="background:#fff;border:1px solid #E0DFD8;border-radius:18px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,.04)">
+          <label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:6px">État focus</label>
+          <div style="position:relative;margin-bottom:16px">
+            <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#A4A49C;display:flex">{{ mailIcon }}</span>
+            <input value="{{ inputVal }}" onChange="{{ onInput }}" style="width:100%;padding:11px 13px 11px 40px;border:1.5px solid var(--accent);border-radius:10px;font-size:14px;background:#fff;outline:none;color:#1B1B19;box-shadow:0 0 0 3px var(--accent-soft)" />
+          </div>
+          <label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:6px">État repos</label>
+          <input value="" placeholder="vous@email.fr" style="width:100%;padding:11px 14px;border:1px solid #E0E0DB;border-radius:10px;font-size:14px;background:#fff;outline:none;color:#1B1B19;margin-bottom:18px" />
+          <div style="display:flex;align-items:center;gap:10px">
+            <button onClick="{{ toggleSwitch }}" style="{{ switchTrack }}"><span style="{{ switchKnob }}"></span></button>
+            <span style="font-size:13.5px;color:#44443F">Notifications par email</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.09em;margin-bottom:5px">09 · STATUTS</div>
+        <h2 style="font-size:19px;font-weight:700;letter-spacing:-.02em;margin:0 0 14px">Badges</h2>
+        <div style="background:#fff;border:1px solid #E0DFD8;border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:18px;box-shadow:0 1px 3px rgba(0,0,0,.04)">
+          <div style="display:flex;gap:9px;flex-wrap:wrap">
+            <sc-for list="{{ badges }}" as="b" hint-placeholder-count="5">
+              <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 11px;border-radius:999px;background:{{ b.bg }};color:{{ b.fg }};border:1px solid {{ b.bd }}"><span style="width:6px;height:6px;border-radius:50%;background:{{ b.dot }}"></span>{{ b.label }}</span>
+            </sc-for>
+          </div>
+          <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:center">
+            <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 11px;border-radius:999px;background:var(--accent-soft);color:var(--accent-strong)">{{ roleShort }}</span>
+            <span style="font-size:11px;font-weight:600;background:#fff;color:#9A6B12;border:1px solid #F0E6CC;padding:2px 9px;border-radius:999px">3 en attente</span>
+            <span class="mono" style="font-size:11.5px;font-weight:500;background:#F4F4F0;color:#6E6E68;padding:3px 9px;border-radius:7px">#KZ-2048</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 10 CARDS / NAV / TABS ============ -->
+    <div style="margin-top:28px">
+      <div style="font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.09em;margin-bottom:5px">10 · SURFACES</div>
+      <h2 style="font-size:19px;font-weight:700;letter-spacing:-.02em;margin:0 0 14px">Cartes, navigation, onglets</h2>
+      <div style="display:grid;grid-template-columns:1.1fr 1fr;gap:18px">
+        <!-- stat cards -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:13px">
+          <sc-for list="{{ statCards }}" as="c" hint-placeholder-count="2">
+            <div style="background:#fff;border:1px solid #E6E5DF;border-radius:15px;padding:17px 18px;box-shadow:0 1px 3px rgba(0,0,0,.05);transition:transform .15s ease,box-shadow .18s ease,border-color .15s ease" style-hover="border-color:var(--accent);transform:translateY(-2px);box-shadow:0 10px 26px rgba(0,0,0,.08)">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div style="width:34px;height:34px;border-radius:10px;background:var(--accent-soft);color:var(--accent-strong);display:flex;align-items:center;justify-content:center">{{ c.icon }}</div>
+                <span style="display:inline-flex;align-items:center;gap:3px;font-size:11.5px;font-weight:600;color:{{ c.trendColor }}">{{ c.trendIcon }}{{ c.trend }}</span>
+              </div>
+              <div class="mono" style="font-size:27px;font-weight:600;letter-spacing:-.03em;margin-top:14px">{{ c.value }}</div>
+              <div style="font-size:12.5px;color:#86867F;margin-top:2px">{{ c.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <!-- nav + tabs -->
+        <div style="display:flex;flex-direction:column;gap:13px">
+          <div style="background:var(--sidebar);border-radius:15px;padding:12px;display:flex;flex-direction:column;gap:3px">
+            <sc-for list="{{ navDemo }}" as="n" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;background:{{ n.bg }};color:{{ n.color }};font-size:13.5px;font-weight:{{ n.weight }}">
+                <span style="display:flex;flex:none">{{ n.icon }}</span><span style="flex:1">{{ n.label }}</span>
+                <sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;font-weight:600;background:rgba(255,255,255,.16);color:#fff;padding:1px 8px;border-radius:999px">{{ n.badge }}</span></sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <div style="background:#fff;border:1px solid #E6E5DF;border-radius:14px;padding:5px;display:flex;gap:3px;box-shadow:0 1px 3px rgba(0,0,0,.04)">
+            <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3">
+              <button onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 11 FEEDBACK / TOAST ============ -->
+    <div style="margin-top:28px">
+      <div style="font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.09em;margin-bottom:5px">11 · RETOUR</div>
+      <h2 style="font-size:19px;font-weight:700;letter-spacing:-.02em;margin:0 0 14px">Toast & confirmation</h2>
+      <div style="background:#fff;border:1px solid #E0DFD8;border-radius:18px;padding:28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 1px 3px rgba(0,0,0,.04)">
+        <div style="display:inline-flex;align-items:center;gap:11px;background:#1B1B19;color:#fff;padding:11px 14px 11px 15px;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.22)">
+          <span style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;flex:none">{{ checkIcon }}</span>
+          <span style="font-size:13.5px;font-weight:500">{{ toastMsg }}</span>
+          <span style="display:flex;color:#8A8A82;margin-left:4px">{{ xIcon }}</span>
+        </div>
+        <div style="display:inline-flex;align-items:center;gap:9px;background:var(--accent-soft);color:var(--accent-strong);padding:10px 15px;border-radius:11px;font-size:13.5px;font-weight:600">{{ checkIcon }}Enregistré</div>
+      </div>
+    </div>
+
+    <div style="margin-top:46px;text-align:center;font-size:12px;color:#A8A89F">Kizuna · Design System v1.0 — change le rôle en haut pour voir l'identité se propager.</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1120,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { role: 'superadmin', switchOn: true, tab: 'actifs', input: 'marie.dubois@kizuna.app' };
+
+  roles = {
+    superadmin:    { name: 'Super Admin',        short: 'Super Admin',  accent: '#4F7CF0', strong: '#3B63CC', soft: '#EEF2FD', sidebar: '#14161C', icon: 'shield' },
+    administrateur:{ name: 'Administrateur',      short: 'École',        accent: '#3F6FB0', strong: '#2E5288', soft: '#EAF0F8', sidebar: '#16243A', icon: 'building' },
+    alternant:     { name: 'Alternant / Tuteur péda', short: 'Alternant', accent: '#2E9E82', strong: '#1F7A63', soft: '#E8F4EF', sidebar: '#103A30', icon: 'user' },
+    entreprise:    { name: "Tuteur d'entreprise", short: 'Entreprise',   accent: '#E06A41', strong: '#B54F2C', soft: '#FBEBE3', sidebar: '#3A2218', icon: 'briefcase' },
+    support:       { name: 'Support',             short: 'Support',      accent: '#6B5BD2', strong: '#4F40B0', soft: '#EFECFB', sidebar: '#171A24', icon: 'lifebuoy' }
+  };
+  roleOrder = ['superadmin', 'administrateur', 'alternant', 'entreprise', 'support'];
+
+  svg(paths, size) {
+    const sz = size || 18;
+    return React.createElement('svg', { width: sz, height: sz, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' },
+      paths.map((p, i) => React.createElement(p[0], Object.assign({ key: i }, p[1]))));
+  }
+  icon(name, size) {
+    const S = (p, s) => this.svg(p, s);
+    const m = {
+      shield: [['path', { d: 'M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z' }]],
+      building: [['path', { d: 'M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z' }], ['path', { d: 'M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2' }], ['path', { d: 'M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2' }], ['path', { d: 'M10 6h4' }], ['path', { d: 'M10 10h4' }], ['path', { d: 'M10 14h4' }]],
+      user: [['circle', { cx: 12, cy: 8, r: 4 }], ['path', { d: 'M6 21v-1a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v1' }]],
+      briefcase: [['rect', { width: 20, height: 14, x: 2, y: 7, rx: 2 }], ['path', { d: 'M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16' }]],
+      lifebuoy: [['circle', { cx: 12, cy: 12, r: 10 }], ['circle', { cx: 12, cy: 12, r: 4 }], ['path', { d: 'm4.93 4.93 4.24 4.24' }], ['path', { d: 'm14.83 9.17 4.24-4.24' }], ['path', { d: 'm14.83 14.83 4.24 4.24' }], ['path', { d: 'm9.17 14.83-4.24 4.24' }]],
+      plus: [['path', { d: 'M5 12h14' }], ['path', { d: 'M12 5v14' }]],
+      arrow: [['path', { d: 'M5 12h14' }], ['path', { d: 'm12 5 7 7-7 7' }]],
+      bell: [['path', { d: 'M10.268 21a2 2 0 0 0 3.464 0' }], ['path', { d: 'M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326' }]],
+      mail: [['rect', { width: 20, height: 16, x: 2, y: 4, rx: 2 }], ['path', { d: 'm22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7' }]],
+      check: [['path', { d: 'M20 6 9 17l-5-5' }]],
+      x: [['path', { d: 'M18 6 6 18' }], ['path', { d: 'm6 6 12 12' }]],
+      up: [['path', { d: 'M16 7h6v6' }], ['path', { d: 'm22 7-8.5 8.5-5-5L2 17' }]],
+      users: [['path', { d: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2' }], ['circle', { cx: 9, cy: 7, r: 4 }], ['path', { d: 'M22 21v-2a4 4 0 0 0-3-3.87' }], ['path', { d: 'M16 3.13a4 4 0 0 1 0 7.75' }]],
+      cap: [['path', { d: 'M22 10v6M2 10l10-5 10 5-10 5z' }], ['path', { d: 'M6 12v5c3 3 9 3 12 0v-5' }]],
+      grid: [['rect', { width: 7, height: 7, x: 3, y: 3, rx: 1 }], ['rect', { width: 7, height: 7, x: 14, y: 3, rx: 1 }], ['rect', { width: 7, height: 7, x: 14, y: 14, rx: 1 }], ['rect', { width: 7, height: 7, x: 3, y: 14, rx: 1 }]]
+    };
+    return S(m[name] || m.user, size);
+  }
+
+  cfg() { return this.roles[this.state.role]; }
+
+  componentDidMount() { this.applyVars(); }
+  componentDidUpdate() { this.applyVars(); }
+  applyVars() {
+    const c = this.cfg();
+    const hexA = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`; };
+    const host = document.getElementById('kz-ds-root');
+    if (!host) return;
+    const r = host.style;
+    r.setProperty('--accent', c.accent);
+    r.setProperty('--accent-strong', c.strong);
+    r.setProperty('--accent-soft', c.soft);
+    r.setProperty('--sidebar', c.sidebar);
+    r.setProperty('--accent-glow', hexA(c.accent, .28));
+    r.setProperty('--accent-shadow', hexA(c.accent, .3));
+  }
+
+  renderVals() {
+    const c = this.cfg();
+    const accent = c.accent, strong = c.strong, soft = c.soft, sidebar = c.sidebar;
+    const hexA = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`; };
+
+    const roleChips = this.roleOrder.map(k => {
+      const r = this.roles[k], active = k === this.state.role;
+      return {
+        name: r.name, short: r.short, accent: r.accent,
+        onClick: () => this.setState({ role: k }),
+        chipStyle: `display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border:none;border-radius:9px;cursor:pointer;transition:background .2s ease;background:${active ? r.soft : 'transparent'};color:${active ? r.strong : '#86867F'}`
+      };
+    });
+
+    const roleMatrix = this.roleOrder.map(k => {
+      const r = this.roles[k], active = k === this.state.role;
+      return {
+        name: r.name, accent: r.accent, strong: r.strong, soft: r.soft, sidebar: r.sidebar,
+        icon: this.icon(r.icon, 15),
+        onClick: () => this.setState({ role: k }),
+        cardStyle: `border-radius:15px;overflow:hidden;border:1.5px solid ${active ? r.accent : '#E6E5DF'};box-shadow:${active ? '0 10px 26px ' + hexA(r.accent, .18) : '0 1px 3px rgba(0,0,0,.05)'};cursor:pointer;transition:border-color .2s ease,box-shadow .2s ease,transform .2s ease;transform:${active ? 'translateY(-2px)' : 'none'}`
+      };
+    });
+
+    const accentRamp = [
+      { label: 'Accent', hex: accent, token: 'accent' },
+      { label: 'Accent fort', hex: strong, token: 'strong' },
+      { label: 'Accent doux', hex: soft, token: 'soft' },
+      { label: 'Sidebar', hex: sidebar, token: 'sidebar' }
+    ];
+
+    const neutrals = [
+      { name: 'ink', hex: '#1B1B19' }, { name: 'neutral-700', hex: '#44443F' }, { name: 'neutral-500', hex: '#76766F' },
+      { name: 'neutral-400', hex: '#9A9A93' }, { name: 'neutral-300', hex: '#CFCFC8' }, { name: 'neutral-200', hex: '#E6E5DF' },
+      { name: 'neutral-100', hex: '#F0EFE9' }, { name: 'surface', hex: '#FAFAF8' }, { name: 'app-bg', hex: '#EEEDE7' }, { name: 'white', hex: '#FFFFFF' }
+    ];
+
+    const typeScale = [
+      { token: 'display', spec: '33 / 800 / -.03', size: '33px', weight: 800, tracking: '-.03em', sample: 'Vue d’ensemble' },
+      { token: 'h1', spec: '26 / 700 / -.025', size: '26px', weight: 700, tracking: '-.025em', sample: 'Gestion des comptes' },
+      { token: 'h2', spec: '19 / 700 / -.02', size: '19px', weight: 700, tracking: '-.02em', sample: 'Identité par rôle' },
+      { token: 'body', spec: '14.5 / 400', size: '14.5px', weight: 400, tracking: '0', sample: 'Pilotez les écoles, les comptes et le support.' },
+      { token: 'small', spec: '12.5 / 500', size: '12.5px', weight: 500, tracking: '0', sample: 'Compte créé par votre établissement.' },
+      { token: 'micro', spec: '11 / 600 / .08 ↑', size: '11px', weight: 600, tracking: '.08em', sample: 'PILOTAGE' }
+    ];
+
+    const spacing = [{ px: '4px' }, { px: '8px' }, { px: '12px' }, { px: '16px' }, { px: '24px' }, { px: '32px' }, { px: '48px' }];
+    const radii = [{ name: 'sm', px: '8px' }, { name: 'md', px: '12px' }, { name: 'lg', px: '16px' }, { name: 'full', px: '999px' }];
+
+    const shadows = [
+      { name: 'xs', use: 'boutons', css: '0 1px 2px rgba(0,0,0,.06)' },
+      { name: 'sm', use: 'cartes', css: '0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04)' },
+      { name: 'md', use: 'survol', css: '0 4px 14px rgba(0,0,0,.08)' },
+      { name: 'lg', use: 'panneaux', css: '0 12px 32px rgba(0,0,0,.12)' },
+      { name: 'xl', use: 'modales', css: '0 24px 60px rgba(0,0,0,.18)' }
+    ];
+
+    const badges = [
+      { label: 'Actif', bg: '#E9F5EF', fg: '#1F7A63', bd: '#CDE9DD', dot: '#2E9E82' },
+      { label: 'Invité', bg: '#FBF3DF', fg: '#9A6B12', bd: '#F0E6CC', dot: '#D4A024' },
+      { label: 'Suspendu', bg: '#FBE9E4', fg: '#B54F2C', bd: '#F3D7CC', dot: '#E06A41' },
+      { label: 'Résolu', bg: '#EDEDF0', fg: '#5C5C6B', bd: '#E0E0E6', dot: '#9A9AA6' },
+      { label: 'Bug', bg: '#FBE9E9', fg: '#C0392B', bd: '#F3D2D2', dot: '#E05545' }
+    ];
+
+    const statCards = [
+      { icon: this.icon('users', 17), value: '248', label: 'Utilisateurs actifs', trend: '+12', trendIcon: this.icon('up', 13), trendColor: strong },
+      { icon: this.icon('cap', 17), value: '18', label: 'Écoles partenaires', trend: '+2', trendIcon: this.icon('up', 13), trendColor: strong }
+    ];
+
+    const navDemo = [
+      { label: 'Tableau de bord', icon: this.icon('grid', 17), badge: '', bg: accent, color: '#fff', weight: 600 },
+      { label: 'Utilisateurs', icon: this.icon('users', 17), badge: '', bg: 'transparent', color: 'rgba(255,255,255,.62)', weight: 500 },
+      { label: 'Support', icon: this.icon('lifebuoy', 17), badge: '4', bg: 'transparent', color: 'rgba(255,255,255,.62)', weight: 500 }
+    ];
+
+    const tabKeys = [['actifs', 'Actifs'], ['invites', 'Invités'], ['tous', 'Tous']];
+    const tabs = tabKeys.map(([k, label]) => {
+      const active = this.state.tab === k;
+      return { label, onClick: () => this.setState({ tab: k }),
+        style: `flex:1;padding:9px 0;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s ease,color .15s ease;background:${active ? accent : 'transparent'};color:${active ? '#fff' : '#86867F'}` };
+    });
+
+    const knobOn = this.state.switchOn;
+    return {
+      accent, strong, soft, sidebar,
+      accentSoft: soft, accentShadow: hexA(accent, .3), accentGlow: hexA(accent, .28),
+      roleName: c.name, roleShort: c.short, roleIcon: this.icon(c.icon, 14), logoMark: this.icon(c.icon, 19), accentHex: accent,
+      roleChips, roleMatrix, accentRamp, neutrals, typeScale, spacing, radii, shadows, badges, statCards, navDemo, tabs,
+      plusIcon: this.icon('plus', 16), arrowIcon: this.icon('arrow', 14), bellIcon: this.icon('bell', 18),
+      mailIcon: this.icon('mail', 17), checkIcon: this.icon('check', 13), xIcon: this.icon('x', 15),
+      inputVal: this.state.input, onInput: (e) => this.setState({ input: e.target.value }),
+      toastMsg: 'Compte créé',
+      toggleSwitch: () => this.setState({ switchOn: !knobOn }),
+      switchTrack: `width:42px;height:24px;border-radius:999px;border:none;cursor:pointer;padding:0;position:relative;transition:background .2s ease;background:${knobOn ? accent : '#D6D6CE'}`,
+      switchKnob: `position:absolute;top:3px;left:${knobOn ? '21px' : '3px'};width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s ease`
+    };
+  }
+}
+</script>
+</body>
+</html>

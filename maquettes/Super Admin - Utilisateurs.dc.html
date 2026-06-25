@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--accent:#4F7CF0;--accent-strong:#3B63CC;--accent-soft:#EEF2FD;--sidebar:#14161C;--row-pad:13px 16px;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Geist',-apple-system,system-ui,sans-serif;background:#EEEDE7;color:#1B1B19;-webkit-font-smoothing:antialiased;}
+  button{font-family:inherit;}
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-thumb{background:#DEDED8;border-radius:6px;border:2px solid #EEEDE7;}
+  ::-webkit-scrollbar-thumb:hover{background:#CFCFC8;}
+  @keyframes kz-slide-in{from{transform:translateX(100%);}to{transform:translateX(0);}}
+  @keyframes kz-fade-in{from{opacity:0;}to{opacity:1;}}
+  @keyframes kz-page{from{opacity:0;transform:translateY(9px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes kz-bar{from{transform:scaleX(0);}to{transform:scaleX(1);}}
+  button{transition:transform .12s ease, box-shadow .15s ease;}
+  button:active{transform:translateY(1px);}
+  @media (prefers-reduced-motion:reduce){#kz-page,[style*="kz-bar"]{animation:none!important;}button:active{transform:none;}}
+</style>
+<script src="./image-slot.js"></script>
+</helmet>
+
+<div style="display:flex;height:100vh;width:100%;overflow:hidden;background:#EEEDE7">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside style="width:256px;flex:none;height:100%;background:var(--sidebar);display:flex;flex-direction:column;padding:20px 14px;position:relative;overflow:hidden">
+    <div style="position:absolute;top:-90px;right:-70px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(79,124,240,.16) 0%,transparent 70%);pointer-events:none"></div>
+    <div style="display:flex;align-items:center;gap:11px;padding:4px 8px 20px;position:relative">
+      <img src="uploads/logo.png" alt="Kizuna" style="width:40px;height:40px;object-fit:contain;flex:none" />
+      <div>
+        <div style="font-size:17px;font-weight:700;letter-spacing:-.02em;line-height:1;color:#fff">Kizuna</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.46);margin-top:4px;letter-spacing:.02em">Espace super admin</div>
+      </div>
+    </div>
+
+    <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,.36);letter-spacing:.07em;padding:8px 10px 7px;position:relative">PILOTAGE</div>
+    <nav style="display:flex;flex-direction:column;gap:3px;position:relative">
+      <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="5">
+        <button onClick="{{ n.onClick }}" style="display:flex;align-items:center;gap:11px;width:100%;padding:10px 11px;border:none;background:{{ n.bg }};color:{{ n.color }};border-radius:10px;font-size:14px;font-weight:{{ n.weight }};cursor:pointer;text-align:left" style-hover="{{ n.hover }}">
+          <span style="display:flex;flex:none">{{ n.icon }}</span>
+          <span style="flex:1">{{ n.label }}</span>
+          <sc-if value="{{ n.showBadge }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;font-weight:600;background:{{ n.badgeBg }};color:{{ n.badgeColor }};padding:1px 8px;border-radius:999px">{{ n.badge }}</span></sc-if>
+        </button>
+      </sc-for>
+    </nav>
+
+    <div style="flex:1"></div>
+
+    <div style="border:1px solid rgba(255,255,255,.1);border-radius:13px;padding:11px;background:rgba(255,255,255,.05);display:flex;align-items:center;gap:10px;position:relative">
+      <image-slot id="kz-av-super-admin" shape="circle" fallback="SA" fallback-bg="var(--accent)" fallback-color="#fff" placeholder="Photo" style="width:36px;height:36px;flex:none"></image-slot>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff">Super admin</div>
+        <div style="font-size:11.5px;color:rgba(255,255,255,.46);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">admin@kizuna.app</div>
+      </div>
+      <span style="display:flex;color:rgba(255,255,255,.4)">{{ icons.chevron }}</span>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <div style="flex:1;display:flex;flex-direction:column;height:100%;min-width:0">
+
+    <!-- topbar -->
+    <header style="height:64px;flex:none;border-bottom:1px solid #E3E2DC;background:rgba(238,237,231,.82);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:space-between;padding:0 28px">
+      <div style="display:flex;align-items:center;gap:9px;font-size:13.5px;color:#9A9A93">
+        <span>Administration</span>
+        <span style="color:#CFCFC8">/</span>
+        <span style="color:#1B1B19;font-weight:600">{{ pageLabel }}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <dc-import name="Notifications" items="{{ notifs }}" accent="var(--accent)" accent-soft="var(--accent-soft)" accent-strong="var(--accent-strong)" all-href="#" hint-size="38px,38px"></dc-import>
+        <button style="width:38px;height:38px;border-radius:10px;border:1px solid #E3E2DC;background:#fff;color:#6E6E68;display:flex;align-items:center;justify-content:center;cursor:pointer" style-hover="background:#F4F4F0">{{ icons.buoy }}</button>
+      </div>
+    </header>
+    <dc-import name="Accessibilite" hint-size="0,0"></dc-import>
+
+    <!-- scroll area -->
+    <main style="flex:1;overflow-y:auto;padding:30px 26px 60px">
+      <div id="kz-page" style="max-width:1180px;margin:0 auto">
+
+        <!-- ======================= DASHBOARD ======================= -->
+        <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap">
+            <div style="max-width:560px">
+              <h1 style="font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0">Vue d'ensemble</h1>
+              <p style="font-size:14.5px;color:#76766F;margin:8px 0 0;line-height:1.5">Pilotez les écoles, les comptes et le support de la plateforme Kizuna.</p>
+            </div>
+            <div style="display:flex;gap:10px;flex:none">
+              <button onClick="{{ openCreateSchool }}" style="display:flex;align-items:center;gap:8px;padding:11px 15px;border:1px solid #E0E0DB;border-radius:10px;background:#fff;color:#33332F;font-size:14px;font-weight:600;cursor:pointer" style-hover="background:#F4F4F0">{{ icons.cap }}Nouvelle école</button>
+              <button onClick="{{ openCreate }}" style="display:flex;align-items:center;gap:8px;padding:11px 16px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(79,124,240,.35)" style-hover="background:var(--accent-strong)">{{ icons.userplus }}Nouvel utilisateur</button>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:26px">
+            <sc-for list="{{ statCards }}" as="c" hint-placeholder-count="4">
+              <div onClick="{{ c.onClick }}" style="background:#fff;border:1px solid #E6E5DF;border-radius:15px;padding:17px 18px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.05);transition:transform .15s ease,box-shadow .18s ease,border-color .15s ease" style-hover="border-color:var(--accent);transform:translateY(-2px);box-shadow:0 10px 26px rgba(0,0,0,.08)">
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <div style="font-size:13px;color:#86867F;font-weight:500">{{ c.label }}</div>
+                  <div style="width:30px;height:30px;border-radius:8px;background:var(--accent-soft);color:var(--accent-strong);display:flex;align-items:center;justify-content:center">{{ c.icon }}</div>
+                </div>
+                <div style="font-size:28px;font-weight:700;letter-spacing:-.02em;margin-top:10px;line-height:1">{{ c.value }}</div>
+                <div style="font-size:12px;color:#A4A49C;margin-top:5px">{{ c.sub }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="background:#fff;border:1px solid #E6E5DF;border-radius:16px;padding:20px 22px;margin-top:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+              <div style="font-size:15px;font-weight:600;display:flex;align-items:center;gap:9px">Accès à valider<sc-if value="{{ hasPending }}" hint-placeholder-val="{{ true }}"><span style="font-size:11.5px;font-weight:700;background:#F7EFDA;color:#9A6B12;padding:2px 9px;border-radius:999px">{{ pendingCount }}</span></sc-if></div>
+              <button onClick="{{ goUsers }}" style="font-size:13px;font-weight:600;color:var(--accent-strong);background:none;border:none;cursor:pointer;padding:0">Tous les utilisateurs →</button>
+            </div>
+            <div style="font-size:12.5px;color:#A0A099;margin:4px 0 14px">Comptes invités en attente d'activation — accordez l'accès pour qu'ils puissent se connecter</div>
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <sc-for list="{{ pendingAccess }}" as="p" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:13px;padding:11px 13px;border:1px solid #F0F0EC;border-radius:12px;flex-wrap:wrap">
+                  <image-slot id="{{ p.avId }}" shape="circle" fallback="{{ p.initials }}" fallback-bg="{{ p.avatarBg }}" fallback-color="{{ p.avatarColor }}" placeholder="Photo" style="width:38px;height:38px;flex:none"></image-slot>
+                  <div style="flex:1;min-width:150px"><div style="font-size:14px;font-weight:600">{{ p.fullName }}</div><div style="font-size:12.5px;color:#86867F">{{ p.email }}</div></div>
+                  <span style="display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:600;background:{{ p.roleBg }};color:{{ p.roleColor }};white-space:nowrap">{{ p.roleLabel }}</span>
+                  <span style="font-size:12.5px;color:#A0A099;white-space:nowrap">{{ p.schoolLabel }}</span>
+                  <div style="display:flex;align-items:center;gap:8px;flex:none">
+                    <button onClick="{{ p.onReject }}" style="padding:7px 12px;border:1px solid #EAD3CC;border-radius:8px;background:#fff;color:#B5432A;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:#FBF1EE">Refuser</button>
+                    <button onClick="{{ p.onActivate }}" style="display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:var(--accent-strong)"><span style="display:flex">{{ icons.checkSm }}</span>Activer l'accès</button>
+                  </div>
+                </div>
+              </sc-for>
+              <sc-if value="{{ pendingEmpty }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:center;gap:9px;padding:24px;font-size:13.5px;color:#1F7A63;font-weight:500"><span style="display:flex">{{ icons.checkcircle }}</span>Tous les comptes ont accès à la plateforme.</div></sc-if>
+              <sc-if value="{{ pendingHasMore }}" hint-placeholder-val="{{ false }}"><button onClick="{{ goUsers }}" style="border:none;background:none;font-size:12.5px;font-weight:600;color:#86867F;cursor:pointer;padding:6px">{{ pendingMoreLabel }}</button></sc-if>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:14px;margin-top:14px">
+            <div style="background:#fff;border:1px solid #E6E5DF;border-radius:16px;padding:20px 22px">
+              <div style="font-size:15px;font-weight:600;margin-bottom:4px">Activité récente</div>
+              <div style="font-size:12.5px;color:#A0A099;margin-bottom:14px">Derniers évènements sur la plateforme</div>
+              <div style="display:flex;flex-direction:column;gap:2px">
+                <sc-for list="{{ activity }}" as="a" hint-placeholder-count="5">
+                  <div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid #F4F4F0">
+                    <div style="width:34px;height:34px;border-radius:9px;background:{{ a.chipBg }};color:{{ a.chipColor }};display:flex;align-items:center;justify-content:center;flex:none">{{ a.icon }}</div>
+                    <div style="flex:1;font-size:13.5px;color:#33332F">{{ a.text }}</div>
+                    <div style="font-size:12px;color:#AEAEA6;white-space:nowrap">{{ a.time }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="background:#fff;border:1px solid #E6E5DF;border-radius:16px;padding:20px 22px">
+              <div style="font-size:15px;font-weight:600;margin-bottom:4px">Répartition par rôle</div>
+              <div style="font-size:12.5px;color:#A0A099;margin-bottom:16px">Comptes créés par type</div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <sc-for list="{{ roleDist }}" as="r" hint-placeholder-count="5">
+                  <div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                      <span style="font-size:13px;color:#44443F;font-weight:500">{{ r.label }}</span>
+                      <span style="font-size:13px;color:#86867F;font-weight:600">{{ r.count }}</span>
+                    </div>
+                    <div style="height:7px;border-radius:999px;background:#F0F0EC;overflow:hidden">
+                      <div data-kzbar="1" style="height:100%;width:{{ r.pct }};border-radius:999px;background:{{ r.color }};transform-origin:left"></div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ======================= UTILISATEURS ======================= -->
+        <sc-if value="{{ isUsers }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap">
+            <div style="max-width:560px">
+              <h1 style="font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0">Utilisateurs</h1>
+              <p style="font-size:14.5px;color:#76766F;margin:8px 0 0;line-height:1.5">Créez et gérez les comptes de la plateforme. Les nouveaux comptes sont créés <strong style="color:#44443F;font-weight:600">sans accès</strong> : l'utilisateur ne peut pas encore se connecter.</p>
+            </div>
+            <button onClick="{{ openCreate }}" style="display:flex;align-items:center;gap:8px;padding:11px 16px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(31,122,99,.25);flex:none" style-hover="background:var(--accent-strong)">
+              <span style="display:flex">{{ icons.userplus }}</span>Nouvel utilisateur
+            </button>
+          </div>
+
+          <sc-if value="{{ showStats }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:26px">
+            <sc-for list="{{ statCards }}" as="c" hint-placeholder-count="4">
+              <div onClick="{{ c.onClick }}" style="background:#fff;border:1px solid #E6E5DF;border-radius:15px;padding:17px 18px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.05);transition:transform .15s ease,box-shadow .18s ease,border-color .15s ease" style-hover="border-color:var(--accent);transform:translateY(-2px);box-shadow:0 10px 26px rgba(0,0,0,.08)">
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <div style="font-size:13px;color:#86867F;font-weight:500">{{ c.label }}</div>
+                  <div style="width:30px;height:30px;border-radius:8px;background:var(--accent-soft);color:var(--accent-strong);display:flex;align-items:center;justify-content:center">{{ c.icon }}</div>
+                </div>
+                <div style="font-size:28px;font-weight:700;letter-spacing:-.02em;margin-top:10px;line-height:1">{{ c.value }}</div>
+                <div style="font-size:12px;color:#A4A49C;margin-top:5px">{{ c.sub }}</div>
+              </div>
+            </sc-for>
+          </div>
+          </sc-if>
+
+          <div style="display:flex;align-items:center;gap:14px;margin-top:26px;flex-wrap:wrap">
+            <div style="position:relative;flex:1;min-width:220px;max-width:340px">
+              <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#A4A49C;display:flex">{{ icons.search }}</span>
+              <input value="{{ search }}" onChange="{{ onSearch }}" placeholder="Rechercher un nom ou un email…" style="width:100%;padding:10px 12px 10px 38px;border:1px solid #E4E4DE;border-radius:10px;font-size:14px;background:#fff;outline:none;color:#1B1B19" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" />
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;overflow-x:auto;padding-bottom:2px">
+              <sc-for list="{{ roleFilters }}" as="f" hint-placeholder-count="6">
+                <button onClick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }}<span style="{{ f.countStyle }}">{{ f.count }}</span></button>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="margin-top:16px;background:#fff;border:1px solid #E6E5DF;border-radius:16px;overflow:hidden">
+            <sc-if value="{{ selectionActive }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 18px;background:var(--accent-soft);border-bottom:1px solid #E6E5DF">
+                <div style="font-size:13.5px;font-weight:600;color:var(--accent-strong)">{{ selectionCount }} sélectionné(s)</div>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <button onClick="{{ clearSelection }}" style="padding:7px 12px;border:1px solid #D9E6E0;border-radius:8px;background:#fff;color:#4A4A44;font-size:13px;font-weight:500;cursor:pointer">Annuler</button>
+                  <button onClick="{{ deleteSelected }}" style="display:flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid #EAD3CC;border-radius:8px;background:#fff;color:#B5432A;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:#FBF1EE">{{ icons.trash }}Supprimer</button>
+                </div>
+              </div>
+            </sc-if>
+
+            <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;min-width:880px">
+              <thead>
+                <tr style="border-bottom:1px solid #E6E5DF">
+                  <th style="width:46px;padding:0 0 0 18px;height:42px;text-align:left"><input type="checkbox" checked="{{ allSelected }}" onChange="{{ toggleSelectAll }}" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer" /></th>
+                  <th style="text-align:left;padding:0 16px;font-size:11.5px;font-weight:600;color:#A0A099;letter-spacing:.05em">UTILISATEUR</th>
+                  <th style="text-align:left;padding:0 16px;font-size:11.5px;font-weight:600;color:#A0A099;letter-spacing:.05em">EMAIL</th>
+                  <th style="text-align:left;padding:0 16px;font-size:11.5px;font-weight:600;color:#A0A099;letter-spacing:.05em">RÔLE</th>
+                  <th style="text-align:left;padding:0 16px;font-size:11.5px;font-weight:600;color:#A0A099;letter-spacing:.05em">ÉCOLE(S)</th>
+                  <th style="text-align:left;padding:0 16px;font-size:11.5px;font-weight:600;color:#A0A099;letter-spacing:.05em">STATUT</th>
+                  <th style="text-align:left;padding:0 16px;font-size:11.5px;font-weight:600;color:#A0A099;letter-spacing:.05em">CRÉÉ LE</th>
+                  <th style="width:84px;padding:0 18px 0 16px;font-size:11.5px;font-weight:600;color:#A0A099;letter-spacing:.05em;text-align:right">ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ users }}" as="u" hint-placeholder-count="6">
+                  <tr style="border-bottom:1px solid #F2F2EE;background:{{ u.rowBg }}">
+                    <td style="padding:var(--row-pad);padding-left:18px"><input type="checkbox" checked="{{ u.selected }}" onChange="{{ u.onToggle }}" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer" /></td>
+                    <td style="padding:var(--row-pad)">
+                      <div style="display:flex;align-items:center;gap:11px">
+                        <image-slot id="{{ u.avId }}" shape="circle" fallback="{{ u.initials }}" fallback-bg="{{ u.avatarBg }}" fallback-color="{{ u.avatarColor }}" placeholder="Photo" style="width:34px;height:34px;flex:none"></image-slot>
+                        <div style="font-size:14px;font-weight:600;color:#1B1B19;white-space:nowrap">{{ u.fullName }}</div>
+                      </div>
+                    </td>
+                    <td style="padding:var(--row-pad);font-size:13.5px;color:#76766F;white-space:nowrap">{{ u.email }}</td>
+                    <td style="padding:var(--row-pad)"><span style="display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap;background:{{ u.roleBg }};color:{{ u.roleColor }}">{{ u.role }}</span></td>
+                    <td style="padding:var(--row-pad)">
+                      <sc-if value="{{ u.hasSchools }}" hint-placeholder-val="{{ true }}">
+                        <div style="display:flex;align-items:center;gap:5px;flex-wrap:nowrap">
+                          <sc-for list="{{ u.schoolsShown }}" as="s" hint-placeholder-count="2"><span style="padding:3px 9px;border-radius:7px;font-size:12px;font-weight:500;background:#F3F3EF;color:#55554F;white-space:nowrap;border:1px solid #EBEBE5">{{ s }}</span></sc-for>
+                          <sc-if value="{{ u.hasMore }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:#A0A099;font-weight:600">{{ u.moreLabel }}</span></sc-if>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{ u.noSchools }}" hint-placeholder-val="{{ false }}"><span style="color:#C6C6BE">—</span></sc-if>
+                    </td>
+                    <td style="padding:var(--row-pad)"><span style="display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 8px;border-radius:999px;font-size:12px;font-weight:600;background:{{ u.statusBg }};color:{{ u.statusColor }}"><span style="width:6px;height:6px;border-radius:50%;background:{{ u.statusColor }}"></span>{{ u.statusLabel }}</span></td>
+                    <td style="padding:var(--row-pad);font-size:13px;color:#9A9A93;white-space:nowrap">{{ u.created }}</td>
+                    <td style="padding:var(--row-pad);padding-right:18px">
+                      <div style="display:flex;align-items:center;justify-content:flex-end;gap:4px">
+                        <button onClick="{{ u.onEdit }}" title="Modifier" style="width:32px;height:32px;border-radius:8px;border:1px solid transparent;background:transparent;color:#86867F;display:flex;align-items:center;justify-content:center;cursor:pointer" style-hover="background:#F2F2EE;color:#1B1B19">{{ icons.pencil }}</button>
+                        <button onClick="{{ u.onDelete }}" title="Supprimer" style="width:32px;height:32px;border-radius:8px;border:1px solid transparent;background:transparent;color:#86867F;display:flex;align-items:center;justify-content:center;cursor:pointer" style-hover="background:#FBF1EE;color:#B5432A">{{ icons.trash }}</button>
+                      </div>
+                    </td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+            </div>
+
+            <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:54px 20px;text-align:center">
+                <div style="width:46px;height:46px;border-radius:12px;background:#F3F3EF;color:#B6B6AE;display:flex;align-items:center;justify-content:center;margin:0 auto 14px">{{ icons.users }}</div>
+                <div style="font-size:15px;font-weight:600;color:#44443F">Aucun utilisateur trouvé</div>
+                <div style="font-size:13.5px;color:#9A9A93;margin-top:5px">Essayez d'ajuster votre recherche ou vos filtres.</div>
+              </div>
+            </sc-if>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-top:1px solid #E6E5DF;font-size:13px;color:#9A9A93">
+              <span>{{ resultCount }}</span>
+              <div style="display:flex;align-items:center;gap:8px">
+                <button style="padding:6px 12px;border:1px solid #E4E4DE;border-radius:8px;background:#fff;color:#9A9A93;font-size:13px;cursor:not-allowed">Précédent</button>
+                <span style="color:#76766F">Page 1 / 1</span>
+                <button style="padding:6px 12px;border:1px solid #E4E4DE;border-radius:8px;background:#fff;color:#9A9A93;font-size:13px;cursor:not-allowed">Suivant</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ======================= ÉCOLES ======================= -->
+        <sc-if value="{{ isEcoles }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap">
+            <div style="max-width:560px">
+              <h1 style="font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0">Écoles</h1>
+              <p style="font-size:14.5px;color:#76766F;margin:8px 0 0;line-height:1.5">Créez les établissements partenaires et rattachez-leur des administrateurs. Seul le super admin peut créer une école.</p>
+            </div>
+            <button onClick="{{ openCreateSchool }}" style="display:flex;align-items:center;gap:8px;padding:11px 16px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(31,122,99,.25);flex:none" style-hover="background:var(--accent-strong)">{{ icons.plus }}Nouvelle école</button>
+          </div>
+
+          <div style="position:relative;max-width:340px;margin-top:24px">
+            <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#A4A49C;display:flex">{{ icons.search }}</span>
+            <input value="{{ schoolSearch }}" onChange="{{ onSchoolSearch }}" placeholder="Rechercher une école…" style="width:100%;padding:10px 12px 10px 38px;border:1px solid #E4E4DE;border-radius:10px;font-size:14px;background:#fff;outline:none;color:#1B1B19" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" />
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px">
+            <sc-for list="{{ schools }}" as="s" hint-placeholder-count="6">
+              <div style="background:#fff;border:1px solid #E6E5DF;border-radius:16px;padding:18px 18px 16px;display:flex;flex-direction:column;box-shadow:0 1px 3px rgba(0,0,0,.05);transition:transform .15s ease,box-shadow .18s ease,border-color .15s ease" style-hover="transform:translateY(-2px);box-shadow:0 10px 26px rgba(0,0,0,.08);border-color:#D8D7D0">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between">
+                  <div style="width:46px;height:46px;border-radius:12px;background:{{ s.avatarBg }};color:{{ s.avatarColor }};display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex:none">{{ s.initials }}</div>
+                  <div style="display:flex;gap:3px">
+                    <button onClick="{{ s.onEdit }}" title="Modifier" style="width:30px;height:30px;border-radius:8px;border:1px solid transparent;background:transparent;color:#A0A099;display:flex;align-items:center;justify-content:center;cursor:pointer" style-hover="background:#F2F2EE;color:#1B1B19">{{ icons.pencil }}</button>
+                    <button onClick="{{ s.onDelete }}" title="Supprimer" style="width:30px;height:30px;border-radius:8px;border:1px solid transparent;background:transparent;color:#A0A099;display:flex;align-items:center;justify-content:center;cursor:pointer" style-hover="background:#FBF1EE;color:#B5432A">{{ icons.trash }}</button>
+                  </div>
+                </div>
+                <div style="font-size:16px;font-weight:600;margin-top:14px;letter-spacing:-.01em">{{ s.name }}</div>
+                <div style="font-size:13px;color:#86867F;margin-top:3px">{{ s.type }}</div>
+                <div style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#A0A099;margin-top:5px">{{ icons.pin }}{{ s.city }}</div>
+                <div style="height:1px;background:#F2F2EE;margin:14px 0 12px"></div>
+                <div style="display:flex;gap:22px">
+                  <div>
+                    <div style="font-size:18px;font-weight:700;color:#1B1B19">{{ s.adminsCount }}</div>
+                    <div style="font-size:11.5px;color:#A0A099">admin(s)</div>
+                  </div>
+                  <div>
+                    <div style="font-size:18px;font-weight:700;color:#1B1B19">{{ s.usersCount }}</div>
+                    <div style="font-size:11.5px;color:#A0A099">utilisateur(s)</div>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ schoolsEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:54px 20px;text-align:center;background:#fff;border:1px solid #E6E5DF;border-radius:16px;margin-top:18px">
+              <div style="width:46px;height:46px;border-radius:12px;background:#F3F3EF;color:#B6B6AE;display:flex;align-items:center;justify-content:center;margin:0 auto 14px">{{ icons.cap }}</div>
+              <div style="font-size:15px;font-weight:600;color:#44443F">Aucune école trouvée</div>
+              <div style="font-size:13.5px;color:#9A9A93;margin-top:5px">Créez une nouvelle école pour commencer.</div>
+            </div>
+          </sc-if>
+        </sc-if>
+
+        <!-- ======================= SUPPORT ======================= -->
+        <sc-if value="{{ isSupport }}" hint-placeholder-val="{{ false }}">
+          <div style="max-width:620px">
+            <h1 style="font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0">Support</h1>
+            <p style="font-size:14.5px;color:#76766F;margin:8px 0 0;line-height:1.5">Suivez les demandes et les bugs remontés par les utilisateurs de la plateforme.</p>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:26px">
+            <sc-for list="{{ supportStats }}" as="c" hint-placeholder-count="4">
+              <div onClick="{{ c.onClick }}" style="background:#fff;border:1px solid #E6E5DF;border-radius:15px;padding:17px 18px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.05);transition:transform .15s ease,box-shadow .18s ease,border-color .15s ease" style-hover="border-color:var(--accent);transform:translateY(-2px);box-shadow:0 10px 26px rgba(0,0,0,.08)">
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <div style="font-size:13px;color:#86867F;font-weight:500">{{ c.label }}</div>
+                  <div style="width:30px;height:30px;border-radius:8px;background:{{ c.chipBg }};color:{{ c.chipColor }};display:flex;align-items:center;justify-content:center">{{ c.icon }}</div>
+                </div>
+                <div style="font-size:28px;font-weight:700;letter-spacing:-.02em;margin-top:10px;line-height:1">{{ c.value }}</div>
+                <div style="font-size:12px;color:#A4A49C;margin-top:5px">{{ c.sub }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:14px;margin-top:26px;flex-wrap:wrap">
+            <div style="position:relative;flex:1;min-width:220px;max-width:340px">
+              <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#A4A49C;display:flex">{{ icons.search }}</span>
+              <input value="{{ supportSearch }}" onChange="{{ onSupportSearch }}" placeholder="Rechercher un ticket…" style="width:100%;padding:10px 12px 10px 38px;border:1px solid #E4E4DE;border-radius:10px;font-size:14px;background:#fff;outline:none;color:#1B1B19" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" />
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;overflow-x:auto;padding-bottom:2px">
+              <sc-for list="{{ supportFilters }}" as="f" hint-placeholder-count="6">
+                <button onClick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }}<span style="{{ f.countStyle }}">{{ f.count }}</span></button>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="margin-top:16px;background:#fff;border:1px solid #E6E5DF;border-radius:16px;overflow:hidden">
+            <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;min-width:880px">
+              <thead>
+                <tr style="border-bottom:1px solid #E6E5DF">
+                  <th style="text-align:left;padding:0 16px 0 18px;height:42px;font-size:11.5px;font-weight:600;color:#A0A099;letter-spacing:.05em">SUJET</th>
+                  <th style="text-align:left;padding:0 16px;font-size:11.5px;font-weight:600;color:#A0A099;letter-spacing:.05em">DEMANDEUR</th>
+                  <th style="text-align:left;padding:0 16px;font-size:11.5px;font-weight:600;color:#A0A099;letter-spacing:.05em">TYPE</th>
+                  <th style="text-align:left;padding:0 16px;font-size:11.5px;font-weight:600;color:#A0A099;letter-spacing:.05em">PRIORITÉ</th>
+                  <th style="text-align:left;padding:0 16px;font-size:11.5px;font-weight:600;color:#A0A099;letter-spacing:.05em">STATUT</th>
+                  <th style="text-align:left;padding:0 18px 0 16px;font-size:11.5px;font-weight:600;color:#A0A099;letter-spacing:.05em">DATE</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ tickets }}" as="t" hint-placeholder-count="6">
+                  <tr style="border-bottom:1px solid #F2F2EE">
+                    <td style="padding:var(--row-pad);padding-left:18px;font-size:14px;font-weight:600;color:#1B1B19;max-width:320px">{{ t.subject }}</td>
+                    <td style="padding:var(--row-pad);font-size:13.5px;color:#76766F;white-space:nowrap">{{ t.requester }}</td>
+                    <td style="padding:var(--row-pad)"><span style="display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;background:{{ t.typeBg }};color:{{ t.typeColor }}">{{ t.typeLabel }}</span></td>
+                    <td style="padding:var(--row-pad)"><span style="display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;background:{{ t.prioBg }};color:{{ t.prioColor }}">{{ t.prioLabel }}</span></td>
+                    <td style="padding:var(--row-pad)"><span style="display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 8px;border-radius:999px;font-size:12px;font-weight:600;background:{{ t.statusBg }};color:{{ t.statusColor }}"><span style="width:6px;height:6px;border-radius:50%;background:{{ t.statusColor }}"></span>{{ t.statusLabel }}</span></td>
+                    <td style="padding:var(--row-pad);padding-right:18px;font-size:13px;color:#9A9A93;white-space:nowrap">{{ t.date }}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+            </div>
+            <sc-if value="{{ ticketsEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:54px 20px;text-align:center">
+                <div style="width:46px;height:46px;border-radius:12px;background:#F3F3EF;color:#B6B6AE;display:flex;align-items:center;justify-content:center;margin:0 auto 14px">{{ icons.buoy }}</div>
+                <div style="font-size:15px;font-weight:600;color:#44443F">Aucun ticket</div>
+                <div style="font-size:13.5px;color:#9A9A93;margin-top:5px">Rien à traiter pour ce filtre.</div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <!-- ======================= PARAMÈTRES ======================= -->
+        <sc-if value="{{ isParametres }}" hint-placeholder-val="{{ false }}">
+          <div style="max-width:620px">
+            <h1 style="font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0">Paramètres</h1>
+            <p style="font-size:14.5px;color:#76766F;margin:8px 0 0;line-height:1.5">Gérez votre compte et la configuration générale de la plateforme.</p>
+          </div>
+
+          <div style="display:grid;grid-template-columns:220px 1fr;gap:20px;margin-top:26px;align-items:start">
+            <nav style="display:flex;flex-direction:column;gap:3px">
+              <sc-for list="{{ settingsTabs }}" as="t" hint-placeholder-count="4">
+                <button onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</button>
+              </sc-for>
+            </nav>
+
+            <div style="background:#fff;border:1px solid #E6E5DF;border-radius:16px;padding:24px 26px">
+              <!-- Profil -->
+              <sc-if value="{{ isProfil }}" hint-placeholder-val="{{ true }}">
+                <div style="font-size:17px;font-weight:600">Profil</div>
+                <div style="font-size:13px;color:#A0A099;margin-top:3px;margin-bottom:20px">Vos informations personnelles.</div>
+                <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px">
+                  <image-slot id="kz-av-super-admin" shape="circle" fallback="SA" fallback-bg="#1B1B19" fallback-color="#fff" placeholder="Photo" style="width:58px;height:58px;flex:none"></image-slot>
+                  <button style="padding:9px 14px;border:1px solid #E0E0DB;border-radius:9px;background:#fff;color:#33332F;font-size:13.5px;font-weight:500;cursor:pointer" style-hover="background:#F4F4F0">Changer la photo</button>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                  <div><label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:6px">Prénom</label><input defaultValue="Super" style="width:100%;padding:10px 12px;border:1px solid #E0E0DB;border-radius:9px;font-size:14px;color:#1B1B19;background:#fff;outline:none" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" /></div>
+                  <div><label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:6px">Nom</label><input defaultValue="Admin" style="width:100%;padding:10px 12px;border:1px solid #E0E0DB;border-radius:9px;font-size:14px;color:#1B1B19;background:#fff;outline:none" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" /></div>
+                </div>
+                <div style="margin-top:14px"><label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:6px">Adresse email</label><input defaultValue="admin@kizuna.app" style="width:100%;padding:10px 12px;border:1px solid #E0E0DB;border-radius:9px;font-size:14px;color:#1B1B19;background:#fff;outline:none" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" /></div>
+                <div style="display:flex;justify-content:flex-end;margin-top:22px"><button style="padding:10px 18px;border:none;border-radius:9px;background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:pointer" style-hover="background:var(--accent-strong)">Enregistrer</button></div>
+              </sc-if>
+
+              <!-- Sécurité -->
+              <sc-if value="{{ isSecurite }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:17px;font-weight:600">Sécurité</div>
+                <div style="font-size:13px;color:#A0A099;margin-top:3px;margin-bottom:20px">Mot de passe et authentification.</div>
+                <div style="display:flex;flex-direction:column;gap:14px;max-width:380px">
+                  <div><label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:6px">Mot de passe actuel</label><input type="password" defaultValue="password" style="width:100%;padding:10px 12px;border:1px solid #E0E0DB;border-radius:9px;font-size:14px;background:#fff;outline:none" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" /></div>
+                  <div><label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:6px">Nouveau mot de passe</label><input type="password" style="width:100%;padding:10px 12px;border:1px solid #E0E0DB;border-radius:9px;font-size:14px;background:#fff;outline:none" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" /></div>
+                </div>
+                <div style="height:1px;background:#F2F2EE;margin:22px 0"></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:20px">
+                  <div><div style="font-size:14px;font-weight:600">Double authentification (2FA)</div><div style="font-size:12.5px;color:#A0A099;margin-top:3px">Sécurisez votre compte avec un code à usage unique.</div></div>
+                  <button onClick="{{ twofa.onClick }}" style="{{ twofa.trackStyle }}"><span style="{{ twofa.knobStyle }}"></span></button>
+                </div>
+              </sc-if>
+
+              <!-- Notifications -->
+              <sc-if value="{{ isNotifications }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:17px;font-weight:600">Notifications</div>
+                <div style="font-size:13px;color:#A0A099;margin-top:3px;margin-bottom:8px">Choisissez les évènements qui vous alertent par email.</div>
+                <div style="display:flex;flex-direction:column">
+                  <sc-for list="{{ notifToggles }}" as="t" hint-placeholder-count="4">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;padding:15px 0;border-bottom:1px solid #F4F4F0">
+                      <div><div style="font-size:14px;font-weight:600;color:#33332F">{{ t.label }}</div><div style="font-size:12.5px;color:#A0A099;margin-top:3px">{{ t.desc }}</div></div>
+                      <button onClick="{{ t.onClick }}" style="{{ t.trackStyle }}"><span style="{{ t.knobStyle }}"></span></button>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+
+              <!-- Plateforme -->
+              <sc-if value="{{ isPlateforme }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:17px;font-weight:600">Plateforme</div>
+                <div style="font-size:13px;color:#A0A099;margin-top:3px;margin-bottom:20px">Configuration générale de Kizuna.</div>
+                <div style="display:flex;flex-direction:column;gap:14px;max-width:380px">
+                  <div><label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:6px">Nom de la plateforme</label><input defaultValue="Kizuna" style="width:100%;padding:10px 12px;border:1px solid #E0E0DB;border-radius:9px;font-size:14px;background:#fff;outline:none" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" /></div>
+                  <div><label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:6px">Langue par défaut</label><select style="width:100%;padding:10px 12px;border:1px solid #E0E0DB;border-radius:9px;font-size:14px;background:#fff;outline:none;color:#1B1B19"><option>Français</option><option>English</option></select></div>
+                  <div><label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:6px">Fuseau horaire</label><select style="width:100%;padding:10px 12px;border:1px solid #E0E0DB;border-radius:9px;font-size:14px;background:#fff;outline:none;color:#1B1B19"><option>Europe/Paris (GMT+1)</option><option>UTC</option></select></div>
+                </div>
+                <div style="display:flex;justify-content:flex-end;margin-top:22px"><button style="padding:10px 18px;border:none;border-radius:9px;background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:pointer" style-hover="background:var(--accent-strong)">Enregistrer</button></div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ SLIDE-OVER ============ -->
+  <div style="position:fixed;inset:0;z-index:60;pointer-events:{{ overlayPE }}">
+    <div onClick="{{ closePanel }}" style="position:absolute;inset:0;background:rgba(22,22,20,.34);opacity:{{ backdropOpacity }};transition:opacity .3s ease"></div>
+    <aside style="position:absolute;top:0;right:0;height:100%;width:464px;max-width:92vw;background:#fff;box-shadow:-16px 0 50px rgba(0,0,0,.16);display:flex;flex-direction:column;transform:{{ panelTransform }};transition:transform .36s cubic-bezier(.22,.61,.36,1)">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:22px 24px;border-bottom:1px solid #EFEFEA">
+        <div>
+          <div style="font-size:18px;font-weight:700;letter-spacing:-.01em">{{ panelTitle }}</div>
+          <div style="font-size:13px;color:#86867F;margin-top:4px">{{ panelSubtitle }}</div>
+        </div>
+        <button onClick="{{ closePanel }}" style="width:34px;height:34px;border-radius:9px;border:1px solid #E6E5DF;background:#fff;color:#76766F;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none" style-hover="background:#F4F4F0">{{ icons.x }}</button>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;padding:22px 24px">
+
+        <!-- USER FORM -->
+        <sc-if value="{{ isUserPanel }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:13px">
+            <div>
+              <label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:6px">Prénom</label>
+              <input value="{{ form.prenom }}" onChange="{{ onPrenom }}" placeholder="Camille" aria-invalid="{{ uPrenomBad }}" style="{{ uPrenomStyle }}" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" />
+              <sc-if value="{{ uPrenomBad }}" hint-placeholder-val="{{ false }}"><div role="alert" style="font-size:12px;color:#C8442A;margin-top:5px">{{ uPrenomErr }}</div></sc-if>
+            </div>
+            <div>
+              <label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:6px">Nom</label>
+              <input value="{{ form.nom }}" onChange="{{ onNom }}" placeholder="Moreau" aria-invalid="{{ uNomBad }}" style="{{ uNomStyle }}" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" />
+              <sc-if value="{{ uNomBad }}" hint-placeholder-val="{{ false }}"><div role="alert" style="font-size:12px;color:#C8442A;margin-top:5px">{{ uNomErr }}</div></sc-if>
+            </div>
+          </div>
+          <div style="margin-top:15px">
+            <label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:6px">Adresse email</label>
+            <input value="{{ form.email }}" onChange="{{ onEmail }}" placeholder="camille.moreau@ecole.fr" type="email" aria-invalid="{{ uEmailBad }}" style="{{ uEmailStyle }}" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" />
+            <sc-if value="{{ uEmailBad }}" hint-placeholder-val="{{ false }}"><div role="alert" style="font-size:12px;color:#C8442A;margin-top:5px">{{ uEmailErr }}</div></sc-if>
+          </div>
+          <div style="margin-top:18px">
+            <label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:9px">Rôle</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <sc-for list="{{ roleOptions }}" as="r" hint-placeholder-count="6">
+                <button onClick="{{ r.onClick }}" style="{{ r.style }}"><span style="width:7px;height:7px;border-radius:50%;background:{{ r.dotColor }};flex:none"></span>{{ r.name }}</button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="margin-top:18px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
+              <label style="font-size:12.5px;font-weight:600;color:#44443F">École(s) liée(s)</label>
+              <span style="font-size:12px;color:#A0A099">{{ selectedSchoolsLabel }}</span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:7px">
+              <sc-for list="{{ schoolOptions }}" as="s" hint-placeholder-count="6">
+                <button onClick="{{ s.onClick }}" style="{{ s.style }}"><sc-if value="{{ s.sel }}" hint-placeholder-val="{{ false }}"><span style="display:flex">{{ icons.checkSm }}</span></sc-if>{{ s.name }}</button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="margin-top:20px;display:flex;gap:11px;padding:13px 14px;border-radius:11px;background:#F8F5EE;border:1px solid #F0E9D8">
+            <span style="display:flex;color:#9A6B12;flex:none;margin-top:1px">{{ icons.info }}</span>
+            <div style="font-size:12.5px;color:#7A6324;line-height:1.5">Le compte sera créé <strong style="font-weight:600">sans accès</strong>. L'utilisateur ne pourra pas se connecter tant que son accès n'aura pas été activé.</div>
+          </div>
+        </sc-if>
+
+        <!-- SCHOOL FORM -->
+        <sc-if value="{{ isSchoolPanel }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:6px">Nom de l'école</label>
+            <input value="{{ schoolForm.name }}" onChange="{{ onSchoolName }}" placeholder="EPITECH Paris" aria-invalid="{{ sNameBad }}" style="{{ sNameStyle }}" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" />
+            <sc-if value="{{ sNameBad }}" hint-placeholder-val="{{ false }}"><div role="alert" style="font-size:12px;color:#C8442A;margin-top:5px">{{ sNameErr }}</div></sc-if>
+          </div>
+          <div style="margin-top:15px">
+            <label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:6px">Ville</label>
+            <input value="{{ schoolForm.city }}" onChange="{{ onSchoolCity }}" placeholder="Paris" aria-invalid="{{ sCityBad }}" style="{{ sCityStyle }}" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" />
+            <sc-if value="{{ sCityBad }}" hint-placeholder-val="{{ false }}"><div role="alert" style="font-size:12px;color:#C8442A;margin-top:5px">{{ sCityErr }}</div></sc-if>
+          </div>
+          <div style="margin-top:18px">
+            <label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:9px">Type d'établissement</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <sc-for list="{{ schoolTypeOptions }}" as="t" hint-placeholder-count="6">
+                <button onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.name }}</button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="margin-top:20px;display:flex;gap:11px;padding:13px 14px;border-radius:11px;background:var(--accent-soft);border:1px solid #D9EAE2">
+            <span style="display:flex;color:var(--accent-strong);flex:none;margin-top:1px">{{ icons.info }}</span>
+            <div style="font-size:12.5px;color:var(--accent-strong);line-height:1.5">Une fois créée, vous pourrez rattacher des administrateurs à cette école depuis la page Utilisateurs.</div>
+          </div>
+        </sc-if>
+
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:16px 24px;border-top:1px solid #EFEFEA">
+        <button onClick="{{ closePanel }}" style="padding:10px 16px;border:1px solid #E0E0DB;border-radius:9px;background:#fff;color:#44443F;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#F4F4F0">Annuler</button>
+        <button onClick="{{ onSave }}" style="{{ saveBtnStyle }}">{{ panelSaveLabel }}</button>
+      </div>
+    </aside>
+  </div>
+
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+    <div role="status" aria-live="polite" style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:130;display:flex;align-items:center;gap:13px;background:#1B1B19;color:#fff;padding:11px 13px 11px 18px;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.28);max-width:92vw">
+      <span style="font-size:13.5px;font-weight:500">{{ toastMessage }}</span>
+      <sc-if value="{{ toastHasUndo }}" hint-placeholder-val="{{ true }}"><button onClick="{{ runUndo }}" style="display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border:none;border-radius:8px;background:rgba(255,255,255,.16);color:#fff;font-size:13px;font-weight:600;cursor:pointer">Annuler</button></sc-if>
+      <button onClick="{{ dismissToast }}" aria-label="Fermer la notification" style="width:28px;height:28px;border-radius:7px;border:none;background:transparent;color:#A8A8A2;display:flex;align-items:center;justify-content:center;cursor:pointer">{{ icons.x }}</button>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;accent&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;Indigo&quot;, &quot;Teal&quot;, &quot;Océan&quot;, &quot;Corail&quot;, &quot;Violet&quot;], &quot;default&quot;: &quot;Indigo&quot;, &quot;tsType&quot;: &quot;string&quot; },
+  &quot;density&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;Confortable&quot;, &quot;Compact&quot;], &quot;default&quot;: &quot;Confortable&quot;, &quot;tsType&quot;: &quot;string&quot; },
+  &quot;showStats&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot; }
+}">
+class Component extends DCLogic {
+  state = {
+    navActive: (function(){ try{ return sessionStorage.getItem('kz_sa_nav') || 'dashboard'; }catch(e){ return 'dashboard'; } })(),
+    search: '', roleFilter: 'all',
+    schoolSearch: '', supportSearch: '', supportFilter: 'all',
+    settingsTab: 'profil',
+    panelOpen: false, panelMode: 'user',
+    editingId: null, editingSchoolId: null,
+    selectedIds: [],
+    toast: null, userTried: false, schoolTried: false,
+    form: { prenom: '', nom: '', email: '', role: 'Administrateur', schools: [] },
+    schoolForm: { name: '', city: '', type: "CFA (Centre de formation d'apprentis)" },
+    toggles: { notifInscriptions: true, notifTickets: true, notifHebdo: false, notifSecurite: true, twofa: true },
+    users: [
+      { id: 'u1', prenom: 'Camille', nom: 'Moreau', email: 'camille.moreau@hetic.fr', role: 'Administrateur', schools: ['HETIC', 'EPITECH Paris'], status: 'active', created: '12 juin 2026' },
+      { id: 'u2', prenom: 'Élise', nom: 'Rousseau', email: 'elise.rousseau@esgi.fr', role: 'Administrateur', schools: ['ESGI', 'CFA BTP Île-de-France', 'EPITECH Paris'], status: 'invited', created: '2 juin 2026' },
+      { id: 'u3', prenom: 'Thomas', nom: 'Lefèvre', email: 'thomas.lefevre@iut-nanterre.fr', role: 'Administrateur', schools: ['IUT de Nanterre'], status: 'invited', created: '28 mai 2026' },
+      { id: 'u4', prenom: 'Sarah', nom: 'Benali', email: 'sarah.benali@hetic.fr', role: 'Tuteur pédagogique', schools: ['HETIC'], status: 'invited', created: '18 juin 2026' },
+      { id: 'u5', prenom: 'Lucas', nom: 'Girard', email: 'lucas.girard@epitech.eu', role: 'Alternant', schools: ['EPITECH Paris'], status: 'invited', created: '20 juin 2026' },
+      { id: 'u6', prenom: 'Marie', nom: 'Dubois', email: 'marie.dubois@orange.com', role: "Tuteur d'entreprise", schools: [], status: 'invited', created: '15 juin 2026' },
+      { id: 'u7', prenom: 'Karim', nom: 'Haddad', email: 'k.haddad@kizuna.app', role: 'Support', schools: [], status: 'active', created: '5 mai 2026' },
+      { id: 'u8', prenom: 'Antoine', nom: 'Faure', email: 'antoine.faure@esgi.fr', role: 'Alternant', schools: ['ESGI'], status: 'invited', created: '21 juin 2026' },
+      { id: 'u9', prenom: 'Nadia', nom: 'Cherif', email: 'nadia.cherif@ferrandi.fr', role: 'Tuteur pédagogique', schools: ['Institut Ferrandi'], status: 'invited', created: '10 juin 2026' }
+    ],
+    schools: [
+      { id: 's1', name: 'EPITECH Paris', city: 'Paris', type: 'École supérieure', created: '14 mai 2026' },
+      { id: 's2', name: 'HETIC', city: 'Montreuil', type: 'École supérieure', created: '14 mai 2026' },
+      { id: 's3', name: 'ESGI', city: 'Paris', type: 'École supérieure', created: '20 mai 2026' },
+      { id: 's4', name: 'CFA BTP Île-de-France', city: 'Rungis', type: "CFA (Centre de formation d'apprentis)", created: '2 juin 2026' },
+      { id: 's5', name: 'Lycée des métiers Hélène Boucher', city: 'Paris', type: 'Lycée professionnel', created: '8 juin 2026' },
+      { id: 's6', name: 'Institut Ferrandi', city: 'Paris', type: 'École supérieure', created: '28 mai 2026' },
+      { id: 's7', name: 'GRETA Hôtellerie-Restauration', city: 'Lyon', type: 'GRETA', created: '4 juin 2026' },
+      { id: 's8', name: 'IUT de Nanterre', city: 'Nanterre', type: 'IUT', created: '11 juin 2026' }
+    ],
+    tickets: [
+      { id: 't1', subject: 'Impossible de lier un alternant à son tuteur', requester: 'Sarah Benali', type: 'bug', priority: 'haute', status: 'progress', date: '22 juin 2026' },
+      { id: 't2', subject: "Demande d'ajout d'une nouvelle école", requester: 'Thomas Lefèvre', type: 'demande', priority: 'moyenne', status: 'open', date: '21 juin 2026' },
+      { id: 't3', subject: 'Erreur 500 sur la page bilan', requester: 'Lucas Girard', type: 'bug', priority: 'haute', status: 'open', date: '21 juin 2026' },
+      { id: 't4', subject: 'Renommer un établissement existant', requester: 'Camille Moreau', type: 'demande', priority: 'basse', status: 'resolved', date: '19 juin 2026' },
+      { id: 't5', subject: 'Notifications email non reçues', requester: 'Antoine Faure', type: 'bug', priority: 'moyenne', status: 'progress', date: '18 juin 2026' },
+      { id: 't6', subject: 'Export PDF du suivi de compétences', requester: 'Nadia Cherif', type: 'demande', priority: 'basse', status: 'open', date: '17 juin 2026' },
+      { id: 't7', subject: 'Accès refusé pour un tuteur entreprise', requester: 'Marie Dubois', type: 'bug', priority: 'haute', status: 'resolved', date: '15 juin 2026' }
+    ],
+    activity: [
+      { id: 'a1', type: 'user', text: 'Élise Rousseau ajoutée · Administrateur', time: 'il y a 2 h' },
+      { id: 'a2', type: 'school', text: 'École « Institut Ferrandi » créée', time: 'il y a 1 j' },
+      { id: 'a3', type: 'user', text: 'Lucas Girard ajouté · Alternant', time: 'il y a 1 j' },
+      { id: 'a4', type: 'bug', text: 'Nouveau bug signalé · priorité haute', time: 'il y a 2 j' },
+      { id: 'a5', type: 'access', text: 'Karim Haddad · accès activé', time: 'il y a 3 j' }
+    ]
+  };
+
+  schoolTypes = ["CFA (Centre de formation d'apprentis)", 'Lycée professionnel', 'Université', 'IUT', 'École supérieure', 'Organisme de formation', 'GRETA', 'Autre'];
+  roles = ['Super administrateur', 'Administrateur', 'Alternant', "Tuteur d'entreprise", 'Tuteur pédagogique', 'Support'];
+  roleStyle = {
+    'Super administrateur': { bg: '#1B1B19', color: '#fff' },
+    'Administrateur': { bg: '#E4F2EC', color: '#1F7A63' },
+    'Alternant': { bg: '#FBEAE1', color: '#B5572F' },
+    "Tuteur d'entreprise": { bg: '#F7EFDA', color: '#8A6516' },
+    'Tuteur pédagogique': { bg: '#E8EEF7', color: '#3D5E8E' },
+    'Support': { bg: '#EDEDE9', color: '#5B5B55' }
+  };
+  avatarPalette = [
+    { bg: '#E4F2EC', color: '#1F7A63' }, { bg: '#FBEAE1', color: '#B5572F' },
+    { bg: '#E8EEF7', color: '#3D5E8E' }, { bg: '#F7EFDA', color: '#8A6516' },
+    { bg: '#EEE7F5', color: '#6B4E96' }
+  ];
+
+  componentDidMount() { this.applyTheme(); this._lastNav = this.state.navActive; }
+  componentDidUpdate() {
+    this.applyTheme();
+    if (this._lastNav !== this.state.navActive) {
+      this._lastNav = this.state.navActive;
+      try { sessionStorage.setItem('kz_sa_nav', this.state.navActive); } catch (e) {}
+      this.transitionPage();
+    }
+  }
+  reduceMotion() { return !!(window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches); }
+  // rAF tweens: resting DOM stays at final visible state; we only perturb temporarily.
+  // If rAF is throttled (e.g. background capture) nothing runs and content shows fully.
+  fadeIn(el, dur) {
+    let start = null;
+    const step = (ts) => {
+      if (start === null) start = ts;
+      const k = Math.min(1, (ts - start) / dur), e = 1 - Math.pow(1 - k, 3);
+      el.style.opacity = String(e); el.style.transform = 'translateY(' + ((1 - e) * 9) + 'px)';
+      if (k < 1) requestAnimationFrame(step);
+      else { el.style.opacity = ''; el.style.transform = ''; }
+    };
+    requestAnimationFrame(step);
+  }
+  fillBar(b, dur, delay) {
+    let start = null;
+    const step = (ts) => {
+      if (start === null) start = ts;
+      const t = ts - start;
+      if (t < delay) { requestAnimationFrame(step); return; }
+      const k = Math.min(1, (t - delay) / dur), e = 1 - Math.pow(1 - k, 3);
+      b.style.transform = 'scaleX(' + e + ')';
+      if (k < 1) requestAnimationFrame(step); else b.style.transform = '';
+    };
+    requestAnimationFrame(step);
+  }
+  transitionPage() {
+    const el = document.getElementById('kz-page');
+    if (!el || this.reduceMotion()) return;
+    this.fadeIn(el, 300);
+    el.querySelectorAll('[data-kzbar]').forEach((b, i) => this.fillBar(b, 740, 70 + i * 45));
+  }
+  applyTheme() {
+    const map = {
+      'Indigo': { a: '#4F7CF0', s: '#3B63CC', soft: '#EEF2FD' },
+      'Teal': { a: '#2E9E82', s: '#1F7A63', soft: '#E7F4EE' },
+      'Corail': { a: '#E06A41', s: '#B54F2C', soft: '#FBEADF' },
+      'Océan': { a: '#3F6FB0', s: '#2E5288', soft: '#E8EFF8' },
+      'Violet': { a: '#6B5BD2', s: '#4F40B0', soft: '#EFECFB' }
+    };
+    const t = map[this.props.accent] || map['Indigo'];
+    const root = document.documentElement;
+    root.style.setProperty('--accent', t.a);
+    root.style.setProperty('--accent-strong', t.s);
+    root.style.setProperty('--accent-soft', t.soft);
+    root.style.setProperty('--row-pad', (this.props.density === 'Compact') ? '8px 16px' : '13px 16px');
+  }
+
+  counter(value) {
+    if (!this._Counter) {
+      this._Counter = function (p) {
+        const [n, setN] = React.useState(p.value);
+        const prev = React.useRef(0);
+        React.useEffect(() => {
+          const from = prev.current, to = p.value; prev.current = to;
+          let raf, start = null;
+          const tick = (t) => { if (start === null) start = t; const k = Math.min(1, (t - start) / 750); const e = 1 - Math.pow(1 - k, 3); setN(Math.round(from + (to - from) * e)); if (k < 1) raf = requestAnimationFrame(tick); else setN(to); };
+          raf = requestAnimationFrame(tick); return () => cancelAnimationFrame(raf);
+        }, [p.value]);
+        return n;
+      };
+    }
+    return React.createElement(this._Counter, { value: value });
+  }
+  shortRole(r) { return { "Tuteur d'entreprise": 'Tuteur entreprise', 'Tuteur pédagogique': 'Tuteur péda.' }[r] || r; }
+  hash(s) { return s.split('').reduce((a, c) => a + c.charCodeAt(0), 0); }
+  avatarFor(s) { return this.avatarPalette[this.hash(s) % this.avatarPalette.length]; }
+  slug(name) { return 'kz-av-' + (name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''); }
+
+  // user handlers
+  setField(k, v) { this.setState(s => ({ form: { ...s.form, [k]: v } })); }
+  pickRole(r) { this.setField('role', r); }
+  toggleSchool(name) { this.setState(s => { const has = s.form.schools.includes(name); return { form: { ...s.form, schools: has ? s.form.schools.filter(x => x !== name) : [...s.form.schools, name] } }; }); }
+  emailValid(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((e || '').trim()); }
+  openCreate() { this.setState({ panelOpen: true, panelMode: 'user', editingId: null, userTried: false, form: { prenom: '', nom: '', email: '', role: 'Administrateur', schools: [] } }); }
+  openEdit(u) { this.setState({ panelOpen: true, panelMode: 'user', editingId: u.id, userTried: false, form: { prenom: u.prenom, nom: u.nom, email: u.email, role: u.role, schools: [...u.schools] } }); }
+  saveUser() {
+    const f = this.state.form;
+    if (!f.prenom.trim() || !f.nom.trim() || !this.emailValid(f.email)) { this.setState({ userTried: true }); return; }
+    const editing = !!this.state.editingId;
+    this.setState(s => {
+      if (s.editingId) return { panelOpen: false, editingId: null, userTried: false, users: s.users.map(u => u.id === s.editingId ? { ...u, prenom: f.prenom, nom: f.nom, email: f.email, role: f.role, schools: [...f.schools] } : u) };
+      const nu = { id: 'u' + Date.now(), prenom: f.prenom, nom: f.nom, email: f.email, role: f.role, schools: [...f.schools], status: 'invited', created: '23 juin 2026' };
+      return { panelOpen: false, userTried: false, users: [nu, ...s.users] };
+    });
+    if (!editing) this.logActivity(f.prenom + ' ' + f.nom + ' · ' + f.role, 'user');
+    this.showToast(editing ? 'Modifications enregistrées' : 'Compte créé');
+  }
+  toggleSelect(id) { this.setState(s => ({ selectedIds: s.selectedIds.includes(id) ? s.selectedIds.filter(x => x !== id) : [...s.selectedIds, id] })); }
+  clearSelection() { this.setState({ selectedIds: [] }); }
+  logActivity(text, type) { this.setState(s => ({ activity: [{ id: 'act' + Date.now() + Math.random().toString(36).slice(2, 5), text, type, time: "à l'instant" }, ...s.activity].slice(0, 12) })); }
+  showToast(message, undo) {
+    if (this._toastTimer) clearTimeout(this._toastTimer);
+    const id = Date.now();
+    this.setState({ toast: { id, message, undo } });
+    this._toastTimer = setTimeout(() => this.setState(s => (s.toast && s.toast.id === id ? { toast: null } : null)), 6500);
+  }
+  dismissToast() { if (this._toastTimer) clearTimeout(this._toastTimer); this.setState({ toast: null }); }
+  runUndo() { const t = this.state.toast; if (this._toastTimer) clearTimeout(this._toastTimer); this.setState({ toast: null }); if (t && t.undo) t.undo(); }
+  deleteOne(id) {
+    const idx = this.state.users.findIndex(x => x.id === id); if (idx < 0) return;
+    const u = this.state.users[idx];
+    this.setState(s => ({ users: s.users.filter(x => x.id !== id), selectedIds: s.selectedIds.filter(x => x !== id) }));
+    this.logActivity(u.prenom + ' ' + u.nom + ' · compte supprimé', 'delete');
+    this.showToast('« ' + u.prenom + ' ' + u.nom + ' » supprimé', () => { this.setState(s => { const a = s.users.slice(); a.splice(Math.min(idx, a.length), 0, u); return { users: a }; }); this.logActivity(u.prenom + ' ' + u.nom + ' · suppression annulée', 'user'); });
+  }
+  deleteSelected() {
+    const ids = this.state.selectedIds; if (!ids.length) return;
+    const removed = this.state.users.map((u, i) => ({ u, i })).filter(o => ids.includes(o.u.id));
+    this.setState(s => ({ users: s.users.filter(u => !ids.includes(u.id)), selectedIds: [] }));
+    this.logActivity(removed.length + ' compte(s) supprimé(s)', 'delete');
+    this.showToast(removed.length + ' compte(s) supprimé(s)', () => this.setState(s => { const a = s.users.slice(); removed.slice().sort((x, y) => x.i - y.i).forEach(o => a.splice(Math.min(o.i, a.length), 0, o.u)); return { users: a }; }));
+  }
+  grantAccess(id) { const u = this.state.users.find(x => x.id === id); this.setState(s => ({ users: s.users.map(x => x.id === id ? { ...x, status: 'active' } : x), selectedIds: s.selectedIds.filter(x => x !== id) })); if (u) { this.logActivity(u.prenom + ' ' + u.nom + ' · accès activé', 'access'); this.showToast('Accès activé pour « ' + u.prenom + ' ' + u.nom + ' »', () => this.setState(s => ({ users: s.users.map(x => x.id === id ? { ...x, status: 'invited' } : x) }))); } }
+  rejectAccess(id) {
+    const idx = this.state.users.findIndex(x => x.id === id); if (idx < 0) return;
+    const u = this.state.users[idx];
+    this.setState(s => ({ users: s.users.filter(x => x.id !== id), selectedIds: s.selectedIds.filter(x => x !== id) }));
+    this.logActivity(u.prenom + ' ' + u.nom + ' · invitation refusée', 'delete');
+    this.showToast('Invitation de « ' + u.prenom + ' ' + u.nom + ' » refusée', () => this.setState(s => { const a = s.users.slice(); a.splice(Math.min(idx, a.length), 0, u); return { users: a }; }));
+  }
+
+  // school handlers
+  setSchoolField(k, v) { this.setState(s => ({ schoolForm: { ...s.schoolForm, [k]: v } })); }
+  pickSchoolType(t) { this.setSchoolField('type', t); }
+  openCreateSchool() { this.setState({ panelOpen: true, panelMode: 'school', editingSchoolId: null, schoolTried: false, schoolForm: { name: '', city: '', type: "CFA (Centre de formation d'apprentis)" } }); }
+  openEditSchool(s) { this.setState({ panelOpen: true, panelMode: 'school', editingSchoolId: s.id, schoolTried: false, schoolForm: { name: s.name, city: s.city, type: s.type } }); }
+  saveSchool() {
+    const f = this.state.schoolForm;
+    if (!f.name.trim() || !f.city.trim()) { this.setState({ schoolTried: true }); return; }
+    const editing = !!this.state.editingSchoolId;
+    this.setState(s => {
+      if (s.editingSchoolId) return { panelOpen: false, editingSchoolId: null, schoolTried: false, schools: s.schools.map(x => x.id === s.editingSchoolId ? { ...x, name: f.name, city: f.city, type: f.type } : x) };
+      const ns = { id: 's' + Date.now(), name: f.name, city: f.city, type: f.type, created: '23 juin 2026' };
+      return { panelOpen: false, schoolTried: false, schools: [...s.schools, ns] };
+    });
+    if (!editing) this.logActivity('École « ' + f.name + ' » créée', 'school');
+    this.showToast(editing ? 'Modifications enregistrées' : 'École créée');
+  }
+  deleteSchool(id) {
+    const idx = this.state.schools.findIndex(x => x.id === id); if (idx < 0) return;
+    const sc = this.state.schools[idx];
+    this.setState(s => ({ schools: s.schools.filter(x => x.id !== id) }));
+    this.logActivity('École « ' + sc.name + ' » supprimée', 'delete');
+    this.showToast('« ' + sc.name + ' » supprimée', () => this.setState(s => { const a = s.schools.slice(); a.splice(Math.min(idx, a.length), 0, sc); return { schools: a }; }));
+  }
+
+  closePanel() { this.setState({ panelOpen: false }); }
+  toggleSetting(k) { this.setState(s => ({ toggles: { ...s.toggles, [k]: !s.toggles[k] } })); }
+
+  svg(parts, size) {
+    return React.createElement('svg', { width: size || 19, height: size || 19, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' },
+      parts.map((p, i) => React.createElement(p[0], Object.assign({ key: i }, p[1]))));
+  }
+  buildIcons() {
+    if (this._icons) return this._icons;
+    const S = (a, b) => this.svg(a, b);
+    const out = {
+      dash: S([['rect', { x: 3, y: 3, width: 7, height: 9, rx: 1 }], ['rect', { x: 14, y: 3, width: 7, height: 5, rx: 1 }], ['rect', { x: 14, y: 12, width: 7, height: 9, rx: 1 }], ['rect', { x: 3, y: 16, width: 7, height: 5, rx: 1 }]]),
+      users: S([['path', { d: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2' }], ['circle', { cx: 9, cy: 7, r: 4 }], ['path', { d: 'M22 21v-2a4 4 0 0 0-3-3.87' }], ['path', { d: 'M16 3.13a4 4 0 0 1 0 7.75' }]]),
+      cap: S([['path', { d: 'M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z' }], ['path', { d: 'M22 10v6' }], ['path', { d: 'M6 12.5V16a6 3 0 0 0 12 0v-3.5' }]]),
+      buoy: S([['circle', { cx: 12, cy: 12, r: 10 }], ['path', { d: 'm4.93 4.93 4.24 4.24' }], ['path', { d: 'm14.83 9.17 4.24-4.24' }], ['path', { d: 'm14.83 14.83 4.24 4.24' }], ['path', { d: 'm9.17 14.83-4.24 4.24' }], ['circle', { cx: 12, cy: 12, r: 4 }]]),
+      sliders: S([['line', { x1: 21, x2: 14, y1: 4, y2: 4 }], ['line', { x1: 10, x2: 3, y1: 4, y2: 4 }], ['line', { x1: 21, x2: 12, y1: 12, y2: 12 }], ['line', { x1: 8, x2: 3, y1: 12, y2: 12 }], ['line', { x1: 21, x2: 16, y1: 20, y2: 20 }], ['line', { x1: 12, x2: 3, y1: 20, y2: 20 }], ['line', { x1: 14, x2: 14, y1: 2, y2: 6 }], ['line', { x1: 8, x2: 8, y1: 10, y2: 14 }], ['line', { x1: 16, x2: 16, y1: 18, y2: 22 }]]),
+      search: S([['circle', { cx: 11, cy: 11, r: 8 }], ['path', { d: 'm21 21-4.3-4.3' }]], 18),
+      bell: S([['path', { d: 'M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9' }], ['path', { d: 'M10.3 21a1.94 1.94 0 0 0 3.4 0' }]], 18),
+      pencil: S([['path', { d: 'M12 20h9' }], ['path', { d: 'M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z' }]], 17),
+      trash: S([['path', { d: 'M3 6h18' }], ['path', { d: 'M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2' }]], 17),
+      x: S([['path', { d: 'M18 6 6 18' }], ['path', { d: 'm6 6 12 12' }]], 18),
+      chevron: S([['path', { d: 'm6 9 6 6 6-6' }]], 16),
+      check: S([['path', { d: 'M20 6 9 17l-5-5' }]], 18),
+      checkSm: S([['path', { d: 'M20 6 9 17l-5-5' }]], 14),
+      clock: S([['circle', { cx: 12, cy: 12, r: 10 }], ['path', { d: 'M12 6v6l4 2' }]]),
+      plus: S([['path', { d: 'M5 12h14' }], ['path', { d: 'M12 5v14' }]], 18),
+      userplus: S([['path', { d: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2' }], ['circle', { cx: 9, cy: 7, r: 4 }], ['line', { x1: 19, x2: 19, y1: 8, y2: 14 }], ['line', { x1: 22, x2: 16, y1: 11, y2: 11 }]], 18),
+      building: S([['rect', { x: 4, y: 2, width: 16, height: 20, rx: 2 }], ['path', { d: 'M9 22v-4h6v4' }], ['path', { d: 'M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01' }]]),
+      info: S([['circle', { cx: 12, cy: 12, r: 10 }], ['path', { d: 'M12 16v-4' }], ['path', { d: 'M12 8h.01' }]], 17),
+      pin: S([['path', { d: 'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z' }], ['circle', { cx: 12, cy: 10, r: 3 }]], 14),
+      alert: S([['path', { d: 'm21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z' }], ['path', { d: 'M12 9v4' }], ['path', { d: 'M12 17h.01' }]]),
+      bug: S([['path', { d: 'm8 2 1.88 1.88' }], ['path', { d: 'M14.12 3.88 16 2' }], ['path', { d: 'M9 7.13v-1a3.003 3.003 0 1 1 6 0v1' }], ['path', { d: 'M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6' }], ['path', { d: 'M12 20v-9' }], ['path', { d: 'M6.53 9C4.6 8.8 3 7.1 3 5' }], ['path', { d: 'M6 13H2' }], ['path', { d: 'M3 21c0-2.1 1.7-3.9 3.8-4' }], ['path', { d: 'M20.97 5c0 2.1-1.6 3.8-3.5 4' }], ['path', { d: 'M22 13h-4' }], ['path', { d: 'M17.2 17c2.1.1 3.8 1.9 3.8 4' }]]),
+      checkcircle: S([['path', { d: 'M21.801 10A10 10 0 1 1 17 3.335' }], ['path', { d: 'm9 11 3 3L22 4' }]])
+    };
+    this._icons = out;
+    return out;
+  }
+
+  renderVals() {
+    const st = this.state;
+    const icons = this.buildIcons();
+    const NA = st.navActive;
+
+    const labels = { dashboard: 'Tableau de bord', utilisateurs: 'Utilisateurs', ecoles: 'Écoles', support: 'Support', parametres: 'Paramètres' };
+    const openTickets = st.tickets.filter(t => t.status !== 'resolved').length;
+    const navDefs = [
+      { key: 'dashboard', label: 'Tableau de bord', icon: icons.dash },
+      { key: 'utilisateurs', label: 'Utilisateurs', icon: icons.users },
+      { key: 'ecoles', label: 'Écoles', icon: icons.cap },
+      { key: 'support', label: 'Support', icon: icons.buoy, badge: String(openTickets) },
+      { key: 'parametres', label: 'Paramètres', icon: icons.sliders }
+    ];
+    const navItems = navDefs.map(n => {
+      const active = n.key === NA;
+      return { ...n, showBadge: !!n.badge && !active, badge: n.badge,
+        bg: active ? 'var(--accent)' : 'transparent',
+        color: active ? '#fff' : 'rgba(255,255,255,.62)',
+        hover: active ? 'background:var(--accent)' : 'background:rgba(255,255,255,.07);color:#fff',
+        badgeBg: active ? 'rgba(255,255,255,.2)' : 'rgba(255,255,255,.12)',
+        badgeColor: '#fff',
+        weight: active ? 600 : 500, onClick: () => this.setState({ navActive: n.key }) };
+    });
+
+    // counts
+    const counts = {};
+    st.users.forEach(u => { counts[u.role] = (counts[u.role] || 0) + 1; });
+
+    // users filtered
+    const q = st.search.trim().toLowerCase();
+    const filtered = st.users.filter(u => {
+      const mq = !q || (u.prenom + ' ' + u.nom).toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+      const mr = st.roleFilter === 'all' || u.role === st.roleFilter;
+      return mq && mr;
+    });
+    const users = filtered.map(u => {
+      const rs = this.roleStyle[u.role] || { bg: '#EEE', color: '#555' };
+      const av = this.avatarFor(u.prenom + u.nom);
+      const sel = st.selectedIds.includes(u.id);
+      const shown = u.schools.slice(0, 2);
+      const more = u.schools.length - shown.length;
+      return {
+        ...u, fullName: u.prenom + ' ' + u.nom, initials: ((u.prenom[0] || '') + (u.nom[0] || '')).toUpperCase(), avId: this.slug(u.prenom + ' ' + u.nom),
+        roleBg: rs.bg, roleColor: rs.color, avatarBg: av.bg, avatarColor: av.color,
+        schoolsShown: shown, hasMore: more > 0, moreLabel: '+' + more, hasSchools: u.schools.length > 0, noSchools: u.schools.length === 0,
+        statusLabel: u.status === 'active' ? 'Actif' : 'Invité', statusColor: u.status === 'active' ? '#1F7A63' : '#9A6B12', statusBg: u.status === 'active' ? '#E4F2EC' : '#F7EFDA',
+        selected: sel, rowBg: sel ? 'var(--accent-soft)' : 'transparent',
+        onToggle: () => this.toggleSelect(u.id), onEdit: () => this.openEdit(u), onDelete: () => this.deleteOne(u.id)
+      };
+    });
+
+    const statCards = [
+      { label: 'Utilisateurs', value: this.counter(st.users.length), sub: 'comptes créés', icon: icons.users, onClick: () => this.setState({ navActive: 'utilisateurs', roleFilter: 'all' }) },
+      { label: 'Écoles partenaires', value: this.counter(st.schools.length), sub: 'établissements', icon: icons.cap, onClick: () => this.setState({ navActive: 'ecoles' }) },
+      { label: 'Administrateurs', value: this.counter(counts['Administrateur'] || 0), sub: 'côté écoles', icon: icons.building, onClick: () => this.setState({ navActive: 'utilisateurs', roleFilter: 'Administrateur' }) },
+      { label: 'Invitations en attente', value: this.counter(st.users.filter(u => u.status === 'invited').length), sub: 'pas encore connectés', icon: icons.clock, onClick: () => this.setState({ navActive: 'utilisateurs', roleFilter: 'all' }) }
+    ];
+
+    // pending access (invited accounts awaiting activation)
+    const invited = st.users.filter(u => u.status === 'invited');
+    const pendingAccess = invited.slice(0, 4).map(u => {
+      const rs = this.roleStyle[u.role] || { bg: '#EEE', color: '#555' };
+      const av = this.avatarFor(u.prenom + u.nom);
+      return { id: u.id, fullName: u.prenom + ' ' + u.nom, email: u.email, initials: ((u.prenom[0] || '') + (u.nom[0] || '')).toUpperCase(), avId: this.slug(u.prenom + ' ' + u.nom), avatarBg: av.bg, avatarColor: av.color, roleLabel: this.shortRole(u.role), roleBg: rs.bg, roleColor: rs.color, schoolLabel: u.schools[0] || 'Aucune école', onActivate: () => this.grantAccess(u.id), onReject: () => this.rejectAccess(u.id) };
+    });
+    const pendingMore = invited.length - pendingAccess.length;
+
+    const roleFilters = [{ key: 'all', label: 'Tous', count: st.users.length }]
+      .concat(this.roles.filter(r => r !== 'Super administrateur').map(r => ({ key: r, label: this.shortRole(r), count: counts[r] || 0 })))
+      .map(f => {
+        const a = f.key === st.roleFilter;
+        return { ...f, onClick: () => this.setState({ roleFilter: f.key }),
+          style: `display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;background:${a ? '#1B1B19' : '#fff'};color:${a ? '#fff' : '#5B5B55'};border:1px solid ${a ? '#1B1B19' : '#E6E6E1'}`,
+          countStyle: `font-size:11.5px;font-weight:600;padding:1px 7px;border-radius:999px;background:${a ? 'rgba(255,255,255,.18)' : '#F0F0EC'};color:${a ? '#fff' : '#8A8A83'}` };
+      });
+
+    // role distribution (dashboard)
+    const distRoles = ['Administrateur', 'Alternant', "Tuteur d'entreprise", 'Tuteur pédagogique', 'Support'];
+    const maxCount = Math.max(1, ...distRoles.map(r => counts[r] || 0));
+    const roleDist = distRoles.map(r => ({ label: this.shortRole(r), count: counts[r] || 0, pct: Math.round((counts[r] || 0) / maxCount * 100) + '%', color: this.roleStyle[r].color }));
+
+    const actMeta = {
+      user: { icon: icons.userplus, bg: '#E4F2EC', color: '#1F7A63' },
+      access: { icon: icons.checkcircle, bg: '#E4F2EC', color: '#1F7A63' },
+      school: { icon: icons.cap, bg: '#E8EEF7', color: '#3D5E8E' },
+      delete: { icon: icons.trash, bg: '#FBE3DC', color: '#B5432A' },
+      bug: { icon: icons.bug, bg: '#FBE3DC', color: '#B5432A' }
+    };
+    const activity = st.activity.map(a => { const m = actMeta[a.type] || actMeta.user; return { ...a, icon: m.icon, chipBg: m.bg, chipColor: m.color }; });
+
+    // schools
+    const sq = st.schoolSearch.trim().toLowerCase();
+    const schools = st.schools.filter(s => !sq || s.name.toLowerCase().includes(sq) || s.city.toLowerCase().includes(sq)).map(s => {
+      const uc = st.users.filter(u => u.schools.includes(s.name)).length;
+      const ac = st.users.filter(u => u.schools.includes(s.name) && u.role === 'Administrateur').length;
+      const av = this.avatarFor(s.name);
+      const words = s.name.split(' ');
+      const initials = (words.length > 1 ? (words[0][0] + words[1][0]) : s.name.replace(/[^A-Za-zÀ-ÿ]/g, '').slice(0, 2)).toUpperCase();
+      return { ...s, usersCount: uc, adminsCount: ac, avatarBg: av.bg, avatarColor: av.color, initials, onEdit: () => this.openEditSchool(s), onDelete: () => this.deleteSchool(s.id) };
+    });
+
+    // support
+    const typeStyle = { demande: { label: 'Demande', bg: '#E8EEF7', color: '#3D5E8E' }, bug: { label: 'Bug', bg: '#FBEAE1', color: '#B5432A' } };
+    const prioStyle = { basse: { label: 'Basse', bg: '#EDEDE9', color: '#6E6E68' }, moyenne: { label: 'Moyenne', bg: '#F7EFDA', color: '#8A6516' }, haute: { label: 'Haute', bg: '#FBE3DC', color: '#B5432A' } };
+    const statStyle = { open: { label: 'Ouvert', bg: '#F7EFDA', color: '#9A6B12' }, progress: { label: 'En cours', bg: '#E8EEF7', color: '#3D5E8E' }, resolved: { label: 'Résolu', bg: '#E4F2EC', color: '#1F7A63' } };
+    const tq = st.supportSearch.trim().toLowerCase();
+    const tfiltered = st.tickets.filter(t => {
+      const mq = !tq || t.subject.toLowerCase().includes(tq) || t.requester.toLowerCase().includes(tq);
+      const f = st.supportFilter;
+      const mf = f === 'all' || t.type === f || t.status === f;
+      return mq && mf;
+    });
+    const tickets = tfiltered.map(t => {
+      const ty = typeStyle[t.type], pr = prioStyle[t.priority], stt = statStyle[t.status];
+      return { ...t, typeLabel: ty.label, typeBg: ty.bg, typeColor: ty.color, prioLabel: pr.label, prioBg: pr.bg, prioColor: pr.color, statusLabel: stt.label, statusBg: stt.bg, statusColor: stt.color };
+    });
+    const cOpen = st.tickets.filter(t => t.status === 'open').length;
+    const cProg = st.tickets.filter(t => t.status === 'progress').length;
+    const cRes = st.tickets.filter(t => t.status === 'resolved').length;
+    const cBug = st.tickets.filter(t => t.type === 'bug').length;
+    const supportStats = [
+      { label: 'Ouverts', value: this.counter(cOpen), sub: 'à traiter', icon: icons.clock, chipBg: '#F7EFDA', chipColor: '#9A6B12', onClick: () => this.setState({ supportFilter: 'open' }) },
+      { label: 'En cours', value: this.counter(cProg), sub: 'en traitement', icon: icons.sliders, chipBg: '#E8EEF7', chipColor: '#3D5E8E', onClick: () => this.setState({ supportFilter: 'progress' }) },
+      { label: 'Résolus', value: this.counter(cRes), sub: 'clôturés', icon: icons.checkcircle, chipBg: '#E4F2EC', chipColor: '#1F7A63', onClick: () => this.setState({ supportFilter: 'resolved' }) },
+      { label: 'Bugs', value: this.counter(cBug), sub: 'signalés', icon: icons.bug, chipBg: '#FBEAE1', chipColor: '#B5432A', onClick: () => this.setState({ supportFilter: 'bug' }) }
+    ];
+    const supDefs = [['all', 'Tous', st.tickets.length], ['demande', 'Demandes', st.tickets.filter(t => t.type === 'demande').length], ['bug', 'Bugs', cBug], ['open', 'Ouverts', cOpen], ['progress', 'En cours', cProg], ['resolved', 'Résolus', cRes]];
+    const supportFilters = supDefs.map(([key, label, count]) => {
+      const a = key === st.supportFilter;
+      return { key, label, count, onClick: () => this.setState({ supportFilter: key }),
+        style: `display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;background:${a ? '#1B1B19' : '#fff'};color:${a ? '#fff' : '#5B5B55'};border:1px solid ${a ? '#1B1B19' : '#E6E6E1'}`,
+        countStyle: `font-size:11.5px;font-weight:600;padding:1px 7px;border-radius:999px;background:${a ? 'rgba(255,255,255,.18)' : '#F0F0EC'};color:${a ? '#fff' : '#8A8A83'}` };
+    });
+
+    // settings
+    const settingsTabs = [['profil', 'Profil'], ['securite', 'Sécurité'], ['notifications', 'Notifications'], ['plateforme', 'Plateforme']].map(([key, label]) => {
+      const a = key === st.settingsTab;
+      return { key, label, onClick: () => this.setState({ settingsTab: key }),
+        style: `display:block;width:100%;text-align:left;padding:9px 13px;border:none;border-radius:9px;font-size:14px;font-weight:${a ? 600 : 500};cursor:pointer;background:${a ? 'var(--accent-soft)' : 'transparent'};color:${a ? 'var(--accent-strong)' : '#5B5B55'}` };
+    });
+    const toggleStyles = (on) => ({
+      trackStyle: `position:relative;width:40px;height:23px;border-radius:999px;border:none;cursor:pointer;flex:none;transition:background .15s;background:${on ? 'var(--accent)' : '#D8D8D2'}`,
+      knobStyle: `position:absolute;top:2.5px;left:${on ? '19.5px' : '2.5px'};width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s;box-shadow:0 1px 2px rgba(0,0,0,.2)`
+    });
+    const notifDefs = [
+      { key: 'notifInscriptions', label: 'Nouvelles inscriptions', desc: 'Quand un compte est créé sur la plateforme' },
+      { key: 'notifTickets', label: 'Tickets support', desc: 'Nouvelles demandes et bugs signalés' },
+      { key: 'notifHebdo', label: 'Rapport hebdomadaire', desc: "Synthèse d'activité chaque lundi matin" },
+      { key: 'notifSecurite', label: 'Alertes de sécurité', desc: 'Connexions suspectes et changements sensibles' }
+    ];
+    const notifToggles = notifDefs.map(t => ({ ...t, onClick: () => this.toggleSetting(t.key), ...toggleStyles(st.toggles[t.key]) }));
+    const twofa = { onClick: () => this.toggleSetting('twofa'), ...toggleStyles(st.toggles.twofa) };
+
+    // form options
+    const fr = st.form.role;
+    const roleOptions = this.roles.map(r => {
+      const s = fr === r; const rs = this.roleStyle[r];
+      return { name: this.shortRole(r), onClick: () => this.pickRole(r), dotColor: rs.color,
+        style: `display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;text-align:left;width:100%;background:${s ? 'var(--accent-soft)' : '#fff'};border:1.5px solid ${s ? 'var(--accent)' : '#E8E8E3'};color:${s ? 'var(--accent-strong)' : '#3A3A35'}` };
+    });
+    const fs = st.form.schools;
+    const schoolOptions = st.schools.map(s => {
+      const sel = fs.includes(s.name);
+      return { name: s.name, sel, onClick: () => this.toggleSchool(s.name),
+        style: `display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;font-size:13px;font-weight:500;cursor:pointer;background:${sel ? 'var(--accent)' : '#F3F3F0'};color:${sel ? '#fff' : '#4A4A44'};border:1px solid ${sel ? 'var(--accent)' : '#E8E8E3'}` };
+    });
+    const sft = st.schoolForm.type;
+    const schoolTypeOptions = this.schoolTypes.map(t => {
+      const s = sft === t;
+      return { name: t, onClick: () => this.pickSchoolType(t),
+        style: `padding:10px 12px;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;text-align:left;width:100%;background:${s ? 'var(--accent-soft)' : '#fff'};border:1.5px solid ${s ? 'var(--accent)' : '#E8E8E3'};color:${s ? 'var(--accent-strong)' : '#3A3A35'}` };
+    });
+
+    // panel
+    const isSchoolPanel = st.panelMode === 'school';
+    const valid = isSchoolPanel ? (st.schoolForm.name.trim() && st.schoolForm.city.trim()) : (st.form.prenom.trim() && st.form.nom.trim() && st.form.email.trim());
+    const panelTitle = isSchoolPanel ? (st.editingSchoolId ? "Modifier l'école" : 'Nouvelle école') : (st.editingId ? "Modifier l'utilisateur" : 'Nouvel utilisateur');
+    const panelSubtitle = isSchoolPanel ? "Créez un établissement partenaire." : (st.editingId ? 'Mettez à jour les informations du compte.' : 'Créez un compte et liez-le à une ou plusieurs écoles.');
+    const panelSaveLabel = isSchoolPanel ? (st.editingSchoolId ? 'Enregistrer' : "Créer l'école") : (st.editingId ? 'Enregistrer' : 'Créer le compte');
+
+    // inline validation
+    const uErr = { prenom: !st.form.prenom.trim() ? 'Le prénom est requis.' : '', nom: !st.form.nom.trim() ? 'Le nom est requis.' : '', email: !st.form.email.trim() ? "L'adresse email est requise." : (!this.emailValid(st.form.email) ? 'Adresse email invalide.' : '') };
+    const ut = st.userTried;
+    const sErr = { name: !st.schoolForm.name.trim() ? "Le nom de l'école est requis." : '', city: !st.schoolForm.city.trim() ? 'La ville est requise.' : '' };
+    const stt = st.schoolTried;
+    const inp = (bad) => `width:100%;padding:10px 12px;border:1px solid ${bad ? '#C8442A' : '#E0E0DB'};border-radius:9px;font-size:14px;color:#1B1B19;background:#fff;outline:none`;
+
+    return {
+      notifs: [
+        { id: 'pn1', type: 'school', title: 'Établissement à approuver', detail: 'CFA hors-les-murs · HETIC', time: 'Il y a 1 h', href: '#', unread: true },
+        { id: 'pn2', type: 'user', title: 'Comptes à rattacher', detail: '2 administrateurs en attente', time: 'Il y a 3 h', href: '#', unread: true },
+        { id: 'pn3', type: 'ticket', title: 'Ticket escaladé', detail: 'KZ-1042 · priorité haute', time: 'Hier', href: '#', unread: false }
+      ],
+      icons, navItems,
+      isDashboard: NA === 'dashboard', isUsers: NA === 'utilisateurs', isEcoles: NA === 'ecoles', isSupport: NA === 'support', isParametres: NA === 'parametres',
+      pageLabel: labels[NA],
+      statCards, roleDist, activity,
+      pendingAccess, hasPending: invited.length > 0, pendingCount: String(invited.length), pendingEmpty: invited.length === 0, pendingHasMore: pendingMore > 0, pendingMoreLabel: '+' + pendingMore + (pendingMore > 1 ? ' autres comptes en attente' : ' autre compte en attente'),
+      goUsers: () => this.setState({ navActive: 'utilisateurs', roleFilter: 'all' }),
+      users, roleFilters,
+      showStats: this.props.showStats !== false,
+      search: st.search, onSearch: e => this.setState({ search: e.target.value }),
+      isEmpty: users.length === 0, resultCount: users.length + (users.length > 1 ? ' utilisateurs' : ' utilisateur'),
+      selectionActive: st.selectedIds.length > 0, selectionCount: st.selectedIds.length,
+      allSelected: filtered.length > 0 && filtered.every(u => st.selectedIds.includes(u.id)),
+      toggleSelectAll: () => this.setState(s => { const ids = filtered.map(u => u.id); const all = ids.every(id => s.selectedIds.includes(id)); return { selectedIds: all ? s.selectedIds.filter(id => !ids.includes(id)) : Array.from(new Set([...s.selectedIds, ...ids])) }; }),
+      clearSelection: () => this.clearSelection(),
+      deleteSelected: () => this.deleteSelected(),
+      toast: st.toast, hasToast: !!st.toast, toastMessage: st.toast ? st.toast.message : '', toastHasUndo: !!(st.toast && st.toast.undo), runUndo: () => this.runUndo(), dismissToast: () => this.dismissToast(),
+      uPrenomStyle: inp(ut && !!uErr.prenom), uNomStyle: inp(ut && !!uErr.nom), uEmailStyle: inp(ut && !!uErr.email),
+      uPrenomErr: ut ? uErr.prenom : '', uNomErr: ut ? uErr.nom : '', uEmailErr: ut ? uErr.email : '',
+      uPrenomBad: ut && !!uErr.prenom, uNomBad: ut && !!uErr.nom, uEmailBad: ut && !!uErr.email,
+      sNameStyle: inp(stt && !!sErr.name), sCityStyle: inp(stt && !!sErr.city),
+      sNameErr: stt ? sErr.name : '', sCityErr: stt ? sErr.city : '',
+      sNameBad: stt && !!sErr.name, sCityBad: stt && !!sErr.city,
+      schools, schoolsEmpty: schools.length === 0, schoolSearch: st.schoolSearch, onSchoolSearch: e => this.setState({ schoolSearch: e.target.value }),
+      tickets, ticketsEmpty: tickets.length === 0, supportStats, supportFilters, supportSearch: st.supportSearch, onSupportSearch: e => this.setState({ supportSearch: e.target.value }),
+      settingsTabs, notifToggles, twofa,
+      isProfil: st.settingsTab === 'profil', isSecurite: st.settingsTab === 'securite', isNotifications: st.settingsTab === 'notifications', isPlateforme: st.settingsTab === 'plateforme',
+      openCreate: () => this.openCreate(), openCreateSchool: () => this.openCreateSchool(), closePanel: () => this.closePanel(),
+      onSave: () => (isSchoolPanel ? this.saveSchool() : this.saveUser()),
+      form: st.form, onPrenom: e => this.setField('prenom', e.target.value), onNom: e => this.setField('nom', e.target.value), onEmail: e => this.setField('email', e.target.value),
+      roleOptions, schoolOptions, selectedSchoolsLabel: fs.length === 0 ? 'Aucune' : (fs.length + (fs.length > 1 ? ' sélectionnées' : ' sélectionnée')),
+      schoolForm: st.schoolForm, onSchoolName: e => this.setSchoolField('name', e.target.value), onSchoolCity: e => this.setSchoolField('city', e.target.value), schoolTypeOptions,
+      isUserPanel: !isSchoolPanel, isSchoolPanel,
+      panelTransform: st.panelOpen ? 'translateX(0)' : 'translateX(100%)',
+      panelRight: st.panelOpen ? '0px' : '-480px', backdropOpacity: st.panelOpen ? 1 : 0, overlayPE: st.panelOpen ? 'auto' : 'none',
+      panelOpen: st.panelOpen,
+      panelTitle, panelSubtitle, panelSaveLabel,
+      saveBtnStyle: `padding:10px 18px;border:none;border-radius:9px;background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:${valid ? 'pointer' : 'not-allowed'};opacity:${valid ? 1 : .5}`
+    };
+  }
+}
+</script>
+</body>
+</html>

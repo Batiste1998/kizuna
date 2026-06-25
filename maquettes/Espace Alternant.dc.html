@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--accent:#2E9E82;--accent-strong:#1F7A63;--accent-soft:#E8F4EF;--sidebar:#103A30;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Geist',-apple-system,system-ui,sans-serif;background:#EEEDE7;color:#1B1B19;-webkit-font-smoothing:antialiased;}
+  button{font-family:inherit;}
+  input,textarea{font-family:inherit;}
+  a{text-decoration:none;color:inherit;}
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-thumb{background:#DEDED8;border-radius:6px;border:2px solid #EEEDE7;}
+  ::-webkit-scrollbar-thumb:hover{background:#CFCFC8;}
+  @keyframes kz-toast{from{transform:translate(-50%,12px);}to{transform:translate(-50%,0);}}
+</style>
+<script src="./image-slot.js"></script>
+</helmet>
+
+<div style="display:flex;height:100vh;width:100%;overflow:hidden;background:#EEEDE7">
+
+  <!-- SIDEBAR -->
+  <aside style="width:256px;flex:none;height:100%;background:var(--sidebar);display:flex;flex-direction:column;padding:20px 14px;position:relative;overflow:hidden">
+    <div style="position:absolute;top:-90px;right:-70px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(46,158,130,.18) 0%,transparent 70%);pointer-events:none"></div>
+    <div style="display:flex;align-items:center;gap:11px;padding:4px 8px 20px;position:relative">
+      <img src="uploads/logo.png" alt="Kizuna" style="width:40px;height:40px;object-fit:contain;flex:none" />
+      <div><div style="font-size:17px;font-weight:700;letter-spacing:-.02em;line-height:1;color:#fff">Kizuna</div><div style="font-size:11px;color:rgba(255,255,255,.46);margin-top:4px">Espace alternant</div></div>
+    </div>
+    <nav style="display:flex;flex-direction:column;gap:3px;position:relative">
+      <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="5">
+        <button onClick="{{ n.onClick }}" style="display:flex;align-items:center;gap:11px;width:100%;padding:10px 11px;border:none;background:{{ n.bg }};color:{{ n.color }};border-radius:10px;font-size:14px;font-weight:{{ n.weight }};cursor:pointer;text-align:left" style-hover="{{ n.hover }}">
+          <span style="display:flex;flex:none">{{ n.icon }}</span><span style="flex:1">{{ n.label }}</span>
+          <sc-if value="{{ n.showBadge }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;font-weight:600;background:rgba(255,255,255,.16);color:#fff;padding:1px 8px;border-radius:999px">{{ n.badge }}</span></sc-if>
+        </button>
+      </sc-for>
+    </nav>
+    <div style="flex:1"></div>
+    <div style="border:1px solid rgba(255,255,255,.1);border-radius:13px;padding:11px;background:rgba(255,255,255,.05);display:flex;align-items:center;gap:10px;position:relative">
+      <image-slot id="kz-av-lucas-girard" shape="circle" fallback="LG" fallback-bg="var(--accent)" fallback-color="#fff" placeholder="Photo" style="width:36px;height:36px;flex:none"></image-slot>
+      <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:600;color:#fff">Lucas Girard</div><div style="font-size:11.5px;color:rgba(255,255,255,.46)">Alternant</div></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div style="flex:1;display:flex;flex-direction:column;height:100%;min-width:0">
+    <header style="height:64px;flex:none;border-bottom:1px solid #E3E2DC;background:rgba(238,237,231,.82);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:space-between;padding:0 28px">
+      <div style="display:flex;align-items:center;gap:9px;font-size:13.5px;color:#9A9A93"><span>Expert Dév. Full Stack</span><span style="color:#CFCFC8">/</span><span style="color:#1B1B19;font-weight:600">{{ pageLabel }}</span></div>
+      <dc-import name="Notifications" items="{{ notifs }}" accent="var(--accent)" accent-soft="var(--accent-soft)" accent-strong="var(--accent-strong)" all-href="#" hint-size="38px,38px"></dc-import>
+    </header>
+    <dc-import name="Accessibilite" hint-size="0,0"></dc-import>
+
+    <main style="flex:1;overflow-y:auto;padding:30px 26px 60px">
+      <div style="max-width:1040px;margin:0 auto">
+
+        <!-- DASHBOARD -->
+        <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
+          <h1 style="font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0">Bonjour Lucas</h1>
+          <p style="font-size:14.5px;color:#76766F;margin:8px 0 0">Voici votre progression sur le titre <strong style="color:#44443F;font-weight:600">{{ cert.title }}</strong>.</p>
+
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:26px">
+            <sc-for list="{{ stats }}" as="c" hint-placeholder-count="4">
+              <div style="background:#fff;border:1px solid #E6E5DF;border-radius:15px;padding:17px 18px;box-shadow:0 1px 3px rgba(0,0,0,.05)">
+                <div style="display:flex;align-items:center;justify-content:space-between"><div style="font-size:12.5px;color:#86867F;font-weight:500">{{ c.label }}</div><div style="width:30px;height:30px;border-radius:8px;background:{{ c.chipBg }};color:{{ c.chipColor }};display:flex;align-items:center;justify-content:center">{{ c.icon }}</div></div>
+                <div style="font-size:26px;font-weight:700;letter-spacing:-.02em;margin-top:10px;line-height:1">{{ c.value }}</div>
+                <div style="font-size:12px;color:#A4A49C;margin-top:5px">{{ c.sub }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px">
+            <div style="background:#fff;border:1px solid #E6E5DF;border-radius:16px;padding:20px 22px;box-shadow:0 1px 3px rgba(0,0,0,.05)">
+              <div style="font-size:15px;font-weight:600;margin-bottom:14px">Mon trinôme de suivi</div>
+              <div style="display:flex;flex-direction:column;gap:13px">
+                <sc-for list="{{ trinome }}" as="t" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:11px"><div style="width:38px;height:38px;border-radius:10px;background:{{ t.bg }};color:{{ t.color }};display:flex;align-items:center;justify-content:center;flex:none">{{ t.icon }}</div><div><div style="font-size:11px;color:#A0A099">{{ t.role }}</div><div style="font-size:14px;font-weight:600">{{ t.name }}</div></div></div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="background:#fff;border:1px solid #E6E5DF;border-radius:16px;padding:20px 22px;box-shadow:0 1px 3px rgba(0,0,0,.05)">
+                <div style="font-size:15px;font-weight:600;margin-bottom:12px">Prochain bilan</div>
+                <div style="display:flex;align-items:center;gap:12px"><div style="width:42px;height:42px;border-radius:11px;background:var(--accent-soft);color:var(--accent-strong);display:flex;align-items:center;justify-content:center;flex:none">{{ icons.calendar }}</div><div><div style="font-size:14px;font-weight:600">Bilan de mi-parcours — S3</div><div style="font-size:12.5px;color:#9A9A93">2 juillet 2026</div></div></div>
+              </div>
+              <div style="background:var(--accent-soft);border:1px solid #D9EAE2;border-radius:16px;padding:18px 20px;flex:1;display:flex;align-items:center;gap:13px">
+                <span style="display:flex;color:var(--accent-strong);flex:none">{{ icons.target }}</span>
+                <div style="font-size:13px;color:var(--accent-strong);line-height:1.5"><strong style="font-weight:600">{{ toAssess }} compétences</strong> à auto-évaluer avant le prochain bilan.</div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- COMPÉTENCES -->
+        <sc-if value="{{ isCompetences }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
+            <div><h1 style="font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0">Mes compétences</h1><p style="font-size:14.5px;color:#76766F;margin:8px 0 0">Positionnez votre niveau ressenti. Vos tuteurs compléteront leur évaluation.</p></div>
+            <button onClick="{{ saveEval }}" style="{{ saveBtnStyle }}"><span style="display:flex">{{ saveIcon }}</span>{{ saveLabel }}</button>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:20px">
+            <span style="display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:9px;background:#F4F4F0;font-size:12.5px;font-weight:600;color:#44443F">{{ icons.calendar }}Semestre 3</span>
+            <div style="flex:1"></div>
+            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><sc-for list="{{ levelLegend }}" as="l" hint-placeholder-count="4"><div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:{{ l.dot }}"></span><span style="font-size:12px;color:#76766F">{{ l.label }}</span></div></sc-for></div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:12px;margin-top:16px">
+            <sc-for list="{{ blocs }}" as="b" hint-placeholder-count="4">
+              <div style="background:#fff;border:1px solid #E6E5DF;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05)">
+                <div style="display:flex;align-items:center;gap:11px;padding:14px 18px;background:#FCFCFB;border-bottom:1px solid #F2F2EE">
+                  <span style="font-size:11.5px;font-weight:700;color:var(--accent-strong);background:var(--accent-soft);padding:3px 8px;border-radius:6px;font-family:'Geist Mono',monospace;flex:none">{{ b.code }}</span>
+                  <span style="font-size:14.5px;font-weight:600;flex:1;min-width:0">{{ b.name }}</span>
+                  <span style="{{ b.badgeStyle }}">{{ b.badgeLabel }}</span>
+                </div>
+                <div>
+                  <sc-for list="{{ b.comps }}" as="c" hint-placeholder-count="3">
+                    <div style="display:flex;align-items:center;gap:16px;padding:12px 18px;border-bottom:1px solid #F4F4F0;flex-wrap:wrap">
+                      <div style="flex:1;min-width:200px;font-size:13.5px;color:#33332F;font-weight:500">{{ c.name }}</div>
+                      <div style="display:flex;align-items:center;gap:8px">
+                        <sc-for list="{{ c.readChips }}" as="r" hint-placeholder-count="2"><div title="{{ r.title }}" style="display:flex;align-items:center;gap:6px"><span style="width:22px;height:22px;border-radius:6px;background:{{ r.bg }};color:{{ r.color }};display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700">{{ r.letter }}</span><span style="font-size:11.5px;color:{{ r.color }};font-weight:600;width:64px">{{ r.label }}</span></div></sc-for>
+                      </div>
+                      <div style="display:flex;align-items:center;gap:9px;flex:none">
+                        <span style="font-size:11px;font-weight:600;color:var(--accent-strong);white-space:nowrap">Mon ressenti</span>
+                        <div style="display:flex;gap:3px"><sc-for list="{{ c.editButtons }}" as="e" hint-placeholder-count="4"><button onClick="{{ e.onClick }}" title="{{ e.title }}" style="{{ e.style }}">{{ e.short }}</button></sc-for></div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- JOURNAL -->
+        <sc-if value="{{ isJournal }}" hint-placeholder-val="{{ false }}">
+          <h1 style="font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0">Mon journal d'activités</h1>
+          <p style="font-size:14.5px;color:#76766F;margin:8px 0 0">Consignez vos missions en entreprise. Votre tuteur les valide et les relie à vos compétences.</p>
+
+          <div style="background:#fff;border:1px solid #E6E5DF;border-radius:16px;padding:18px 20px;margin-top:22px">
+            <input value="{{ composerTitle }}" onChange="{{ onComposerTitle }}" placeholder="Titre de l'activité…" style="width:100%;padding:10px 12px;border:1px solid #E4E4DE;border-radius:9px;font-size:14.5px;font-weight:600;background:#fff;outline:none" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" />
+            <textarea value="{{ composerText }}" onChange="{{ onComposerText }}" placeholder="Décrivez ce que vous avez réalisé…" rows="3" style="width:100%;margin-top:10px;padding:10px 12px;border:1px solid #E4E4DE;border-radius:9px;font-size:13.5px;background:#fff;outline:none;resize:vertical;line-height:1.5" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)"></textarea>
+            <div style="display:flex;justify-content:flex-end;margin-top:10px"><button onClick="{{ addEntry }}" style="{{ publishStyle }}">{{ icons.plus }}Publier l'entrée</button></div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:12px;margin-top:16px">
+            <sc-for list="{{ journal }}" as="j" hint-placeholder-count="3">
+              <div style="background:#fff;border:1px solid #E6E5DF;border-radius:14px;padding:16px 18px">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px"><div style="font-size:15px;font-weight:600">{{ j.title }}</div><span style="display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 8px;border-radius:999px;font-size:11.5px;font-weight:600;background:{{ j.statusBg }};color:{{ j.statusColor }};white-space:nowrap;flex:none"><span style="width:6px;height:6px;border-radius:50%;background:{{ j.statusColor }}"></span>{{ j.statusLabel }}</span></div>
+                <div style="font-size:13.5px;color:#6E6E68;line-height:1.55;margin-top:7px">{{ j.text }}</div>
+                <div style="font-size:12px;color:#A0A099;margin-top:11px">{{ j.date }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- BILANS -->
+        <sc-if value="{{ isBilans }}" hint-placeholder-val="{{ false }}">
+          <h1 style="font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0">Mes bilans</h1>
+          <p style="font-size:14.5px;color:#76766F;margin:8px 0 0">Vos rendez-vous tripartites avec l'école et l'entreprise.</p>
+          <div style="display:flex;flex-direction:column;gap:12px;margin-top:24px">
+            <sc-for list="{{ bilans }}" as="b" hint-placeholder-count="3">
+              <a href="Fiche Bilan.dc.html" style="background:#fff;border:1px solid #E6E5DF;border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;cursor:pointer" style-hover="border-color:var(--accent)">
+                <div style="width:46px;height:46px;border-radius:12px;background:{{ b.iconBg }};color:{{ b.iconColor }};display:flex;align-items:center;justify-content:center;flex:none">{{ icons.calendar }}</div>
+                <div style="flex:1;min-width:180px"><div style="font-size:15px;font-weight:600">{{ b.label }}</div><div style="font-size:13px;color:#6E6E68;margin-top:3px">{{ b.note }}</div></div>
+                <div style="text-align:right;min-width:120px"><div style="font-size:13px;font-weight:600">{{ b.date }}</div><span style="display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:{{ b.statusColor }};margin-top:3px"><span style="width:6px;height:6px;border-radius:50%;background:{{ b.statusColor }}"></span>{{ b.statusLabel }}</span></div>
+              </a>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- DOCUMENTS -->
+        <sc-if value="{{ isDocuments }}" hint-placeholder-val="{{ false }}">
+          <h1 style="font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0">Mes documents</h1>
+          <p style="font-size:14.5px;color:#76766F;margin:8px 0 0">Convention, livret d'apprentissage et comptes-rendus.</p>
+          <div style="background:#fff;border:1px solid #E6E5DF;border-radius:16px;overflow:hidden;margin-top:22px">
+            <sc-for list="{{ documents }}" as="d" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid #F4F4F0">
+                <div style="width:38px;height:38px;border-radius:9px;background:#F4F4F0;color:#86867F;display:flex;align-items:center;justify-content:center;flex:none">{{ icons.fileText }}</div>
+                <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600">{{ d.name }}</div><div style="font-size:12px;color:#A0A099">{{ d.meta }}</div></div>
+                <button title="Télécharger" style="width:34px;height:34px;border-radius:9px;border:1px solid #E6E5DF;background:#fff;color:#6E6E68;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none" style-hover="background:#F4F4F0">{{ icons.download }}</button>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- SUPPORT -->
+        <sc-if value="{{ isSupport }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
+            <div style="max-width:560px"><h1 style="font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0">Support</h1><p style="font-size:14.5px;color:#76766F;margin:8px 0 0;line-height:1.5">Une question, un blocage ou un bug ? Ouvrez un ticket, l'équipe support vous répond directement ici.</p></div>
+            <button onClick="{{ openTicket }}" style="display:flex;align-items:center;gap:8px;padding:11px 16px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(31,122,99,.25);flex:none" style-hover="background:var(--accent-strong)">{{ icons.plus }}Nouveau ticket</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;margin-top:24px">
+            <sc-for list="{{ tickets }}" as="t" hint-placeholder-count="2">
+              <div style="background:#fff;border:1px solid #E6E5DF;border-radius:14px;padding:16px 18px">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+                  <div style="font-size:15px;font-weight:600">{{ t.subject }}</div>
+                  <span style="display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 8px;border-radius:999px;font-size:11.5px;font-weight:600;background:{{ t.statusBg }};color:{{ t.statusColor }};white-space:nowrap;flex:none"><span style="width:6px;height:6px;border-radius:50%;background:{{ t.statusColor }}"></span>{{ t.statusLabel }}</span>
+                </div>
+                <div style="font-size:13.5px;color:#6E6E68;line-height:1.55;margin-top:7px">{{ t.text }}</div>
+                <div style="display:flex;align-items:center;gap:8px;margin-top:13px;flex-wrap:wrap">
+                  <span style="display:inline-flex;align-items:center;padding:3px 10px;border-radius:7px;font-size:11.5px;font-weight:600;background:{{ t.typeBg }};color:{{ t.typeColor }}">{{ t.typeLabel }}</span>
+                  <span style="display:inline-flex;align-items:center;padding:3px 10px;border-radius:7px;font-size:11.5px;font-weight:600;background:{{ t.prioBg }};color:{{ t.prioColor }}">{{ t.prioLabel }}</span>
+                  <span style="flex:1"></span>
+                  <span style="font-size:12px;color:#A0A099">{{ t.date }}</span>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ ticketsEmpty }}" hint-placeholder-val="{{ false }}"><div style="background:#fff;border:1px solid #E6E5DF;border-radius:14px;padding:40px;text-align:center"><div style="font-size:15px;font-weight:600;color:#44443F">Aucun ticket</div><div style="font-size:13.5px;color:#9A9A93;margin-top:5px">Ouvrez un ticket dès que vous rencontrez un problème.</div></div></sc-if>
+          </div>
+        </sc-if>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- TICKET MODAL -->
+  <sc-if value="{{ ticketModalOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:24px">
+      <div onClick="{{ closeTicket }}" style="position:absolute;inset:0;background:rgba(22,22,20,.4)"></div>
+      <div style="position:relative;width:520px;max-width:100%;max-height:88vh;overflow-y:auto;background:#fff;border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.25)">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:20px 22px;border-bottom:1px solid #EFEFEA">
+          <div><div style="font-size:17px;font-weight:700">Nouveau ticket</div><div style="font-size:12.5px;color:#86867F;margin-top:3px">Décrivez votre demande ou le problème rencontré.</div></div>
+          <button onClick="{{ closeTicket }}" style="width:32px;height:32px;border-radius:9px;border:1px solid #E6E5DF;background:#fff;color:#76766F;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none" style-hover="background:#F4F4F0">{{ icons.x }}</button>
+        </div>
+        <div style="padding:18px 22px">
+          <label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:6px">Sujet</label>
+          <input value="{{ ticketForm.subject }}" onChange="{{ onTicketSubject }}" placeholder="Résumez votre demande en quelques mots…" style="width:100%;padding:10px 12px;border:1px solid #E0E0DB;border-radius:9px;font-size:14px;background:#fff;outline:none;color:#1B1B19" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" />
+          <label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin:15px 0 9px">Type de demande</label>
+          <div style="display:flex;gap:8px"><sc-for list="{{ ticketTypeOptions }}" as="t" hint-placeholder-count="2"><button onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</button></sc-for></div>
+          <label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin:15px 0 6px">Priorité</label>
+          <select value="{{ ticketForm.priority }}" onChange="{{ onTicketPriority }}" style="width:100%;padding:10px 12px;border:1px solid #E0E0DB;border-radius:9px;font-size:14px;background:#fff;outline:none;color:#1B1B19" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)"><option value="basse">Basse</option><option value="moyenne">Moyenne</option><option value="haute">Haute</option></select>
+          <label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin:15px 0 6px">Description</label>
+          <textarea value="{{ ticketForm.text }}" onChange="{{ onTicketText }}" placeholder="Donnez le maximum de détails (étapes, message d'erreur…)" rows="4" style="width:100%;padding:10px 12px;border:1px solid #E0E0DB;border-radius:9px;font-size:13.5px;background:#fff;outline:none;resize:vertical;line-height:1.5;color:#1B1B19" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)"></textarea>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid #EFEFEA">
+          <button onClick="{{ closeTicket }}" style="padding:10px 16px;border:1px solid #E0E0DB;border-radius:9px;background:#fff;color:#44443F;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#F4F4F0">Annuler</button>
+          <button onClick="{{ submitTicket }}" style="{{ ticketSubmitStyle }}">{{ icons.check }}Envoyer le ticket</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+    <div role="status" aria-live="polite" style="position:fixed;left:50%;bottom:24px;transform:translate(-50%,0);z-index:200;display:flex;align-items:center;gap:11px;background:#1B1B19;color:#fff;padding:11px 13px 11px 15px;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.28);max-width:92vw;animation:kz-toast .26s cubic-bezier(.22,.61,.36,1)">
+      <span style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;flex:none">{{ toastIcon }}</span>
+      <span style="font-size:13.5px;font-weight:500">{{ toastMessage }}</span>
+      <button onClick="{{ dismissToast }}" aria-label="Fermer la notification" style="width:26px;height:26px;border-radius:7px;border:none;background:transparent;color:#A8A8A2;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none">{{ toastClose }}</button>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;accent&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;Teal&quot;, &quot;Corail&quot;, &quot;Océan&quot;], &quot;default&quot;: &quot;Teal&quot;, &quot;tsType&quot;: &quot;string&quot; }
+}">
+class Component extends DCLogic {
+  cert = { title: 'Expert en développement logiciel', code: 'RNCP38905' };
+  referentiel = [
+    { id: 'b1', code: 'BC01', name: "Concevoir et développer des composants d'interface", comps: [{ id: 'c1', name: 'Maquetter une application' }, { id: 'c2', name: 'Développer une interface utilisateur web' }, { id: 'c3', name: "Développer des composants d'accès aux données" }] },
+    { id: 'b2', code: 'BC02', name: 'Concevoir et développer la persistance des données', comps: [{ id: 'c4', name: 'Concevoir une base de données' }, { id: 'c5', name: 'Mettre en place une base de données' }, { id: 'c6', name: "Développer des composants dans le langage d'une base de données" }] },
+    { id: 'b3', code: 'BC03', name: 'Concevoir et développer une application multicouche', comps: [{ id: 'c7', name: 'Développer des composants métier' }, { id: 'c8', name: 'Concevoir une application gérée par les données' }, { id: 'c9', name: 'Préparer et exécuter les plans de tests' }, { id: 'c10', name: 'Déployer une application en intégration continue' }] },
+    { id: 'b4', code: 'BC04', name: 'Gérer un projet et collaborer en équipe agile', comps: [{ id: 'c11', name: 'Collaborer en gestion de projet agile' }, { id: 'c12', name: 'Concevoir une application sécurisée' }] }
+  ];
+  levels = [
+    { k: 0, label: 'Non acquis', short: 'NA', bg: '#EDEDE9', color: '#8A8A83', dot: '#C4C4BC' },
+    { k: 1, label: 'En cours', short: 'EC', bg: '#F7EFDA', color: '#9A6B12', dot: '#E0A93B' },
+    { k: 2, label: 'Acquis', short: 'A', bg: '#E4F2EC', color: '#2C7A63', dot: '#3FA98C' },
+    { k: 3, label: 'Maîtrisé', short: 'M', bg: '#D4EAE0', color: '#1F7A63', dot: '#1F7A63' }
+  ];
+
+  state = {
+    view: 'dashboard',
+    ev: this.seedEv(),
+    saved: false, dirty: false, toast: null,
+    composerTitle: '', composerText: '',
+    ticketModalOpen: false,
+    ticketForm: { subject: '', type: 'demande', priority: 'moyenne', text: '' },
+    tickets: [
+      { id: 't1', subject: "Impossible d'enregistrer mon auto-évaluation", type: 'bug', priority: 'haute', text: "Le bouton « Enregistrer » ne réagit pas sur l'écran de mes compétences depuis hier soir.", status: 'progress', date: '20 juin 2026' },
+      { id: 't2', subject: "Accès au livret d'apprentissage", type: 'demande', priority: 'basse', text: "Où puis-je télécharger la dernière version de mon livret ?", status: 'resolved', date: '11 juin 2026' }
+    ],
+    journal: [
+      { id: 'j1', title: 'Mise en place du pipeline CI/CD', text: "Configuration de GitHub Actions pour les tests et le déploiement automatique de l'API de production.", date: '18 juin 2026', validated: true },
+      { id: 'j2', title: "Refonte du module d'authentification", text: 'Implémentation JWT + refresh tokens et revue de sécurité avec l\'équipe back-end.', date: '5 juin 2026', validated: true },
+      { id: 'j3', title: 'Développement du tableau de bord client', text: 'Composants React réutilisables, intégration de l\'API de données et tests unitaires.', date: '22 mai 2026', validated: false }
+    ]
+  };
+
+  seedEv() {
+    const clamp = v => Math.max(0, Math.min(3, v));
+    const hash = s => (s || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+    const ev = {};
+    this.referentiel.forEach(b => b.comps.forEach(c => { const h = hash(c.id); const p = clamp(2 + (h % 3 - 1)); ev[c.id] = { a: clamp(p + (h % 2 ? 1 : 0)), e: clamp(p + (h % 2 ? 0 : -1)), p: p }; }));
+    return ev;
+  }
+
+  componentDidMount() { this.applyTheme(); }
+  componentDidUpdate() { this.applyTheme(); }
+  applyTheme() {
+    const map = { 'Teal': { a: '#2E9E82', s: '#1F7A63', soft: '#E7F4EE' }, 'Corail': { a: '#E06A41', s: '#B54F2C', soft: '#FBEADF' }, 'Océan': { a: '#3F6FB0', s: '#2E5288', soft: '#E8EFF8' } };
+    const t = map[this.props.accent] || map['Teal'];
+    const r = document.documentElement;
+    r.style.setProperty('--accent', t.a); r.style.setProperty('--accent-strong', t.s); r.style.setProperty('--accent-soft', t.soft);
+  }
+
+  setSelf(compId, lvl) { this.setState(s => ({ dirty: true, ev: { ...s.ev, [compId]: { ...s.ev[compId], a: lvl } } })); }
+  saveEval() { this.setState({ saved: false, dirty: false }); this.showToast('Évaluation enregistrée'); }
+  showToast(message) {
+    if (this._toastTimer) clearTimeout(this._toastTimer);
+    const id = Date.now();
+    this.setState({ toast: { id, message } });
+    this._toastTimer = setTimeout(() => this.setState(s => (s.toast && s.toast.id === id ? { toast: null } : null)), 4000);
+  }
+  dismissToast() { if (this._toastTimer) clearTimeout(this._toastTimer); this.setState({ toast: null }); }
+  addEntry() {
+    const t = this.state.composerTitle.trim();
+    if (!t) return;
+    this.setState(s => ({ journal: [{ id: 'j' + Date.now(), title: t, text: s.composerText.trim() || '—', date: '23 juin 2026', validated: false }, ...s.journal], composerTitle: '', composerText: '' }));
+  }
+  openTicket() { this.setState({ ticketModalOpen: true, ticketForm: { subject: '', type: 'demande', priority: 'moyenne', text: '' } }); }
+  closeTicket() { this.setState({ ticketModalOpen: false }); }
+  setTicket(k, v) { this.setState(s => ({ ticketForm: { ...s.ticketForm, [k]: v } })); }
+  submitTicket() {
+    const f = this.state.ticketForm;
+    if (!f.subject.trim()) return;
+    this.setState(s => ({ ticketModalOpen: false, tickets: [{ id: 't' + Date.now(), subject: f.subject, type: f.type, priority: f.priority, text: f.text.trim() || '—', status: 'open', date: '23 juin 2026' }, ...s.tickets] }));
+    this.showToast('Ticket envoyé');
+  }
+
+  renderVals() {
+    const st = this.state;
+    const icons = this.buildIcons();
+    const L = this.levels;
+
+    const navDefs = [
+      { key: 'dashboard', label: 'Tableau de bord', icon: icons.dash },
+      { key: 'competences', label: 'Mes compétences', icon: icons.target },
+      { key: 'journal', label: "Mon journal", icon: icons.book },
+      { key: 'bilans', label: 'Mes bilans', icon: icons.calendar },
+      { key: 'documents', label: 'Documents', icon: icons.fileText, link: 'Documents.dc.html' },
+      { key: 'support', label: 'Support', icon: icons.buoy }
+    ];
+    const toAssess = this.referentiel.flatMap(b => b.comps).filter(c => st.ev[c.id].a === 0).length;
+    const navItems = navDefs.map(n => { const active = n.key === st.view; return { ...n, showBadge: n.key === 'competences' && toAssess > 0, badge: String(toAssess), bg: active ? 'var(--accent)' : 'transparent', color: active ? '#fff' : 'rgba(255,255,255,.62)', hover: active ? 'background:var(--accent)' : 'background:rgba(255,255,255,.07);color:#fff', weight: active ? 600 : 500, onClick: n.link ? () => { window.location.href = n.link; } : () => this.setState({ view: n.key }) }; });
+    const labels = { dashboard: 'Tableau de bord', competences: 'Mes compétences', journal: 'Mon journal', bilans: 'Mes bilans', documents: 'Documents', support: 'Support' };
+    const tStyle = { demande: { label: 'Demande', bg: '#E8EEF7', color: '#3D5E8E' }, bug: { label: 'Bug', bg: '#FBEAE1', color: '#B5432A' } };
+    const pStyle = { basse: { label: 'Priorité basse', bg: '#EDEDE9', color: '#6E6E68' }, moyenne: { label: 'Priorité moyenne', bg: '#F7EFDA', color: '#8A6516' }, haute: { label: 'Priorité haute', bg: '#FBE3DC', color: '#B5432A' } };
+    const sStyle = { open: { label: 'Ouvert', color: '#9A6B12', bg: '#F7EFDA' }, progress: { label: 'En cours', color: '#3D5E8E', bg: '#E8EEF7' }, resolved: { label: 'Résolu', color: '#1F7A63', bg: '#E4F2EC' } };
+    const tickets = st.tickets.map(t => ({ ...t, typeLabel: tStyle[t.type].label, typeBg: tStyle[t.type].bg, typeColor: tStyle[t.type].color, prioLabel: pStyle[t.priority].label, prioBg: pStyle[t.priority].bg, prioColor: pStyle[t.priority].color, statusLabel: sStyle[t.status].label, statusColor: sStyle[t.status].color, statusBg: sStyle[t.status].bg }));
+    const ticketTypeOptions = [['demande', 'Demande'], ['bug', 'Signaler un bug']].map(([k, label]) => { const sel = st.ticketForm.type === k; return { label, onClick: () => this.setTicket('type', k), style: `flex:1;padding:9px 12px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;text-align:center;background:${sel ? 'var(--accent-soft)' : '#fff'};border:1.5px solid ${sel ? 'var(--accent)' : '#E8E8E3'};color:${sel ? 'var(--accent-strong)' : '#3A3A35'}` }; });
+
+    // overall (consolidated = péda)
+    const allP = this.referentiel.flatMap(b => b.comps.map(c => st.ev[c.id].p));
+    const overall = Math.round(allP.reduce((s, v) => s + v, 0) / (allP.length * 3) * 100);
+    const acquired = allP.filter(v => v >= 2).length;
+    const validatedBlocs = this.referentiel.filter(b => b.comps.every(c => st.ev[c.id].p >= 2)).length;
+
+    const stats = [
+      { label: 'Progression', value: overall + '%', sub: 'consolidée', icon: icons.trend, chipBg: 'var(--accent-soft)', chipColor: 'var(--accent-strong)' },
+      { label: 'Blocs validés', value: validatedBlocs + '/' + this.referentiel.length, sub: 'de compétences', icon: icons.award, chipBg: 'var(--accent-soft)', chipColor: 'var(--accent-strong)' },
+      { label: 'Compétences acquises', value: acquired + '/' + allP.length, sub: 'niveau Acquis ou +', icon: icons.check, chipBg: 'var(--accent-soft)', chipColor: 'var(--accent-strong)' },
+      { label: 'À auto-évaluer', value: String(toAssess), sub: 'avant le bilan', icon: icons.target, chipBg: '#F7EFDA', chipColor: '#9A6B12' }
+    ];
+
+    const trinome = [
+      { role: 'Tuteur pédagogique', name: 'Julien Mercier', icon: icons.cap, bg: '#E8EEF7', color: '#3D5E8E' },
+      { role: "Tuteur d'entreprise", name: 'Marc Dubois', icon: icons.users, bg: '#FBEAE1', color: '#B5572F' },
+      { role: 'Entreprise', name: 'Capgemini', icon: icons.briefcase, bg: '#F7EFDA', color: '#8A6516' }
+    ];
+
+    // competences (editable auto)
+    const blocs = this.referentiel.map(b => {
+      const comps = b.comps.map(c => {
+        const ev = st.ev[c.id];
+        const readChips = [{ k: 'e', who: "Tuteur entreprise", letter: 'E' }, { k: 'p', who: 'Tuteur pédagogique', letter: 'P' }].map(r => { const lv = L[ev[r.k]]; return { letter: r.letter, bg: lv.bg, color: lv.color, label: lv.label, title: r.who + ' : ' + lv.label }; });
+        const cur = ev.a;
+        const editButtons = L.map(l => ({ short: l.short, title: l.label, onClick: () => this.setSelf(c.id, l.k), style: `width:34px;height:30px;border-radius:7px;border:1px solid ${l.k === cur ? l.dot : '#E6E6E1'};background:${l.k === cur ? l.dot : '#fff'};color:${l.k === cur ? '#fff' : '#9A9A93'};font-size:11.5px;font-weight:700;cursor:pointer` }));
+        return { ...c, readChips, editButtons };
+      });
+      const validated = b.comps.every(c => st.ev[c.id].p >= 2);
+      return { ...b, comps, badgeLabel: validated ? 'Bloc validé' : 'En cours', badgeStyle: `padding:3px 11px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap;background:${validated ? '#E4F2EC' : '#F4F4F0'};color:${validated ? '#1F7A63' : '#86867F'}` };
+    });
+
+    const journal = st.journal.map(j => ({ ...j, statusLabel: j.validated ? 'Validée par le tuteur' : 'En attente de validation', statusBg: j.validated ? '#E4F2EC' : '#F7EFDA', statusColor: j.validated ? '#1F7A63' : '#9A6B12' }));
+
+    const bilanStatus = { planned: { label: 'Planifié', color: '#9A6B12', iconBg: '#F7EFDA', iconColor: '#9A6B12' }, signed: { label: 'Compte-rendu signé', color: '#1F7A63', iconBg: '#E4F2EC', iconColor: '#1F7A63' } };
+    const bilans = [
+      { label: 'Bilan de mi-parcours — S3', date: '2 juil. 2026', status: 'planned', note: "Point tripartite sur l'avancement des compétences." },
+      { label: 'Bilan semestriel — S2', date: '15 janv. 2026', status: 'signed', note: 'Compte-rendu signé par les trois parties.' },
+      { label: "Bilan d'intégration — S1", date: '12 sept. 2025', status: 'signed', note: 'Bonne intégration en entreprise.' }
+    ].map(b => ({ ...b, statusLabel: bilanStatus[b.status].label, statusColor: bilanStatus[b.status].color, iconBg: bilanStatus[b.status].iconBg, iconColor: bilanStatus[b.status].iconColor }));
+
+    const documents = [
+      { name: 'Convention de formation', meta: 'PDF · 1 sept. 2025 · 248 Ko' },
+      { name: "Livret d'apprentissage", meta: 'PDF · mis à jour 18 juin 2026 · 1,2 Mo' },
+      { name: 'Compte-rendu Bilan S2', meta: 'PDF · 15 janv. 2026 · 180 Ko' },
+      { name: 'Bulletin de notes — S2', meta: 'PDF · 20 janv. 2026 · 120 Ko' }
+    ];
+
+    return {
+      notifs: [
+        { id: 'an1', type: 'bilan', title: 'Bilan de mi-parcours à signer', detail: 'S3 · à signer avant le 30 juin', time: 'Il y a 2 h', href: 'Fiche Bilan.dc.html', unread: true },
+        { id: 'an2', type: 'competence', title: 'Auto-évaluation à compléter', detail: String(toAssess) + ' compétences avant le bilan', time: 'Il y a 6 h', href: 'Référentiel de compétences.dc.html', unread: true },
+        { id: 'an3', type: 'message', title: 'Nouveau message du trinôme', detail: 'Marc Dubois · « On cale le bilan ? »', time: 'Hier', href: 'Messagerie.dc.html', unread: true },
+        { id: 'an4', type: 'validation', title: 'Entrée de journal validée', detail: 'Marc Dubois a validé « Pipeline CI/CD »', time: 'Il y a 3 j', href: '#', unread: false }
+      ],
+      icons, cert: this.cert,
+      hasToast: !!st.toast, toastMessage: st.toast ? st.toast.message : '', toastIcon: icons.check, toastClose: icons.x, dismissToast: () => this.dismissToast(),
+      navItems, pageLabel: labels[st.view],
+      isDashboard: st.view === 'dashboard', isCompetences: st.view === 'competences', isJournal: st.view === 'journal', isBilans: st.view === 'bilans', isDocuments: st.view === 'documents', isSupport: st.view === 'support',
+      tickets, ticketsEmpty: tickets.length === 0,
+      openTicket: () => this.openTicket(), closeTicket: () => this.closeTicket(), ticketModalOpen: st.ticketModalOpen,
+      ticketForm: st.ticketForm, ticketTypeOptions,
+      onTicketSubject: e => this.setTicket('subject', e.target.value), onTicketText: e => this.setTicket('text', e.target.value), onTicketPriority: e => this.setTicket('priority', e.target.value),
+      submitTicket: () => this.submitTicket(),
+      ticketSubmitStyle: `display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border:none;border-radius:9px;background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:${st.ticketForm.subject.trim() ? 'pointer' : 'not-allowed'};opacity:${st.ticketForm.subject.trim() ? 1 : .5}`,
+      stats, trinome, toAssess,
+      levelLegend: L.map(l => ({ label: l.label, dot: l.dot })), blocs,
+      saveEval: () => this.saveEval(),
+      saveLabel: st.dirty ? 'Enregistrer mon auto-évaluation' : 'À jour',
+      saveIcon: st.dirty ? icons.save : icons.check,
+      saveBtnStyle: `display:inline-flex;align-items:center;gap:7px;padding:10px 16px;border:none;border-radius:10px;background:${st.dirty ? 'var(--accent)' : '#1F7A63'};color:#fff;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(31,122,99,.25)`,
+      composerTitle: st.composerTitle, composerText: st.composerText,
+      onComposerTitle: e => this.setState({ composerTitle: e.target.value }), onComposerText: e => this.setState({ composerText: e.target.value }),
+      addEntry: () => this.addEntry(),
+      publishStyle: `display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border:none;border-radius:9px;background:var(--accent);color:#fff;font-size:13.5px;font-weight:600;cursor:${st.composerTitle.trim() ? 'pointer' : 'not-allowed'};opacity:${st.composerTitle.trim() ? 1 : .5}`,
+      journal, bilans, documents
+    };
+  }
+
+  svg(parts, size) { return React.createElement('svg', { width: size || 19, height: size || 19, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' }, parts.map((p, i) => React.createElement(p[0], Object.assign({ key: i }, p[1])))); }
+  buildIcons() {
+    const S = (a, b) => this.svg(a, b);
+    return {
+      dash: S([['rect', { x: 3, y: 3, width: 7, height: 9, rx: 1 }], ['rect', { x: 14, y: 3, width: 7, height: 5, rx: 1 }], ['rect', { x: 14, y: 12, width: 7, height: 9, rx: 1 }], ['rect', { x: 3, y: 16, width: 7, height: 5, rx: 1 }]]),
+      target: S([['circle', { cx: 12, cy: 12, r: 10 }], ['circle', { cx: 12, cy: 12, r: 6 }], ['circle', { cx: 12, cy: 12, r: 2 }]]),
+      book: S([['path', { d: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20' }], ['path', { d: 'M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z' }]]),
+      calendar: S([['rect', { x: 3, y: 4, width: 18, height: 18, rx: 2 }], ['path', { d: 'M16 2v4' }], ['path', { d: 'M8 2v4' }], ['path', { d: 'M3 10h18' }]], 17),
+      fileText: S([['path', { d: 'M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z' }], ['path', { d: 'M14 2v5h5' }], ['path', { d: 'M16 13H8' }], ['path', { d: 'M16 17H8' }], ['path', { d: 'M10 9H8' }]], 18),
+      bell: S([['path', { d: 'M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9' }], ['path', { d: 'M10.3 21a1.94 1.94 0 0 0 3.4 0' }]], 18),
+      trend: S([['path', { d: 'M16 7h6v6' }], ['path', { d: 'm22 7-8.5 8.5-5-5L2 17' }]]),
+      award: S([['path', { d: 'm15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526' }], ['circle', { cx: 12, cy: 8, r: 6 }]]),
+      check: S([['path', { d: 'M20 6 9 17l-5-5' }]], 17),
+      save: S([['path', { d: 'M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z' }], ['path', { d: 'M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7' }], ['path', { d: 'M7 3v4a1 1 0 0 0 1 1h7' }]], 17),
+      plus: S([['path', { d: 'M5 12h14' }], ['path', { d: 'M12 5v14' }]], 16),
+      cap: S([['path', { d: 'M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z' }], ['path', { d: 'M22 10v6' }], ['path', { d: 'M6 12.5V16a6 3 0 0 0 12 0v-3.5' }]], 18),
+      users: S([['path', { d: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2' }], ['circle', { cx: 9, cy: 7, r: 4 }], ['path', { d: 'M22 21v-2a4 4 0 0 0-3-3.87' }], ['path', { d: 'M16 3.13a4 4 0 0 1 0 7.75' }]], 18),
+      briefcase: S([['rect', { x: 2, y: 7, width: 20, height: 14, rx: 2 }], ['path', { d: 'M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16' }]], 18),
+      download: S([['path', { d: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' }], ['path', { d: 'm7 10 5 5 5-5' }], ['path', { d: 'M12 15V3' }]], 17),
+      buoy: S([['circle', { cx: 12, cy: 12, r: 10 }], ['path', { d: 'm4.93 4.93 4.24 4.24' }], ['path', { d: 'm14.83 9.17 4.24-4.24' }], ['path', { d: 'm14.83 14.83 4.24 4.24' }], ['path', { d: 'm9.17 14.83-4.24 4.24' }], ['circle', { cx: 12, cy: 12, r: 4 }]]),
+      x: S([['path', { d: 'M18 6 6 18' }], ['path', { d: 'm6 6 12 12' }]], 18)
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--accent:#2E9E82;--accent-strong:#1F7A63;--accent-soft:#E7F4EE;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Geist',-apple-system,system-ui,sans-serif;background:#F6F6F4;color:#1B1B19;-webkit-font-smoothing:antialiased;}
+  button{font-family:inherit;}
+  a{text-decoration:none;color:inherit;}
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-thumb{background:#DEDED8;border-radius:6px;border:2px solid #F6F6F4;}
+  ::-webkit-scrollbar-thumb:hover{background:#CFCFC8;}
+  @keyframes modalPop{from{transform:translateY(8px) scale(.99)}to{transform:none}}
+</style>
+<script src="./image-slot.js"></script>
+</helmet>
+
+<div style="display:flex;height:100vh;width:100%;overflow:hidden;background:#F6F6F4">
+
+  <!-- SIDEBAR -->
+  <aside style="width:248px;flex:none;height:100%;background:#FCFCFB;border-right:1px solid #ECECE7;display:flex;flex-direction:column;padding:18px 14px">
+    <div style="display:flex;align-items:center;gap:9px;padding:4px 6px 18px">
+      <img src="uploads/logo.png" alt="Kizuna" style="width:50px;height:50px;object-fit:contain;flex:none;margin:-7px 0" />
+      <div><div style="font-size:18px;font-weight:700;letter-spacing:-.02em;line-height:1">Kizuna</div><div style="font-size:11px;color:#A0A099;margin-top:4px">Espace alternant</div></div>
+    </div>
+    <nav style="display:flex;flex-direction:column;gap:3px">
+      <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="6">
+        <a href="{{ n.href }}" style="display:flex;align-items:center;gap:11px;width:100%;padding:9px 11px;border:none;background:{{ n.bg }};color:{{ n.color }};border-radius:9px;font-size:14px;font-weight:{{ n.weight }};cursor:pointer;text-align:left" style-hover="background:#F1F1EC">
+          <span style="display:flex;flex:none">{{ n.icon }}</span><span style="flex:1">{{ n.label }}</span>
+        </a>
+      </sc-for>
+    </nav>
+    <div style="flex:1"></div>
+    <div style="border:1px solid #ECECE7;border-radius:12px;padding:11px;background:#fff;display:flex;align-items:center;gap:10px">
+      <image-slot id="kz-av-lucas-girard" shape="circle" fallback="LG" fallback-bg="#F7EFDA" fallback-color="#8A6516" placeholder="Photo" style="width:36px;height:36px;flex:none"></image-slot>
+      <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:600">Lucas Girard</div><div style="font-size:11.5px;color:#A0A099">Alternant</div></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div style="flex:1;display:flex;flex-direction:column;height:100%;min-width:0">
+    <header style="height:62px;flex:none;border-bottom:1px solid #ECECE7;background:rgba(252,252,251,.85);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:space-between;padding:0 26px">
+      <div style="display:flex;align-items:center;gap:9px;font-size:13.5px;color:#9A9A93"><span>Expert Dév. Full Stack</span><span style="color:#CFCFC8">/</span><span style="color:#1B1B19;font-weight:600">Documents</span></div>
+      <dc-import name="Notifications" items="{{ notifs }}" accent="var(--accent)" accent-soft="var(--accent-soft)" accent-strong="var(--accent-strong)" all-href="#" hint-size="38px,38px"></dc-import>
+    </header>
+    <dc-import name="Accessibilite" hint-size="0,0"></dc-import>
+
+    <main style="flex:1;overflow-y:auto;padding:30px 26px 60px" onDragOver="{{ onDragOver }}" onDragLeave="{{ onDragLeave }}" onDrop="{{ onDrop }}">
+      <div style="max-width:1040px;margin:0 auto">
+
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <div style="max-width:560px"><h1 style="font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0">Mes documents</h1><p style="font-size:14.5px;color:#76766F;margin:8px 0 0;line-height:1.5">Convention, livret d'apprentissage et comptes-rendus. Glissez-déposez vos fichiers pour les téléverser.</p></div>
+          <button onClick="{{ browseLib }}" style="display:flex;align-items:center;gap:8px;padding:11px 16px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(31,122,99,.25);flex:none" style-hover="background:var(--accent-strong)">{{ icons.upload }}Téléverser</button>
+        </div>
+
+        <!-- LIVRET -->
+        <div style="font-size:15px;font-weight:600;margin:28px 0 13px;display:flex;align-items:center;gap:9px"><span style="display:flex;color:var(--accent-strong)">{{ icons.book }}</span>Livret d'apprentissage</div>
+        <div style="background:#fff;border:1px solid #ECECE7;border-radius:18px;overflow:hidden">
+          <div style="display:flex;gap:18px;padding:20px 22px;flex-wrap:wrap;align-items:center">
+            <div style="width:60px;height:74px;border-radius:9px;background:var(--accent-soft);color:var(--accent-strong);display:flex;align-items:center;justify-content:center;flex:none">{{ icons.fileText }}</div>
+            <div style="flex:1;min-width:200px">
+              <div style="display:flex;align-items:center;gap:9px"><span style="font-size:16px;font-weight:700">{{ livret.cur.name }}</span><span style="font-size:11px;font-weight:700;background:var(--accent-soft);color:var(--accent-strong);padding:2px 9px;border-radius:999px">{{ livret.cur.vlabel }} · actuelle</span></div>
+              <div style="font-size:13px;color:#86867F;margin-top:5px">PDF · {{ livret.cur.sizeLabel }} · mis à jour le {{ livret.cur.addedAt }} · {{ livret.cur.by }}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+              <button onClick="{{ livret.cur.onPreview }}" style="display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border:1px solid #E0E0DB;border-radius:9px;background:#fff;color:#33332F;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:#F4F4F0">{{ icons.eye }}Aperçu</button>
+              <button onClick="{{ browseVersion }}" style="display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border:none;border-radius:9px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:var(--accent-strong)">{{ icons.upload }}Nouvelle version</button>
+            </div>
+          </div>
+          <div style="border-top:1px solid #F0F0EC;background:#FCFCFB;padding:6px 10px">
+            <div style="font-size:11px;font-weight:600;color:#AEAEA6;letter-spacing:.05em;padding:9px 12px 6px">HISTORIQUE DES VERSIONS</div>
+            <sc-for list="{{ livret.versions }}" as="v" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:13px;padding:11px 12px;border-radius:11px" style-hover="background:#F4F4F0">
+                <span style="width:38px;height:38px;border-radius:9px;background:{{ v.tagBg }};color:{{ v.tagColor }};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:'Geist Mono',monospace;flex:none">{{ v.vlabel }}</span>
+                <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ v.name }}</div><div style="font-size:12px;color:#86867F;margin-top:2px">{{ v.sizeLabel }} · {{ v.addedAt }} · {{ v.by }}</div></div>
+                <sc-if value="{{ v.current }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:var(--accent-strong);white-space:nowrap"><span style="width:6px;height:6px;border-radius:50%;background:var(--accent)"></span>Version actuelle</span></sc-if>
+                <sc-if value="{{ v.restorable }}" hint-placeholder-val="{{ true }}"><button onClick="{{ v.onRestore }}" style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid #E0E0DB;border-radius:8px;background:#fff;color:#5B5B55;font-size:12px;font-weight:600;cursor:pointer" style-hover="background:#fff;border-color:var(--accent)">{{ icons.restore }}Définir comme actuelle</button></sc-if>
+                <button onClick="{{ v.onPreview }}" title="Aperçu" style="width:32px;height:32px;border-radius:8px;border:1px solid #ECECE7;background:#fff;color:#76766F;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none" style-hover="background:#F4F4F0">{{ icons.eye }}</button>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <!-- DROPZONE -->
+        <div style="font-size:15px;font-weight:600;margin:28px 0 13px">Téléverser</div>
+        <div onClick="{{ browseLib }}" style="position:relative;border:2px dashed #D8D8D0;border-radius:16px;background:#FCFCFB;padding:30px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;cursor:pointer" style-hover="border-color:var(--accent)">
+          <div style="width:48px;height:48px;border-radius:13px;background:var(--accent-soft);color:var(--accent-strong);display:flex;align-items:center;justify-content:center;margin-bottom:12px">{{ icons.upload }}</div>
+          <div style="font-size:14.5px;font-weight:600">Glissez vos documents ici</div>
+          <div style="font-size:13px;color:#86867F;margin-top:4px">ou <span style="color:var(--accent-strong);font-weight:600">parcourez vos fichiers</span> · PDF, images, Word — 10 Mo max</div>
+          <sc-if value="{{ dragging }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute;inset:0;border-radius:14px;background:var(--accent-soft);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:14.5px;font-weight:700;color:var(--accent-strong)">Déposez pour téléverser</div>
+          </sc-if>
+        </div>
+
+        <!-- LIBRARY -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:28px 0 13px">
+          <div style="font-size:15px;font-weight:600">Tous les documents</div>
+          <span style="font-size:12.5px;color:#A0A099">{{ libraryCountLabel }}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px">
+          <sc-for list="{{ library }}" as="d" hint-placeholder-count="4">
+            <div style="background:#fff;border:1px solid #ECECE7;border-radius:14px;overflow:hidden;display:flex;flex-direction:column" style-hover="border-color:var(--accent)">
+              <button onClick="{{ d.onPreview }}" style="border:none;cursor:pointer;padding:0;height:124px;display:flex;align-items:center;justify-content:center;{{ d.thumbStyle }}">
+                <sc-if value="{{ d.showIcon }}" hint-placeholder-val="{{ true }}"><span style="width:46px;height:46px;border-radius:11px;background:{{ d.iconBg }};color:{{ d.iconColor }};display:flex;align-items:center;justify-content:center">{{ d.icon }}</span></sc-if>
+              </button>
+              <div style="padding:12px 13px;border-top:1px solid #F2F2EE">
+                <div style="font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ d.name }}</div>
+                <div style="font-size:11.5px;color:#86867F;margin-top:3px">{{ d.meta }}</div>
+                <div style="display:flex;align-items:center;gap:6px;margin-top:11px">
+                  <button onClick="{{ d.onPreview }}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px;border:1px solid #E4E4DE;border-radius:8px;background:#fff;color:#44443F;font-size:12.5px;font-weight:600;cursor:pointer" style-hover="background:#F4F4F0">{{ icons.eye }}Aperçu</button>
+                  <sc-if value="{{ d.canDownload }}" hint-placeholder-val="{{ false }}"><a href="{{ d.href }}" download="{{ d.name }}" title="Télécharger" style="width:32px;height:32px;border-radius:8px;border:1px solid #E4E4DE;background:#fff;color:#76766F;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none" style-hover="background:#F4F4F0">{{ icons.download }}</a></sc-if>
+                  <button onClick="{{ d.onDelete }}" title="Supprimer" style="width:32px;height:32px;border-radius:8px;border:1px solid #E4E4DE;background:#fff;color:#B5432A;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none" style-hover="background:#FBEAE1;border-color:#F0CFC2">{{ icons.trash }}</button>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ libraryEmpty }}" hint-placeholder-val="{{ false }}"><div style="background:#fff;border:1px solid #ECECE7;border-radius:14px;padding:40px;text-align:center;margin-top:4px"><div style="font-size:15px;font-weight:600;color:#44443F">Aucun document</div><div style="font-size:13.5px;color:#9A9A93;margin-top:5px">Téléversez votre premier fichier ci-dessus.</div></div></sc-if>
+      </div>
+    </main>
+  </div>
+
+  <!-- hidden file inputs -->
+  <input type="file" multiple ref="{{ libInputRef }}" onChange="{{ onLibInput }}" style="display:none" />
+  <input type="file" accept=".pdf,.doc,.docx,image/*" ref="{{ verInputRef }}" onChange="{{ onVerInput }}" style="display:none" />
+
+  <!-- PREVIEW MODAL -->
+  <sc-if value="{{ previewOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:28px">
+      <div onClick="{{ closePreview }}" style="position:absolute;inset:0;background:rgba(22,22,20,.55)"></div>
+      <div style="position:relative;width:780px;max-width:100%;max-height:90vh;background:#fff;border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.3);display:flex;flex-direction:column;overflow:hidden;animation:modalPop .16s ease-out">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid #ECECE7">
+          <div style="min-width:0"><div style="font-size:14.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ preview.name }}</div><div style="font-size:12px;color:#86867F;margin-top:1px">{{ preview.meta }}</div></div>
+          <div style="display:flex;align-items:center;gap:8px;flex:none">
+            <sc-if value="{{ preview.canDownload }}" hint-placeholder-val="{{ false }}"><a href="{{ preview.href }}" download="{{ preview.name }}" style="display:inline-flex;align-items:center;gap:6px;padding:8px 13px;border:1px solid #E0E0DB;border-radius:9px;background:#fff;color:#33332F;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:#F4F4F0">{{ icons.download }}Télécharger</a></sc-if>
+            <button onClick="{{ closePreview }}" style="width:34px;height:34px;border-radius:9px;border:1px solid #ECECE7;background:#fff;color:#76766F;display:flex;align-items:center;justify-content:center;cursor:pointer" style-hover="background:#F4F4F0">{{ icons.x }}</button>
+          </div>
+        </div>
+        <div style="flex:1;min-height:0;background:#F0F0EC;display:flex;align-items:center;justify-content:center;overflow:auto;padding:18px">
+          <sc-if value="{{ preview.isImage }}" hint-placeholder-val="{{ false }}"><img src="{{ preview.src }}" alt="aperçu" style="max-width:100%;max-height:64vh;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.18)" /></sc-if>
+          <sc-if value="{{ preview.isDoc }}" hint-placeholder-val="{{ true }}"><iframe src="{{ preview.src }}" title="aperçu" style="width:100%;height:64vh;border:none;border-radius:8px;background:#fff"></iframe></sc-if>
+          <sc-if value="{{ preview.isPlaceholder }}" hint-placeholder-val="{{ false }}">
+            <div style="width:100%;max-width:520px;height:60vh;border-radius:12px;background-image:repeating-linear-gradient(45deg,#E8E8E2,#E8E8E2 12px,#EFEFEA 12px,#EFEFEA 24px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:24px">
+              <div style="width:54px;height:54px;border-radius:13px;background:#fff;color:#9A9A93;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.08)">{{ icons.fileText }}</div>
+              <div style="font-family:'Geist Mono',monospace;font-size:12.5px;color:#76766F;background:#fff;padding:7px 12px;border-radius:8px">{{ preview.placeholderLabel }}</div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: { &quot;width&quot;: &quot;100%&quot;, &quot;height&quot;: &quot;100%&quot; },
+  &quot;accent&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;Teal&quot;, &quot;Corail&quot;, &quot;Océan&quot;], &quot;default&quot;: &quot;Teal&quot;, &quot;tsType&quot;: &quot;string&quot; }
+}">
+class Component extends DCLogic {
+  STORE_KEY = 'kizuna_documents_v1';
+  libInput = React.createRef();
+  verInput = React.createRef();
+  fileBlobs = {};
+
+  typeMeta = {
+    image: { bg: '#E8EEF7', color: '#3D5E8E', label: 'Image', icon: 'image' },
+    pdf:   { bg: '#FBE3DC', color: '#B5432A', label: 'PDF', icon: 'fileText' },
+    text:  { bg: '#F0F0EC', color: '#6E6E68', label: 'Texte', icon: 'fileText' },
+    word:  { bg: '#E8EEF7', color: '#3D5E8E', label: 'Word', icon: 'fileText' },
+    sheet: { bg: '#E4F2EC', color: '#1F7A63', label: 'Tableur', icon: 'fileText' },
+    file:  { bg: '#F0F0EC', color: '#6E6E68', label: 'Fichier', icon: 'file' }
+  };
+
+  state = {
+    dragging: false,
+    preview: null,
+    livret: {
+      versions: [
+        { id: 'lv3', v: 3, name: "Livret d'apprentissage — v3", type: 'application/pdf', size: 1258291, addedAt: '18 juin 2026', by: 'Lucas Girard', dataUrl: null, current: true },
+        { id: 'lv2', v: 2, name: "Livret d'apprentissage — v2", type: 'application/pdf', size: 1102000, addedAt: '12 mars 2026', by: 'Lucas Girard', dataUrl: null, current: false },
+        { id: 'lv1', v: 1, name: "Livret d'apprentissage — v1", type: 'application/pdf', size: 980000, addedAt: '5 nov. 2025', by: 'Lucas Girard', dataUrl: null, current: false }
+      ]
+    },
+    library: [
+      { id: 'd1', name: 'Convention de formation.pdf', type: 'application/pdf', size: 248000, addedAt: '1 sept. 2025', by: 'HETIC', dataUrl: null },
+      { id: 'd2', name: 'Compte-rendu Bilan S2.pdf', type: 'application/pdf', size: 180000, addedAt: '15 janv. 2026', by: 'Julien Mercier', dataUrl: null },
+      { id: 'd3', name: 'Bulletin de notes — S2.pdf', type: 'application/pdf', size: 120000, addedAt: '20 janv. 2026', by: 'HETIC', dataUrl: null }
+    ]
+  };
+
+  componentDidMount() {
+    this.applyTheme();
+    try {
+      const raw = window.localStorage.getItem(this.STORE_KEY);
+      if (raw) { const data = JSON.parse(raw); if (data && data.library && data.livret) this.setState({ library: data.library, livret: data.livret }); }
+    } catch (e) {}
+  }
+  componentDidUpdate() { this.applyTheme(); }
+  applyTheme() {
+    const map = { 'Teal': { a: '#2E9E82', s: '#1F7A63', soft: '#E7F4EE' }, 'Corail': { a: '#E06A41', s: '#B54F2C', soft: '#FBEADF' }, 'Océan': { a: '#3F6FB0', s: '#2E5288', soft: '#E8EFF8' } };
+    const t = map[this.props.accent] || map['Teal'];
+    const r = document.documentElement;
+    r.style.setProperty('--accent', t.a); r.style.setProperty('--accent-strong', t.s); r.style.setProperty('--accent-soft', t.soft);
+  }
+  persist() {
+    try { window.localStorage.setItem(this.STORE_KEY, JSON.stringify({ library: this.state.library, livret: this.state.livret })); } catch (e) {}
+  }
+
+  today() { return '23 juin 2026'; }
+  uid() { return 'f' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  sizeLabel(b) { if (b == null) return '—'; if (b < 1024) return b + ' o'; if (b < 1024 * 1024) return (b / 1024).toFixed(0).replace('.', ',') + ' Ko'; return (b / 1024 / 1024).toFixed(1).replace('.', ',') + ' Mo'; }
+  kindOf(it) {
+    const t = (it.type || '').toLowerCase(), n = (it.name || '').toLowerCase();
+    if (t.startsWith('image/') || /\.(png|jpe?g|gif|webp|svg|bmp)$/.test(n)) return 'image';
+    if (t === 'application/pdf' || n.endsWith('.pdf')) return 'pdf';
+    if (t.startsWith('text/') || /\.(txt|md|csv|json)$/.test(n)) return 'text';
+    if (t.includes('word') || /\.(docx?|odt)$/.test(n)) return 'word';
+    if (t.includes('sheet') || t.includes('excel') || /\.(xlsx?|ods)$/.test(n)) return 'sheet';
+    return 'file';
+  }
+
+  addFiles(fileList, target) {
+    const arr = Array.from(fileList || []);
+    arr.forEach(file => {
+      const reader = new FileReader();
+      const id = this.uid();
+      this.fileBlobs[id] = file;
+      reader.onload = (e) => {
+        const item = { id, name: file.name, type: file.type || '', size: file.size, dataUrl: e.target.result, addedAt: this.today(), by: 'Lucas Girard' };
+        if (target === 'version') this.addVersion(item);
+        else this.setState(s => ({ library: [item, ...s.library] }), () => this.persist());
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  addVersion(item) {
+    this.setState(s => {
+      const n = (s.livret.versions[0] ? s.livret.versions[0].v : 0) + 1;
+      const versions = [{ ...item, v: n, current: true }, ...s.livret.versions.map(x => ({ ...x, current: false }))];
+      return { livret: { ...s.livret, versions } };
+    }, () => this.persist());
+  }
+  restoreVersion(id) { this.setState(s => ({ livret: { ...s.livret, versions: s.livret.versions.map(v => ({ ...v, current: v.id === id })) } }), () => this.persist()); }
+  deleteDoc(id) { delete this.fileBlobs[id]; this.setState(s => ({ library: s.library.filter(d => d.id !== id) }), () => this.persist()); }
+
+  onDragOver(e) { e.preventDefault(); if (!this.state.dragging) this.setState({ dragging: true }); }
+  onDragLeave(e) { e.preventDefault(); if (e.currentTarget === e.target || !e.currentTarget.contains(e.relatedTarget)) this.setState({ dragging: false }); }
+  onDrop(e) { e.preventDefault(); this.setState({ dragging: false }); if (e.dataTransfer && e.dataTransfer.files) this.addFiles(e.dataTransfer.files, 'lib'); }
+
+  openPreview(it) {
+    const kind = this.kindOf(it);
+    let src = null, isImage = false, isDoc = false, placeholderLabel = null;
+    if (kind === 'image' && it.dataUrl) { src = it.dataUrl; isImage = true; }
+    else { const blob = this.fileBlobs[it.id]; if (blob) { src = URL.createObjectURL(blob); isDoc = true; } }
+    if (!src) placeholderLabel = it.dataUrl ? "Aperçu indisponible après rechargement — re-téléversez le fichier" : "Document d'exemple — téléversez un fichier réel pour l'aperçu";
+    const tm = this.typeMeta[kind];
+    this.setState({ preview: {
+      id: it.id, name: it.name, meta: tm.label + ' · ' + this.sizeLabel(it.size) + ' · ' + it.addedAt,
+      src, isImage, isDoc, isPlaceholder: !src, placeholderLabel,
+      canDownload: !!it.dataUrl, href: it.dataUrl || '#'
+    } });
+  }
+  closePreview() { const p = this.state.preview; if (p && p.src && p.src.indexOf('blob:') === 0) { try { URL.revokeObjectURL(p.src); } catch (e) {} } this.setState({ preview: null }); }
+
+  renderVals() {
+    const st = this.state;
+    const icons = this.buildIcons();
+
+    const navDefs = [
+      { label: 'Tableau de bord', href: 'Espace Alternant.dc.html', icon: icons.dash },
+      { label: 'Mes compétences', href: 'Espace Alternant.dc.html', icon: icons.target },
+      { label: 'Mon journal', href: 'Espace Alternant.dc.html', icon: icons.book },
+      { label: 'Mes bilans', href: 'Espace Alternant.dc.html', icon: icons.calendar },
+      { label: 'Documents', href: '#', icon: icons.fileText, active: true },
+      { label: 'Support', href: 'Espace Alternant.dc.html', icon: icons.buoy }
+    ];
+    const navItems = navDefs.map(n => ({ ...n, bg: n.active ? 'var(--accent-soft)' : 'transparent', color: n.active ? 'var(--accent-strong)' : '#5B5B55', weight: n.active ? 600 : 500 }));
+
+    const notifs = [
+      { id: 'dn1', type: 'bilan', title: 'Compte-rendu à joindre', detail: 'Bilan mi-parcours S3', time: 'Il y a 5 h', href: 'Fiche Bilan.dc.html', unread: true },
+      { id: 'dn2', type: 'message', title: 'Document demandé', detail: 'Julien Mercier · convention signée', time: 'Hier', href: 'Messagerie.dc.html', unread: true },
+      { id: 'dn3', type: 'validation', title: 'Livret validé', detail: "Tuteur entreprise a validé la v3", time: 'Il y a 2 j', href: '#', unread: false }
+    ];
+
+    // livret
+    const versionsSorted = st.livret.versions;
+    const curRaw = versionsSorted.find(v => v.current) || versionsSorted[0];
+    const decorateLivret = (v) => ({
+      ...v, vlabel: 'v' + v.v, sizeLabel: this.sizeLabel(v.size),
+      tagBg: v.current ? 'var(--accent-soft)' : '#F0F0EC', tagColor: v.current ? 'var(--accent-strong)' : '#86867F',
+      restorable: !v.current, current: !!v.current,
+      onPreview: () => this.openPreview(v), onRestore: () => this.restoreVersion(v.id)
+    });
+    const livret = {
+      cur: { ...decorateLivret(curRaw) },
+      versions: versionsSorted.map(decorateLivret)
+    };
+
+    // library
+    const library = st.library.map(d => {
+      const kind = this.kindOf(d); const tm = this.typeMeta[kind];
+      const isImage = kind === 'image' && !!d.dataUrl;
+      return {
+        ...d, meta: tm.label + ' · ' + this.sizeLabel(d.size) + ' · ' + d.addedAt,
+        icon: icons[tm.icon], iconBg: tm.bg, iconColor: tm.color, showIcon: !isImage,
+        thumbStyle: isImage ? `width:100%;background-image:url(${d.dataUrl});background-size:cover;background-position:center` : 'width:100%;background:#FBFBF9',
+        canDownload: !!d.dataUrl, href: d.dataUrl || '#',
+        onPreview: () => this.openPreview(d), onDelete: () => this.deleteDoc(d.id)
+      };
+    });
+
+    return {
+      icons, navItems, notifs, livret,
+      browseLib: () => this.libInput.current && this.libInput.current.click(),
+      browseVersion: () => this.verInput.current && this.verInput.current.click(),
+      libInputRef: this.libInput, verInputRef: this.verInput,
+      onLibInput: (e) => { this.addFiles(e.target.files, 'lib'); e.target.value = ''; },
+      onVerInput: (e) => { this.addFiles(e.target.files, 'version'); e.target.value = ''; },
+      onDragOver: (e) => this.onDragOver(e), onDragLeave: (e) => this.onDragLeave(e), onDrop: (e) => this.onDrop(e),
+      dragging: st.dragging,
+      library, libraryEmpty: library.length === 0, libraryCountLabel: library.length + (library.length > 1 ? ' fichiers' : ' fichier'),
+      previewOpen: !!st.preview, preview: st.preview || {}, closePreview: () => this.closePreview()
+    };
+  }
+
+  svg(parts, size) { return React.createElement('svg', { width: size || 19, height: size || 19, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' }, parts.map((p, i) => React.createElement(p[0], Object.assign({ key: i }, p[1])))); }
+  buildIcons() {
+    const S = (a, b) => this.svg(a, b);
+    return {
+      dash: S([['rect', { x: 3, y: 3, width: 7, height: 9, rx: 1 }], ['rect', { x: 14, y: 3, width: 7, height: 5, rx: 1 }], ['rect', { x: 14, y: 12, width: 7, height: 9, rx: 1 }], ['rect', { x: 3, y: 16, width: 7, height: 5, rx: 1 }]]),
+      target: S([['circle', { cx: 12, cy: 12, r: 10 }], ['circle', { cx: 12, cy: 12, r: 6 }], ['circle', { cx: 12, cy: 12, r: 2 }]]),
+      book: S([['path', { d: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20' }], ['path', { d: 'M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z' }]], 18),
+      calendar: S([['rect', { x: 3, y: 4, width: 18, height: 18, rx: 2 }], ['path', { d: 'M16 2v4' }], ['path', { d: 'M8 2v4' }], ['path', { d: 'M3 10h18' }]], 17),
+      buoy: S([['circle', { cx: 12, cy: 12, r: 10 }], ['path', { d: 'm4.93 4.93 4.24 4.24' }], ['path', { d: 'm14.83 9.17 4.24-4.24' }], ['path', { d: 'm14.83 14.83 4.24 4.24' }], ['path', { d: 'm9.17 14.83-4.24 4.24' }], ['circle', { cx: 12, cy: 12, r: 4 }]]),
+      fileText: S([['path', { d: 'M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z' }], ['path', { d: 'M14 2v5h5' }], ['path', { d: 'M16 13H8' }], ['path', { d: 'M16 17H8' }], ['path', { d: 'M10 9H8' }]], 20),
+      file: S([['path', { d: 'M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z' }], ['path', { d: 'M14 2v5h5' }]], 20),
+      image: S([['rect', { x: 3, y: 3, width: 18, height: 18, rx: 2 }], ['circle', { cx: 9, cy: 9, r: 2 }], ['path', { d: 'm21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21' }]], 20),
+      upload: S([['path', { d: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' }], ['path', { d: 'M17 8l-5-5-5 5' }], ['path', { d: 'M12 3v12' }]], 17),
+      download: S([['path', { d: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' }], ['path', { d: 'M7 10l5 5 5-5' }], ['path', { d: 'M12 15V3' }]], 16),
+      eye: S([['path', { d: 'M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0' }], ['circle', { cx: 12, cy: 12, r: 3 }]], 15),
+      trash: S([['path', { d: 'M3 6h18' }], ['path', { d: 'M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2' }]], 15),
+      restore: S([['path', { d: 'M3 7v6h6' }], ['path', { d: 'M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13' }]], 14),
+      x: S([['path', { d: 'M18 6 6 18' }], ['path', { d: 'm6 6 12 12' }]], 18)
+    };
+  }
+}
+</script>
+</body>
+</html>

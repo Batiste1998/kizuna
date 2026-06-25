@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--accent:#3D5E8E;--accent-strong:#2E5288;--accent-soft:#E8EEF7;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Geist',-apple-system,system-ui,sans-serif;background:#F6F6F4;color:#1B1B19;-webkit-font-smoothing:antialiased;}
+  button{font-family:inherit;}
+  input,textarea{font-family:inherit;}
+  a{text-decoration:none;color:inherit;}
+  textarea{resize:none;line-height:1.5;}
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-thumb{background:#DEDED8;border-radius:6px;border:2px solid #F6F6F4;}
+  ::-webkit-scrollbar-thumb:hover{background:#CFCFC8;}
+</style>
+<script src="./image-slot.js"></script>
+</helmet>
+
+<div style="display:flex;height:100vh;width:100%;overflow:hidden;background:#F6F6F4">
+  <dc-import name="Accessibilite" hint-size="0,0"></dc-import>
+
+  <!-- SIDEBAR -->
+  <aside style="width:248px;flex:none;height:100%;background:#FCFCFB;border-right:1px solid #ECECE7;display:flex;flex-direction:column;padding:18px 14px">
+    <div style="display:flex;align-items:center;gap:9px;padding:4px 6px 18px">
+      <img src="uploads/logo.png" alt="Kizuna" style="width:50px;height:50px;object-fit:contain;flex:none;margin:-7px 0" />
+      <div><div style="font-size:18px;font-weight:700;letter-spacing:-.02em;line-height:1">Kizuna</div><div style="font-size:11px;color:#A0A099;margin-top:4px">Espace tuteur</div></div>
+    </div>
+    <nav style="display:flex;flex-direction:column;gap:3px">
+      <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="5">
+        <a href="{{ n.href }}" style="display:flex;align-items:center;gap:11px;width:100%;padding:9px 11px;border:none;background:{{ n.bg }};color:{{ n.color }};border-radius:9px;font-size:14px;font-weight:{{ n.weight }};cursor:pointer;text-align:left" style-hover="background:#F1F1EC">
+          <span style="display:flex;flex:none">{{ n.icon }}</span><span style="flex:1">{{ n.label }}</span>
+          <sc-if value="{{ n.showBadge }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;font-weight:600;background:var(--accent-soft);color:var(--accent-strong);padding:1px 7px;border-radius:999px">{{ n.badge }}</span></sc-if>
+        </a>
+      </sc-for>
+    </nav>
+    <div style="flex:1"></div>
+    <div style="border:1px solid #ECECE7;border-radius:12px;padding:11px;background:#fff;display:flex;align-items:center;gap:10px">
+      <image-slot id="{{ persona.avId }}" shape="circle" fallback="{{ persona.initials }}" fallback-bg="{{ persona.avBg }}" fallback-color="{{ persona.avColor }}" placeholder="Photo" style="width:36px;height:36px;flex:none"></image-slot>
+      <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ persona.name }}</div><div style="font-size:11.5px;color:#A0A099;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ persona.role }}</div></div>
+    </div>
+  </aside>
+
+  <!-- THREAD LIST -->
+  <div style="width:340px;flex:none;border-right:1px solid #ECECE7;display:flex;flex-direction:column;background:#FCFCFB">
+    <div style="padding:18px 18px 13px;border-bottom:1px solid #ECECE7">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:13px">
+        <div style="font-size:17px;font-weight:700;letter-spacing:-.01em">Messagerie</div>
+        <span style="font-size:12px;color:#A0A099">{{ threadCountLabel }}</span>
+      </div>
+      <div style="position:relative">
+        <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#A4A49C;display:flex">{{ icons.search }}</span>
+        <input value="{{ search }}" onChange="{{ onSearch }}" placeholder="Rechercher un alternant…" style="width:100%;padding:9px 12px 9px 38px;border:1px solid #E4E4DE;border-radius:9px;font-size:13.5px;background:#fff;outline:none;color:#1B1B19" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" />
+      </div>
+    </div>
+    <div style="flex:1;overflow-y:auto">
+      <sc-for list="{{ threadList }}" as="t" hint-placeholder-count="4">
+        <button onClick="{{ t.onOpen }}" style="{{ t.style }}">
+          <image-slot id="{{ t.avId }}" shape="circle" fallback="{{ t.initials }}" fallback-bg="{{ t.avBg }}" fallback-color="{{ t.avColor }}" placeholder="Photo" style="width:44px;height:44px;flex:none"></image-slot>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:14px;font-weight:600;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.altName }}</span>
+              <span style="font-size:11px;color:#A8A89F;white-space:nowrap;flex:none">{{ t.lastAt }}</span>
+            </div>
+            <div style="font-size:12px;color:#9A9A93;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px">{{ t.entreprise }}</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+              <span style="font-size:12.5px;color:{{ t.previewColor }};font-weight:{{ t.previewWeight }};flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.preview }}</span>
+              <sc-if value="{{ t.hasUnread }}" hint-placeholder-val="{{ false }}"><span style="font-size:10.5px;font-weight:700;background:var(--accent);color:#fff;min-width:18px;height:18px;padding:0 5px;border-radius:999px;display:flex;align-items:center;justify-content:center;flex:none">{{ t.unread }}</span></sc-if>
+            </div>
+          </div>
+        </button>
+      </sc-for>
+      <sc-if value="{{ listEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:40px 20px;text-align:center;font-size:13.5px;color:#9A9A93">Aucun alternant trouvé.</div></sc-if>
+    </div>
+  </div>
+
+  <!-- CONVERSATION -->
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column;height:100%;background:#F6F6F4">
+    <sc-if value="{{ hasSelection }}" hint-placeholder-val="{{ true }}">
+
+      <!-- header -->
+      <div style="flex:none;background:#fff;border-bottom:1px solid #ECECE7;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px">
+        <div style="display:flex;align-items:center;gap:12px;min-width:0">
+          <image-slot id="{{ sel.avId }}" shape="circle" fallback="{{ sel.initials }}" fallback-bg="{{ sel.avBg }}" fallback-color="{{ sel.avColor }}" placeholder="Photo" style="width:42px;height:42px;flex:none"></image-slot>
+          <div style="min-width:0">
+            <div style="font-size:17px;font-weight:700;letter-spacing:-.01em;line-height:1.1">{{ sel.altName }}</div>
+            <div style="font-size:12.5px;color:#86867F;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sel.promo }} · {{ sel.entreprise }}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:13px;flex:none">
+          <div style="display:flex;align-items:center;padding-left:8px">
+            <sc-for list="{{ sel.participants }}" as="p" hint-placeholder-count="3"><span title="{{ p.tooltip }}" style="width:32px;height:32px;border-radius:50%;background:{{ p.bg }};color:{{ p.color }};display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;border:2px solid #fff;margin-left:-8px">{{ p.initials }}</span></sc-for>
+          </div>
+          <a href="Fiche Alternant.dc.html" style="display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border:1px solid #E0E0DB;border-radius:9px;background:#fff;color:#33332F;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:#F4F4F0">{{ icons.fileText }}Fiche alternant</a>
+          <sc-if value="{{ showRailBtn }}" hint-placeholder-val="{{ true }}"><button onClick="{{ toggleRail }}" title="Contexte" style="{{ railBtnStyle }}">{{ icons.panel }}</button></sc-if>
+        </div>
+      </div>
+
+      <!-- pinned context strip -->
+      <div style="flex:none;background:#FCFCFB;border-bottom:1px solid #ECECE7;padding:9px 24px;display:flex;align-items:center;gap:11px;flex-wrap:wrap">
+        <span style="display:inline-flex;align-items:center;gap:7px;font-size:12px;color:#76766F"><span style="display:flex;color:var(--accent)">{{ icons.link }}</span>Fil rattaché à la fiche de {{ sel.altPrenom }}</span>
+        <span style="width:1px;height:13px;background:#E0E0DB"></span>
+        <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#76766F"><span style="display:flex;color:#9A6B12">{{ icons.calendar }}</span>{{ sel.nextBilanLabel }} · {{ sel.nextBilanDate }}</span>
+      </div>
+
+      <div style="flex:1;display:flex;min-height:0">
+        <!-- thread -->
+        <div style="flex:1;display:flex;flex-direction:column;min-width:360px">
+          <div style="flex:1;overflow-y:auto;padding:22px 24px 8px">
+            <div style="max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:{{ msgGap }}">
+              <sc-for list="{{ items }}" as="it" hint-placeholder-count="6">
+                <sc-if value="{{ it.isDay }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;align-items:center;gap:12px;margin:2px 0"><div style="flex:1;height:1px;background:#ECECE7"></div><span style="font-size:11px;font-weight:600;color:#A8A89F;white-space:nowrap">{{ it.label }}</span><div style="flex:1;height:1px;background:#ECECE7"></div></div>
+                </sc-if>
+                <sc-if value="{{ it.isMsg }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex;gap:10px;flex-direction:{{ it.dir }};align-items:flex-end">
+                    <div style="width:34px;height:34px;border-radius:50%;background:{{ it.avBg }};color:{{ it.avColor }};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex:none">{{ it.initials }}</div>
+                    <div style="max-width:76%;min-width:0;display:flex;flex-direction:column;align-items:{{ it.align }}">
+                      <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;flex-direction:{{ it.dir }}">
+                        <span style="font-size:12.5px;font-weight:600;color:{{ it.nameColor }}">{{ it.name }}</span>
+                        <span style="{{ it.roleChipStyle }}">{{ it.roleLabel }}</span>
+                        <span style="font-size:11px;color:#A8A89F">{{ it.time }}</span>
+                      </div>
+                      <div style="{{ it.bubbleStyle }}">{{ it.text }}</div>
+                      <sc-if value="{{ it.hasContext }}" hint-placeholder-val="{{ false }}">
+                        <a href="{{ it.ctxHref }}" style="{{ it.ctxStyle }}">
+                          <span style="width:32px;height:32px;border-radius:8px;background:{{ it.ctxIconBg }};color:{{ it.ctxIconColor }};display:flex;align-items:center;justify-content:center;flex:none">{{ it.ctxIcon }}</span>
+                          <span style="min-width:0"><span style="display:block;font-size:12.5px;font-weight:600;color:#1B1B19;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ it.ctxTitle }}</span><span style="display:block;font-size:11px;color:#86867F">{{ it.ctxSub }}</span></span>
+                          <span style="display:flex;color:#C6C6BE;flex:none">{{ icons.chevronRight }}</span>
+                        </a>
+                      </sc-if>
+                    </div>
+                  </div>
+                </sc-if>
+              </sc-for>
+              <sc-if value="{{ seen.has }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:7px;justify-content:flex-end;padding-right:2px;margin-top:-2px">
+                  <span style="font-size:11px;color:#A8A89F">Lu par</span>
+                  <div style="display:flex">
+                    <sc-for list="{{ seen.avatars }}" as="s" hint-placeholder-count="2"><span title="{{ s.name }}" style="width:18px;height:18px;border-radius:50%;background:{{ s.bg }};color:{{ s.color }};display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:700;border:1.5px solid #F6F6F4;margin-left:-5px">{{ s.initials }}</span></sc-for>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+
+          <!-- composer -->
+          <div style="flex:none;border-top:1px solid #ECECE7;background:#fff;padding:14px 24px;position:relative">
+            <div style="max-width:760px;margin:0 auto">
+              <sc-if value="{{ pending.has }}" hint-placeholder-val="{{ false }}">
+                <div style="display:inline-flex;align-items:center;gap:9px;padding:7px 9px 7px 7px;border:1px solid #E4E4DE;border-radius:11px;background:#FCFCFB;margin-bottom:10px;max-width:100%">
+                  <span style="width:28px;height:28px;border-radius:7px;background:{{ pending.iconBg }};color:{{ pending.iconColor }};display:flex;align-items:center;justify-content:center;flex:none">{{ pending.icon }}</span>
+                  <span style="min-width:0"><span style="display:block;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ pending.title }}</span><span style="display:block;font-size:10.5px;color:#86867F">{{ pending.sub }}</span></span>
+                  <button onClick="{{ clearPending }}" style="width:22px;height:22px;border-radius:6px;border:none;background:#F0F0EC;color:#76766F;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none" style-hover="background:#E6E6E0">{{ icons.x }}</button>
+                </div>
+              </sc-if>
+              <div style="display:flex;align-items:flex-end;gap:10px">
+                <button onClick="{{ toggleAttach }}" title="Joindre un contexte" style="{{ attachBtnStyle }}">{{ icons.paperclip }}</button>
+                <textarea value="{{ draft }}" onChange="{{ onDraft }}" rows="1" placeholder="Message au trinôme de {{ sel.altPrenom }}…" style="flex:1;padding:12px 14px;border:1px solid #E4E4DE;border-radius:12px;font-size:13.5px;background:#fff;outline:none;color:#33332F;min-height:46px;max-height:140px" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)"></textarea>
+                <button onClick="{{ send }}" style="{{ sendStyle }}">{{ icons.send }}</button>
+              </div>
+              <div style="font-size:11px;color:#A8A89F;margin-top:8px;display:flex;align-items:center;gap:6px"><span style="display:flex">{{ icons.lock }}</span>Visible par les 3 membres du trinôme · conservé dans la fiche de {{ sel.altPrenom }}</div>
+            </div>
+            <sc-if value="{{ attachOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;left:24px;bottom:92px;width:268px;background:#fff;border:1px solid #E4E4DE;border-radius:13px;box-shadow:0 18px 50px rgba(0,0,0,.16);padding:7px;z-index:20">
+                <div style="font-size:11px;font-weight:600;color:#A0A099;padding:7px 10px 5px">Joindre un contexte</div>
+                <sc-for list="{{ attachOptions }}" as="o" hint-placeholder-count="3">
+                  <button onClick="{{ o.onClick }}" style="display:flex;align-items:center;gap:11px;width:100%;padding:9px 10px;border:none;background:transparent;border-radius:9px;cursor:pointer;text-align:left" style-hover="background:#F4F4F0">
+                    <span style="width:30px;height:30px;border-radius:8px;background:{{ o.iconBg }};color:{{ o.iconColor }};display:flex;align-items:center;justify-content:center;flex:none">{{ o.icon }}</span>
+                    <span><span style="display:block;font-size:13px;font-weight:600">{{ o.label }}</span><span style="display:block;font-size:11px;color:#86867F">{{ o.sub }}</span></span>
+                  </button>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+
+        <!-- context rail -->
+        <sc-if value="{{ showRail }}" hint-placeholder-val="{{ false }}">
+          <aside style="width:300px;flex:none;border-left:1px solid #ECECE7;background:#FCFCFB;overflow-y:auto;padding:20px 18px">
+            <div style="font-size:11px;font-weight:600;color:#AEAEA6;letter-spacing:.06em;margin-bottom:11px">LE TRINÔME</div>
+            <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:24px">
+              <sc-for list="{{ sel.participants }}" as="p" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:11px">
+                  <div style="width:38px;height:38px;border-radius:50%;background:{{ p.bg }};color:{{ p.color }};display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:600;flex:none">{{ p.initials }}</div>
+                  <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.name }}</span><sc-if value="{{ p.isYou }}" hint-placeholder-val="{{ false }}"><span style="font-size:9.5px;font-weight:700;color:var(--accent-strong);background:var(--accent-soft);padding:1px 6px;border-radius:999px;flex:none">VOUS</span></sc-if></div><div style="font-size:11.5px;color:{{ p.color }};font-weight:500">{{ p.roleLabel }}</div></div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="font-size:11px;font-weight:600;color:#AEAEA6;letter-spacing:.06em;margin-bottom:11px">RATTACHÉ À</div>
+            <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:24px">
+              <sc-for list="{{ railLinks }}" as="l" hint-placeholder-count="3">
+                <a href="{{ l.href }}" style="display:flex;align-items:center;gap:11px;padding:10px 11px;border:1px solid #ECECE7;border-radius:11px;background:#fff;cursor:pointer" style-hover="border-color:var(--accent)">
+                  <span style="width:32px;height:32px;border-radius:8px;background:{{ l.iconBg }};color:{{ l.iconColor }};display:flex;align-items:center;justify-content:center;flex:none">{{ l.icon }}</span>
+                  <span style="flex:1;min-width:0"><span style="display:block;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ l.label }}</span><span style="display:block;font-size:11px;color:#86867F">{{ l.sub }}</span></span>
+                  <span style="display:flex;color:#C6C6BE;flex:none">{{ icons.chevronRight }}</span>
+                </a>
+              </sc-for>
+            </div>
+
+            <div style="font-size:11px;font-weight:600;color:#AEAEA6;letter-spacing:.06em;margin-bottom:11px">PROCHAIN BILAN</div>
+            <div style="border:1px solid #ECECE7;border-radius:12px;background:#fff;padding:14px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:38px;height:38px;border-radius:10px;background:#F7EFDA;color:#9A6B12;display:flex;align-items:center;justify-content:center;flex:none">{{ icons.calendar }}</div>
+                <div style="min-width:0"><div style="font-size:13px;font-weight:600;line-height:1.25">{{ sel.nextBilanLabel }}</div><div style="font-size:12px;color:#86867F;margin-top:2px">{{ sel.nextBilanDate }}</div></div>
+              </div>
+            </div>
+          </aside>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ noSelection }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px">
+        <div style="width:52px;height:52px;border-radius:14px;background:var(--accent-soft);color:var(--accent-strong);display:flex;align-items:center;justify-content:center;margin-bottom:14px">{{ icons.chat }}</div>
+        <div style="font-size:15px;font-weight:600;color:#44443F">Sélectionnez un alternant</div>
+        <div style="font-size:13.5px;color:#9A9A93;margin-top:5px;max-width:280px">Chaque fil regroupe les échanges du trinôme, rattachés à la fiche de l'alternant.</div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: { &quot;width&quot;: &quot;100%&quot;, &quot;height&quot;: &quot;100%&quot; },
+  &quot;viewerRole&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;Tuteur pédagogique&quot;, &quot;Tuteur d'entreprise&quot;], &quot;default&quot;: &quot;Tuteur pédagogique&quot;, &quot;tsType&quot;: &quot;string&quot; },
+  &quot;density&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;Confortable&quot;, &quot;Compact&quot;], &quot;default&quot;: &quot;Confortable&quot;, &quot;tsType&quot;: &quot;string&quot; },
+  &quot;showContextRail&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot; }
+}">
+class Component extends DCLogic {
+  roleMeta = {
+    alt:  { label: 'Alternant', bg: '#F7EFDA', color: '#8A6516', solid: '#A9801F', chipBg: '#F7EFDA' },
+    peda: { label: 'Tuteur pédagogique', bg: '#E8EEF7', color: '#3D5E8E', solid: '#3D5E8E', chipBg: '#E8EEF7' },
+    ent:  { label: "Tuteur d'entreprise", bg: '#FBEAE1', color: '#B5572F', solid: '#B5572F', chipBg: '#FBEAE1' }
+  };
+  ctxMeta = {
+    competence: { iconBg: '#E8EEF7', iconColor: '#3D5E8E', href: 'Référentiel de compétences.dc.html', icon: 'target' },
+    bilan:      { iconBg: '#F7EFDA', iconColor: '#9A6B12', href: 'Fiche Bilan.dc.html', icon: 'calendar' },
+    journal:    { iconBg: '#E4F2EC', iconColor: '#1F7A63', href: 'Fiche Alternant.dc.html', icon: 'fileText' }
+  };
+
+  state = {
+    selectedId: 'lucas',
+    search: '',
+    draft: '',
+    pending: null,
+    attachOpen: false,
+    railOpen: true,
+    winW: typeof window !== 'undefined' ? window.innerWidth : 1440,
+    threads: [
+      { id: 'lucas', alt: { prenom: 'Lucas', nom: 'Girard' }, promo: 'Expert Dév. Full Stack', entreprise: 'Capgemini',
+        names: { alt: 'Lucas Girard', peda: 'Julien Mercier', ent: 'Marc Dubois' },
+        nextBilan: { label: 'Bilan de mi-parcours — S3', date: '2 juil. · 14h00' },
+        unread: 0, lastAt: '09:12', seenBy: ['alt', 'ent'],
+        messages: [
+          { from: 'ent', day: 'mer. 12 juin', time: '17:40', text: "Bonjour à tous. Lucas a livré la mise en place du pipeline CI/CD cette semaine — c'est propre et bien documenté.", context: { kind: 'journal', title: 'Mise en place du pipeline CI/CD', sub: 'Entrée de journal · 12 juin' } },
+          { from: 'alt', day: 'mer. 12 juin', time: '18:02', text: "Merci Marc ! J'ai ajouté les tests d'intégration. Julien, est-ce que ça peut valider une partie du BC03 ?", context: { kind: 'competence', title: 'BC03 — Déployer en intégration continue', sub: 'Compétence du référentiel' } },
+          { from: 'peda', day: 'Hier', time: '09:30', text: "Très bien Lucas. Je passe la compétence en « Acquis » de mon côté. Continue à documenter, c'est exactement ce qu'on attend." },
+          { from: 'ent', day: 'Hier', time: '11:15', text: "Parfait. On cale le bilan de mi-parcours ? Je propose le 2 juillet à 14h dans nos locaux.", context: { kind: 'bilan', title: 'Bilan de mi-parcours — S3', sub: 'Proposé : 2 juil. · 14h00' } },
+          { from: 'alt', day: "Aujourd'hui", time: '08:55', text: "Le 2 juillet me convient parfaitement." },
+          { from: 'peda', day: "Aujourd'hui", time: '09:12', text: "Idem pour moi, je valide la date et je l'ajoute au calendrier partagé." }
+        ] },
+      { id: 'yanis', alt: { prenom: 'Yanis', nom: 'Benali' }, promo: 'Expert Dév. Full Stack', entreprise: 'BNP Paribas',
+        names: { alt: 'Yanis Benali', peda: 'Julien Mercier', ent: 'Claire Petit' },
+        nextBilan: { label: 'Bilan de mi-parcours — S3', date: '4 juil.' },
+        unread: 2, lastAt: '10:48', seenBy: [],
+        messages: [
+          { from: 'peda', day: 'Hier', time: '16:20', text: "Yanis, peux-tu déposer ton journal de la semaine avant vendredi ?" },
+          { from: 'alt', day: "Aujourd'hui", time: '10:30', text: "C'est déposé ! J'ai aussi une question : pour le rapport de S2, le format est-il libre ?" },
+          { from: 'ent', day: "Aujourd'hui", time: '10:48', text: "Bonjour à tous. De notre côté Yanis monte vite en compétence sur la partie data, très bon trimestre." }
+        ] },
+      { id: 'hugo', alt: { prenom: 'Hugo', nom: 'Caron' }, promo: 'Expert Dév. Full Stack', entreprise: 'Ubisoft',
+        names: { alt: 'Hugo Caron', peda: 'Julien Mercier', ent: 'Hugo Bernard' },
+        nextBilan: { label: 'Point de suivi', date: 'à planifier' },
+        unread: 0, lastAt: 'Hier', seenBy: ['ent'],
+        messages: [
+          { from: 'ent', day: 'lun. 9 juin', time: '14:05', text: "Hugo s'intègre très bien dans l'équipe gameplay, il est autonome sur ses premières tâches." },
+          { from: 'peda', day: 'Hier', time: '09:10', text: "Très bon retour, merci. On fait un point de suivi rapide la semaine prochaine ?" }
+        ] },
+      { id: 'sofia', alt: { prenom: 'Sofia', nom: 'Lemaire' }, promo: 'Architecte Logiciel', entreprise: 'Capgemini',
+        names: { alt: 'Sofia Lemaire', peda: 'Sophie Laurent', ent: 'Marc Dubois' },
+        nextBilan: { label: 'Bilan de lancement', date: '12 juil.' },
+        unread: 1, lastAt: 'Hier', seenBy: [],
+        messages: [
+          { from: 'ent', day: 'Hier', time: '15:30', text: "Sofia démarre sur le module de paiement, je lui ai partagé l'architecture cible." },
+          { from: 'alt', day: 'Hier', time: '16:02', text: "Merci ! Je commence par la modélisation des données.", context: { kind: 'competence', title: 'BC02 — Concevoir une base de données', sub: 'Compétence du référentiel' } }
+        ] }
+    ]
+  };
+
+  personas = {
+    peda: { name: 'Julien Mercier', firstName: 'Julien', role: 'Tuteur pédagogique', org: 'EPITECH Paris', initials: 'JM', avBg: '#E8EEF7', avColor: '#3D5E8E', avId: 'kz-av-julien-mercier' },
+    ent:  { name: 'Marc Dubois', firstName: 'Marc', role: "Tuteur d'entreprise", org: 'Capgemini', initials: 'MD', avBg: '#FBEAE1', avColor: '#B5572F', avId: 'kz-av-marc-dubois' }
+  };
+
+  viewerKey() { return this.props.viewerRole === "Tuteur d'entreprise" ? 'ent' : 'peda'; }
+
+  componentDidMount() {
+    this.applyTheme();
+    if (this.props.showContextRail === false) this.setState({ railOpen: false });
+    this._onResize = () => this.setState({ winW: window.innerWidth });
+    window.addEventListener('resize', this._onResize);
+    this.setState({ winW: window.innerWidth });
+  }
+  componentWillUnmount() { if (this._onResize) window.removeEventListener('resize', this._onResize); }
+  componentDidUpdate(prev) { this.applyTheme(); }
+  applyTheme() {
+    const ent = this.viewerKey() === 'ent';
+    const t = ent ? { a: '#B5572F', s: '#8F4424', soft: '#FBEAE1' } : { a: '#3D5E8E', s: '#2E5288', soft: '#E8EEF7' };
+    const r = document.documentElement;
+    r.style.setProperty('--accent', t.a); r.style.setProperty('--accent-strong', t.s); r.style.setProperty('--accent-soft', t.soft);
+  }
+
+  initialsOf(name) { const w = (name || '').trim().split(' '); return ((w[0] ? w[0][0] : '') + (w[1] ? w[1][0] : '')).toUpperCase(); }
+  slug(name) { return 'kz-av-' + (name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''); }
+  myThreads() { const vk = this.viewerKey(); const me = this.personas[vk].name; return this.state.threads.filter(t => t.names[vk] === me); }
+
+  select(id) { this.setState(s => ({ selectedId: id, draft: '', pending: null, attachOpen: false, threads: s.threads.map(t => t.id === id ? { ...t, unread: 0 } : t) })); }
+  toggleAttach() { this.setState(s => ({ attachOpen: !s.attachOpen })); }
+  setPending(p) { this.setState({ pending: p, attachOpen: false }); }
+  clearPending() { this.setState({ pending: null }); }
+  toggleRail() { this.setState(s => ({ railOpen: !s.railOpen })); }
+  send() {
+    const txt = this.state.draft.trim();
+    const p = this.state.pending;
+    if (!txt && !p) return;
+    const vk = this.viewerKey(); const id = this.state.selectedId;
+    const msg = { from: vk, day: "Aujourd'hui", time: '14:41', text: txt || (p ? 'Je vous partage cet élément.' : ''), context: p ? { kind: p.kind, title: p.title, sub: p.sub } : null };
+    this.setState(s => ({ draft: '', pending: null, threads: s.threads.map(t => t.id === id ? { ...t, lastAt: '14:41', seenBy: [], messages: [...t.messages, msg] } : t) }));
+  }
+
+  renderVals() {
+    const st = this.state;
+    const icons = this.buildIcons();
+    const vk = this.viewerKey();
+    const persona = this.personas[vk];
+    const RM = this.roleMeta;
+    const compact = this.props.density === 'Compact';
+    const msgGap = compact ? '13px' : '20px';
+    const bubblePad = compact ? '8px 12px' : '11px 14px';
+
+    const my = this.myThreads();
+    const totalUnread = my.reduce((s, t) => s + t.unread, 0);
+    const railFits = st.winW >= 1280;
+
+    const navItems = [
+      { label: 'Tableau de bord', href: 'Espace Tuteur.dc.html', icon: icons.dash, active: false },
+      { label: 'Mes alternants', href: 'Espace Tuteur.dc.html', icon: icons.users, active: false },
+      { label: 'Messagerie', href: '#', icon: icons.chat, active: true, badge: totalUnread > 0 ? String(totalUnread) : '' },
+      { label: 'Bilans', href: 'Fiche Bilan.dc.html', icon: icons.calendar, active: false },
+      { label: 'Support', href: 'Espace Support.dc.html', icon: icons.buoy, active: false }
+    ].map(n => ({ ...n, showBadge: !!n.badge, badge: n.badge || '', bg: n.active ? 'var(--accent-soft)' : 'transparent', color: n.active ? 'var(--accent-strong)' : '#5B5B55', weight: n.active ? 600 : 500 }));
+
+    // thread list
+    const q = st.search.trim().toLowerCase();
+    const filtered = my.filter(t => !q || (t.alt.prenom + ' ' + t.alt.nom).toLowerCase().includes(q) || t.entreprise.toLowerCase().includes(q));
+    const threadList = filtered.map(t => {
+      const active = t.id === st.selectedId;
+      const last = t.messages[t.messages.length - 1];
+      const prefix = last ? (last.from === vk ? 'Vous : ' : t.names[last.from].split(' ')[0] + ' : ') : '';
+      const unread = t.unread > 0;
+      return {
+        altName: t.alt.prenom + ' ' + t.alt.nom, entreprise: t.promo + ' · ' + t.entreprise, initials: this.initialsOf(t.alt.prenom + ' ' + t.alt.nom), avId: this.slug(t.alt.prenom + ' ' + t.alt.nom),
+        avBg: RM.alt.bg, avColor: RM.alt.color, lastAt: t.lastAt,
+        preview: prefix + (last ? last.text : ''), previewColor: unread ? '#1B1B19' : '#86867F', previewWeight: unread ? 600 : 400,
+        hasUnread: unread, unread: String(t.unread), onOpen: () => this.select(t.id),
+        style: `display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;padding:${compact ? '11px 16px' : '14px 16px'};border:none;border-bottom:1px solid #F2F2EE;border-left:3px solid ${active ? 'var(--accent)' : 'transparent'};background:${active ? '#fff' : 'transparent'};cursor:pointer`
+      };
+    });
+
+    // selection
+    let selT = my.find(t => t.id === st.selectedId);
+    if (!selT) selT = my[0];
+
+    let sel = {}, items = [], seen = { has: false, avatars: [] };
+    if (selT) {
+      const order = ['alt', 'peda', 'ent'];
+      const participants = order.map(k => ({ key: k, name: selT.names[k], roleLabel: RM[k].label, initials: this.initialsOf(selT.names[k]), bg: RM[k].bg, color: RM[k].color, isYou: k === vk, tooltip: selT.names[k] + ' · ' + RM[k].label }));
+      sel = {
+        altName: selT.alt.prenom + ' ' + selT.alt.nom, altPrenom: selT.alt.prenom, promo: selT.promo, entreprise: selT.entreprise,
+        initials: this.initialsOf(selT.alt.prenom + ' ' + selT.alt.nom), avId: this.slug(selT.alt.prenom + ' ' + selT.alt.nom), avBg: RM.alt.bg, avColor: RM.alt.color,
+        participants, nextBilanLabel: selT.nextBilan.label, nextBilanDate: selT.nextBilan.date
+      };
+      // items with day separators
+      let lastDay = null;
+      selT.messages.forEach((m, i) => {
+        if (m.day !== lastDay) { items.push({ isDay: true, isMsg: false, label: m.day }); lastDay = m.day; }
+        const mine = m.from === vk; const rm = RM[m.from];
+        const ctx = m.context ? this.ctxMeta[m.context.kind] : null;
+        items.push({
+          isMsg: true, isDay: false,
+          name: mine ? 'Vous' : selT.names[m.from], roleLabel: rm.label, nameColor: rm.solid,
+          roleChipStyle: `display:inline-flex;align-items:center;padding:1px 8px;border-radius:999px;font-size:10px;font-weight:600;background:${rm.chipBg};color:${rm.color}`,
+          time: m.time, text: m.text, initials: this.initialsOf(selT.names[m.from]), avBg: rm.bg, avColor: rm.color,
+          dir: mine ? 'row-reverse' : 'row', align: mine ? 'flex-end' : 'flex-start',
+          bubbleStyle: mine
+            ? `padding:${bubblePad};border-radius:15px 15px 4px 15px;font-size:13.5px;line-height:1.55;color:#fff;background:${rm.solid}`
+            : `padding:${bubblePad};border-radius:15px 15px 15px 4px;font-size:13.5px;line-height:1.55;color:#33332F;background:${rm.bg};border:1px solid rgba(0,0,0,.04)`,
+          hasContext: !!m.context,
+          ctxHref: ctx ? ctx.href : '#', ctxIcon: ctx ? icons[ctx.icon] : null, ctxIconBg: ctx ? ctx.iconBg : '#eee', ctxIconColor: ctx ? ctx.iconColor : '#888',
+          ctxTitle: m.context ? m.context.title : '', ctxSub: m.context ? m.context.sub : '',
+          ctxStyle: `display:flex;align-items:center;gap:10px;margin-top:7px;max-width:340px;padding:9px 11px 9px 9px;border:1px solid #E4E4DE;border-radius:12px;background:#fff;cursor:pointer;${mine ? 'align-self:flex-end' : ''}`
+        });
+      });
+      seen = { has: selT.seenBy && selT.seenBy.length > 0, avatars: (selT.seenBy || []).map(k => ({ name: selT.names[k], initials: this.initialsOf(selT.names[k]), bg: RM[k].bg, color: RM[k].color })) };
+    }
+
+    const railLinks = [
+      { label: 'Fiche alternant', sub: 'Profil & suivi global', href: 'Fiche Alternant.dc.html', icon: icons.fileText, iconBg: '#E8EEF7', iconColor: '#3D5E8E' },
+      { label: 'Référentiel de compétences', sub: "Grille d'évaluation", href: 'Référentiel de compétences.dc.html', icon: icons.target, iconBg: '#E4F2EC', iconColor: '#1F7A63' },
+      { label: 'Bilans', sub: 'Rendez-vous tripartites', href: 'Fiche Bilan.dc.html', icon: icons.calendar, iconBg: '#F7EFDA', iconColor: '#9A6B12' }
+    ];
+
+    const attachOptions = [
+      { label: 'Une compétence', sub: 'Du référentiel de la formation', kind: 'competence', icon: icons.target, iconBg: '#E8EEF7', iconColor: '#3D5E8E', title: 'BC03 — Déployer en intégration continue', sub2: 'Compétence du référentiel' },
+      { label: 'Un bilan', sub: 'Rendez-vous tripartite', kind: 'bilan', icon: icons.calendar, iconBg: '#F7EFDA', iconColor: '#9A6B12', title: 'Bilan de mi-parcours — S3', sub2: selT ? selT.nextBilan.date : '' },
+      { label: 'Une entrée de journal', sub: "Activité de l'alternant", kind: 'journal', icon: icons.fileText, iconBg: '#E4F2EC', iconColor: '#1F7A63', title: "Entrée de journal", sub2: 'Dernière activité' }
+    ].map(o => ({ ...o, onClick: () => this.setPending({ kind: o.kind, title: o.title, sub: o.sub2, icon: o.icon, iconBg: o.iconBg, iconColor: o.iconColor }) }));
+
+    const p = st.pending;
+    const canSend = !!(st.draft.trim() || st.pending);
+
+    return {
+      icons, persona, navItems,
+      threadCountLabel: my.length + (my.length > 1 ? ' fils' : ' fil'),
+      search: st.search, onSearch: e => this.setState({ search: e.target.value }),
+      threadList, listEmpty: threadList.length === 0,
+      hasSelection: !!selT, noSelection: !selT, sel, items, seen, msgGap,
+      showRail: st.railOpen && railFits, showRailBtn: railFits,
+      railBtnStyle: `width:38px;height:38px;border-radius:10px;border:1px solid ${st.railOpen ? 'var(--accent)' : '#ECECE7'};background:${st.railOpen ? 'var(--accent-soft)' : '#fff'};color:${st.railOpen ? 'var(--accent-strong)' : '#6E6E68'};display:flex;align-items:center;justify-content:center;cursor:pointer`,
+      toggleRail: () => this.toggleRail(),
+      railLinks, attachOptions, attachOpen: st.attachOpen, toggleAttach: () => this.toggleAttach(),
+      attachBtnStyle: `width:46px;height:46px;border-radius:11px;border:1px solid ${st.attachOpen ? 'var(--accent)' : '#E4E4DE'};background:${st.attachOpen ? 'var(--accent-soft)' : '#fff'};color:${st.attachOpen ? 'var(--accent-strong)' : '#76766F'};display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none`,
+      pending: { has: !!p, title: p ? p.title : '', sub: p ? p.sub : '', icon: p ? p.icon : null, iconBg: p ? p.iconBg : '#eee', iconColor: p ? p.iconColor : '#888' },
+      clearPending: () => this.clearPending(),
+      draft: st.draft, onDraft: e => this.setState({ draft: e.target.value }),
+      send: () => this.send(),
+      sendStyle: `width:46px;height:46px;border-radius:11px;border:none;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;cursor:${canSend ? 'pointer' : 'not-allowed'};opacity:${canSend ? 1 : .5};flex:none`
+    };
+  }
+
+  svg(parts, size) { return React.createElement('svg', { width: size || 19, height: size || 19, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' }, parts.map((p, i) => React.createElement(p[0], Object.assign({ key: i }, p[1])))); }
+  buildIcons() {
+    const S = (a, b) => this.svg(a, b);
+    return {
+      dash: S([['rect', { x: 3, y: 3, width: 7, height: 9, rx: 1 }], ['rect', { x: 14, y: 3, width: 7, height: 5, rx: 1 }], ['rect', { x: 14, y: 12, width: 7, height: 9, rx: 1 }], ['rect', { x: 3, y: 16, width: 7, height: 5, rx: 1 }]]),
+      users: S([['path', { d: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2' }], ['circle', { cx: 9, cy: 7, r: 4 }], ['path', { d: 'M22 21v-2a4 4 0 0 0-3-3.87' }], ['path', { d: 'M16 3.13a4 4 0 0 1 0 7.75' }]]),
+      chat: S([['path', { d: 'M7.9 20A9 9 0 1 0 4 16.1L2 22Z' }]]),
+      calendar: S([['rect', { x: 3, y: 4, width: 18, height: 18, rx: 2 }], ['path', { d: 'M16 2v4' }], ['path', { d: 'M8 2v4' }], ['path', { d: 'M3 10h18' }]], 16),
+      buoy: S([['circle', { cx: 12, cy: 12, r: 10 }], ['path', { d: 'm4.93 4.93 4.24 4.24' }], ['path', { d: 'm14.83 9.17 4.24-4.24' }], ['path', { d: 'm14.83 14.83 4.24 4.24' }], ['path', { d: 'm9.17 14.83-4.24 4.24' }], ['circle', { cx: 12, cy: 12, r: 4 }]]),
+      search: S([['circle', { cx: 11, cy: 11, r: 8 }], ['path', { d: 'm21 21-4.3-4.3' }]], 17),
+      send: S([['path', { d: 'M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z' }], ['path', { d: 'm21.854 2.147-10.94 10.939' }]], 18),
+      paperclip: S([['path', { d: 'm21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48' }]], 19),
+      target: S([['circle', { cx: 12, cy: 12, r: 10 }], ['circle', { cx: 12, cy: 12, r: 6 }], ['circle', { cx: 12, cy: 12, r: 2 }]], 17),
+      fileText: S([['path', { d: 'M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z' }], ['path', { d: 'M14 2v5h5' }], ['path', { d: 'M16 13H8' }], ['path', { d: 'M16 17H8' }], ['path', { d: 'M10 9H8' }]], 16),
+      link: S([['path', { d: 'M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71' }], ['path', { d: 'M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71' }]], 15),
+      x: S([['path', { d: 'M18 6 6 18' }], ['path', { d: 'm6 6 12 12' }]], 15),
+      chevronRight: S([['path', { d: 'm9 18 6-6-6-6' }]], 17),
+      lock: S([['rect', { x: 3, y: 11, width: 18, height: 11, rx: 2 }], ['path', { d: 'M7 11V7a5 5 0 0 1 10 0v4' }]], 13),
+      panel: S([['rect', { x: 3, y: 3, width: 18, height: 18, rx: 2 }], ['path', { d: 'M15 3v18' }]], 17)
+    };
+  }
+}
+</script>
+</body>
+</html>

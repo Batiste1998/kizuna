@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root{--accent:#2E9E82;--accent-strong:#1F7A63;--accent-soft:#E7F4EE;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Geist',-apple-system,system-ui,sans-serif;background:#F6F6F4;color:#1B1B19;-webkit-font-smoothing:antialiased;}
+  button{font-family:inherit;}
+  input,textarea,select{font-family:inherit;}
+  a{text-decoration:none;color:inherit;}
+  textarea{resize:vertical;line-height:1.55;}
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-thumb{background:#DEDED8;border-radius:6px;border:2px solid #F6F6F4;}
+  @keyframes kz-toast{from{transform:translate(-50%,12px);}to{transform:translate(-50%,0);}}
+</style>
+<script src="./image-slot.js"></script>
+</helmet>
+
+<div style="min-height:100vh;width:100%;background:#F6F6F4">
+  <div style="max-width:1000px;margin:0 auto;padding:24px 26px 80px">
+
+    <a href="Fiche Alternant.dc.html" style="display:inline-flex;align-items:center;gap:7px;font-size:13.5px;color:#76766F;font-weight:500;margin-bottom:18px" style-hover="color:#1B1B19">{{ icons.arrowLeft }}Retour à la fiche alternant</a>
+
+    <!-- HEADER -->
+    <div style="background:#fff;border:1px solid #ECECE7;border-radius:18px;padding:22px 24px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap">
+        <div style="display:flex;align-items:flex-start;gap:15px">
+          <div style="width:52px;height:52px;border-radius:13px;background:var(--accent-soft);color:var(--accent-strong);display:flex;align-items:center;justify-content:center;flex:none">{{ icons.calendar }}</div>
+          <div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <h1 style="font-size:22px;font-weight:700;letter-spacing:-.02em;margin:0">{{ bilan.title }}</h1>
+              <span style="display:inline-flex;align-items:center;gap:6px;padding:3px 11px;border-radius:999px;font-size:12px;font-weight:600;background:{{ statusBg }};color:{{ statusColor }};white-space:nowrap"><span style="width:6px;height:6px;border-radius:50%;background:{{ statusColor }}"></span>{{ statusLabel }}</span>
+            </div>
+            <div style="font-size:14px;color:#76766F;margin-top:5px">{{ alt.fullName }} · {{ alt.promo }}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+          <sc-for list="{{ trinome }}" as="t" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:9px"><image-slot id="{{ t.avId }}" shape="circle" fallback="{{ t.initials }}" fallback-bg="{{ t.bg }}" fallback-color="{{ t.color }}" placeholder="Photo" style="width:32px;height:32px;flex:none"></image-slot><div><div style="font-size:11px;color:#A0A099">{{ t.role }}</div><div style="font-size:12.5px;font-weight:600">{{ t.name }}</div></div></div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- STEPPER -->
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 7px;margin-top:22px">
+        <sc-for list="{{ steps }}" as="s" hint-placeholder-count="5">
+          <div style="display:flex;align-items:center;gap:9px">
+            <button onClick="{{ s.onClick }}" style="display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;padding:0">
+              <span style="{{ s.dotStyle }}"><sc-if value="{{ s.done }}" hint-placeholder-val="{{ false }}">{{ icons.checkSm }}</sc-if><sc-if value="{{ s.showNum }}" hint-placeholder-val="{{ true }}">{{ s.num }}</sc-if></span>
+              <span style="{{ s.labelStyle }}">{{ s.label }}</span>
+            </button>
+            <sc-if value="{{ s.hasBar }}" hint-placeholder-val="{{ true }}"><span style="width:24px;height:2px;border-radius:2px;background:{{ s.barColor }}"></span></sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- ============ PLANIFICATION ============ -->
+    <sc-if value="{{ isPlanif }}" hint-placeholder-val="{{ true }}">
+      <div style="background:#fff;border:1px solid #ECECE7;border-radius:16px;padding:24px 26px;margin-top:16px">
+        <div style="font-size:16px;font-weight:600">Planifier le rendez-vous</div>
+        <div style="font-size:13px;color:#A0A099;margin-top:3px;margin-bottom:20px">Fixez la date et conviez les trois parties du suivi.</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div><label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:6px">Date</label><input value="{{ plan.date }}" onChange="{{ onPlanDate }}" placeholder="2 juillet 2026" style="width:100%;padding:10px 12px;border:1px solid #E0E0DB;border-radius:9px;font-size:14px;background:#fff;outline:none;color:#1B1B19" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" /></div>
+          <div><label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:6px">Heure</label><input value="{{ plan.time }}" onChange="{{ onPlanTime }}" placeholder="14:00" style="width:100%;padding:10px 12px;border:1px solid #E0E0DB;border-radius:9px;font-size:14px;background:#fff;outline:none;color:#1B1B19" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" /></div>
+        </div>
+
+        <label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin:16px 0 9px">Modalité</label>
+        <div style="display:flex;gap:8px">
+          <sc-for list="{{ modaliteOptions }}" as="m" hint-placeholder-count="2"><button onClick="{{ m.onClick }}" style="{{ m.style }}"><span style="display:flex">{{ m.icon }}</span>{{ m.label }}</button></sc-for>
+        </div>
+
+        <div style="margin-top:16px">
+          <label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:6px">{{ lieuLabel }}</label>
+          <div style="position:relative">
+            <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#A4A49C;display:flex">{{ lieuIcon }}</span>
+            <input value="{{ plan.lieu }}" onChange="{{ onPlanLieu }}" placeholder="{{ lieuPlaceholder }}" style="width:100%;padding:10px 12px 10px 38px;border:1px solid #E0E0DB;border-radius:9px;font-size:14px;background:#fff;outline:none;color:#1B1B19" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" />
+          </div>
+        </div>
+
+        <label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin:18px 0 9px">Participants</label>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ participants }}" as="p" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:11px;padding:10px 13px;border:1px solid #ECECE7;border-radius:11px">
+              <image-slot id="{{ p.avId }}" shape="circle" fallback="{{ p.initials }}" fallback-bg="{{ p.bg }}" fallback-color="{{ p.color }}" placeholder="Photo" style="width:34px;height:34px;flex:none"></image-slot>
+              <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:600">{{ p.name }}</div><div style="font-size:12px;color:#A0A099">{{ p.role }}</div></div>
+              <button onClick="{{ p.onToggle }}" style="{{ p.toggleStyle }}"><span style="{{ p.knobStyle }}"></span></button>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;margin-top:22px"><button onClick="{{ doPlanifier }}" style="display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(31,122,99,.25)" style-hover="background:var(--accent-strong)">{{ icons.calendar }}{{ planifCta }}</button></div>
+      </div>
+    </sc-if>
+
+    <!-- ============ PRÉPARATION ============ -->
+    <sc-if value="{{ isPrep }}" hint-placeholder-val="{{ false }}">
+      <div style="background:var(--accent-soft);border:1px solid #D9EAE2;border-radius:14px;padding:14px 18px;margin-top:16px;display:flex;align-items:center;gap:12px">
+        <span style="display:flex;color:var(--accent-strong);flex:none">{{ icons.calendar }}</span>
+        <div style="flex:1;font-size:13.5px;color:var(--accent-strong)"><strong style="font-weight:600">Rendez-vous {{ plan.modalite }}</strong> · {{ plan.date }} à {{ plan.time }} · {{ plan.lieu }}</div>
+        <button onClick="{{ goPlanif }}" style="font-size:13px;color:var(--accent-strong);font-weight:600;background:none;border:none;cursor:pointer;padding:0">Modifier</button>
+      </div>
+
+      <div style="background:#fff;border:1px solid #ECECE7;border-radius:16px;padding:22px 24px;margin-top:14px">
+        <div style="font-size:16px;font-weight:600">Préparation — état des compétences</div>
+        <div style="font-size:13px;color:#A0A099;margin-top:3px;margin-bottom:8px">Synthèse des trois évaluations avant l'entretien. {{ legendInline }}</div>
+        <div style="display:flex;flex-direction:column;gap:14px;margin-top:14px">
+          <sc-for list="{{ blocs }}" as="b" hint-placeholder-count="4">
+            <div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                <div style="display:flex;align-items:center;gap:9px"><span style="font-size:11px;font-weight:700;color:var(--accent-strong);background:var(--accent-soft);padding:2px 8px;border-radius:6px;font-family:'Geist Mono',monospace">{{ b.code }}</span><span style="font-size:13.5px;font-weight:600">{{ b.name }}</span></div>
+                <span style="{{ b.badgeStyle }}">{{ b.badgeLabel }}</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <sc-for list="{{ b.comps }}" as="c" hint-placeholder-count="2">
+                  <div style="display:flex;align-items:center;gap:12px;padding:7px 12px;background:#FAFAF8;border-radius:9px;flex-wrap:wrap">
+                    <span style="flex:1;min-width:160px;font-size:13px;color:#44443F">{{ c.name }}</span>
+                    <div style="display:flex;align-items:center;gap:6px">
+                      <sc-for list="{{ c.chips }}" as="ch" hint-placeholder-count="3"><span title="{{ ch.title }}" style="display:inline-flex;align-items:center;gap:5px;padding:2px 8px 2px 6px;border-radius:7px;background:{{ ch.bg }};color:{{ ch.color }};font-size:11px;font-weight:600"><span style="width:15px;height:15px;border-radius:4px;background:{{ ch.badge }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700">{{ ch.letter }}</span>{{ ch.short }}</span></sc-for>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:22px"><button onClick="{{ doDemarrer }}" style="display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(31,122,99,.25)" style-hover="background:var(--accent-strong)">{{ icons.arrowRight }}Démarrer le compte-rendu</button></div>
+      </div>
+    </sc-if>
+
+    <!-- ============ COMPTE-RENDU ============ -->
+    <sc-if value="{{ isCR }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:14px;margin-top:16px">
+
+        <div style="background:#fff;border:1px solid #ECECE7;border-radius:16px;padding:20px 22px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px"><div style="font-size:15px;font-weight:600">Synthèse de la période</div><span style="font-size:11.5px;color:#A0A099">Tuteur pédagogique</span></div>
+          <textarea value="{{ cr.synthese }}" onChange="{{ onCr.synthese }}" rows="3" placeholder="Bilan global de la période écoulée…" style="width:100%;margin-top:8px;padding:11px 13px;border:1px solid #E4E4DE;border-radius:10px;font-size:13.5px;background:#fff;outline:none;color:#33332F" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)"></textarea>
+        </div>
+
+        <div style="background:#fff;border:1px solid #ECECE7;border-radius:16px;padding:20px 22px">
+          <div style="font-size:15px;font-weight:600;margin-bottom:4px">Compétences évaluées</div>
+          <div style="font-size:12.5px;color:#A0A099;margin-bottom:14px">Niveau consolidé par bloc à l'issue de la période.</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <sc-for list="{{ blocs }}" as="b" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:12px">
+                <span style="font-size:11px;font-weight:700;color:var(--accent-strong);background:var(--accent-soft);padding:2px 8px;border-radius:6px;font-family:'Geist Mono',monospace;flex:none">{{ b.code }}</span>
+                <span style="flex:1;min-width:0;font-size:13.5px;color:#44443F;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ b.name }}</span>
+                <div style="flex:none;width:120px;height:6px;border-radius:999px;background:#F0F0EC;overflow:hidden"><div style="height:100%;width:{{ b.pct }};border-radius:999px;background:var(--accent)"></div></div>
+                <span style="{{ b.badgeStyle }}">{{ b.badgeLabel }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div style="background:#fff;border:1px solid #ECECE7;border-radius:16px;padding:20px 22px">
+            <div style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;margin-bottom:10px"><span style="display:flex;color:#1F7A63">{{ icons.thumbsUp }}</span>Points forts</div>
+            <textarea value="{{ cr.forts }}" onChange="{{ onCr.forts }}" rows="4" placeholder="Ce qui est maîtrisé, les réussites…" style="width:100%;padding:11px 13px;border:1px solid #E4E4DE;border-radius:10px;font-size:13.5px;background:#fff;outline:none;color:#33332F" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)"></textarea>
+          </div>
+          <div style="background:#fff;border:1px solid #ECECE7;border-radius:16px;padding:20px 22px">
+            <div style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;margin-bottom:10px"><span style="display:flex;color:#9A6B12">{{ icons.trend }}</span>Axes de progrès</div>
+            <textarea value="{{ cr.axes }}" onChange="{{ onCr.axes }}" rows="4" placeholder="Ce qui reste à développer…" style="width:100%;padding:11px 13px;border:1px solid #E4E4DE;border-radius:10px;font-size:13.5px;background:#fff;outline:none;color:#33332F" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)"></textarea>
+          </div>
+        </div>
+
+        <div style="background:#fff;border:1px solid #ECECE7;border-radius:16px;padding:20px 22px">
+          <div style="font-size:15px;font-weight:600;margin-bottom:10px">Objectifs pour la prochaine période</div>
+          <textarea value="{{ cr.objectifs }}" onChange="{{ onCr.objectifs }}" rows="3" placeholder="Les objectifs fixés ensemble…" style="width:100%;padding:11px 13px;border:1px solid #E4E4DE;border-radius:10px;font-size:13.5px;background:#fff;outline:none;color:#33332F" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)"></textarea>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div style="background:#fff;border:1px solid #ECECE7;border-radius:16px;padding:20px 22px">
+            <div style="font-size:15px;font-weight:600;margin-bottom:12px">Présence & assiduité</div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+              <input value="{{ cr.presenceRate }}" onChange="{{ onCr.presenceRate }}" style="width:72px;padding:9px 10px;border:1px solid #E4E4DE;border-radius:9px;font-size:14px;font-weight:600;text-align:center;background:#fff;outline:none;color:#1B1B19" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" />
+              <span style="font-size:13px;color:#76766F">de présence sur la période</span>
+            </div>
+            <input value="{{ cr.presenceNote }}" onChange="{{ onCr.presenceNote }}" placeholder="Commentaire (ponctualité, absences justifiées…)" style="width:100%;padding:10px 12px;border:1px solid #E4E4DE;border-radius:9px;font-size:13px;background:#fff;outline:none;color:#33332F" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" />
+          </div>
+          <div style="background:#fff;border:1px solid #ECECE7;border-radius:16px;padding:20px 22px">
+            <div style="font-size:15px;font-weight:600;margin-bottom:12px">Appréciation globale</div>
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <sc-for list="{{ noteOptions }}" as="n" hint-placeholder-count="4"><button onClick="{{ n.onClick }}" style="{{ n.style }}"><span style="{{ n.radioStyle }}"></span>{{ n.label }}</button></sc-for>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:#fff;border:1px solid #ECECE7;border-radius:16px;padding:20px 22px">
+          <div style="font-size:15px;font-weight:600;margin-bottom:12px">Appréciations des parties</div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div style="width:24px;height:24px;border-radius:50%;background:#FBEAE1;color:#B5572F;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">MD</div><span style="font-size:12.5px;font-weight:600;color:#44443F">Tuteur d'entreprise</span></div>
+              <textarea value="{{ cr.apprEntreprise }}" onChange="{{ onCr.apprEntreprise }}" rows="2" placeholder="Appréciation du tuteur d'entreprise…" style="width:100%;padding:10px 12px;border:1px solid #E4E4DE;border-radius:10px;font-size:13.5px;background:#fff;outline:none;color:#33332F" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)"></textarea>
+            </div>
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div style="width:24px;height:24px;border-radius:50%;background:#E4F2EC;color:#1F7A63;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">LG</div><span style="font-size:12.5px;font-weight:600;color:#44443F">Auto-évaluation de l'alternant</span></div>
+              <textarea value="{{ cr.apprAlternant }}" onChange="{{ onCr.apprAlternant }}" rows="2" placeholder="Ressenti de l'alternant sur la période…" style="width:100%;padding:10px 12px;border:1px solid #E4E4DE;border-radius:10px;font-size:13.5px;background:#fff;outline:none;color:#33332F" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <button onClick="{{ goPrep }}" style="display:inline-flex;align-items:center;gap:7px;padding:10px 15px;border:1px solid #E0E0DB;border-radius:10px;background:#fff;color:#44443F;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#F4F4F0">{{ icons.arrowLeft }}Préparation</button>
+          <button onClick="{{ doEnvoyer }}" style="display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(31,122,99,.25)" style-hover="background:var(--accent-strong)">{{ icons.penLine }}Envoyer pour signature</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ============ SIGNATURES ============ -->
+    <sc-if value="{{ isSign }}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{ allSigned }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#E4F2EC;border:1px solid #C5E4D6;border-radius:14px;padding:15px 18px;margin-top:16px;display:flex;align-items:center;gap:12px">
+          <span style="display:flex;color:#1F7A63;flex:none">{{ icons.checkCircle }}</span>
+          <div style="flex:1;font-size:13.5px;color:#1F7A63;font-weight:500">Compte-rendu signé par les trois parties — le bilan est clôturé et archivé.</div>
+          <button style="display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border:1px solid #BFE0CF;border-radius:9px;background:#fff;color:#1F7A63;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:#F3FAF6">{{ icons.download }}Exporter le PDF</button>
+        </div>
+      </sc-if>
+      <sc-if value="{{ notAllSigned }}" hint-placeholder-val="{{ true }}">
+        <div style="background:#F8F5EE;border:1px solid #F0E9D8;border-radius:14px;padding:14px 18px;margin-top:16px;display:flex;align-items:center;gap:12px">
+          <span style="display:flex;color:#9A6B12;flex:none">{{ icons.penLine }}</span>
+          <div style="font-size:13.5px;color:#7A6324">Le compte-rendu est figé. Chaque partie le relit et appose sa signature électronique. {{ signedCountLabel }}</div>
+        </div>
+      </sc-if>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px">
+        <sc-for list="{{ signCards }}" as="s" hint-placeholder-count="3">
+          <div style="background:#fff;border:1px solid {{ s.border }};border-radius:16px;padding:20px;display:flex;flex-direction:column;align-items:center;text-align:center">
+            <image-slot id="{{ s.avId }}" shape="circle" fallback="{{ s.initials }}" fallback-bg="{{ s.bg }}" fallback-color="{{ s.color }}" placeholder="Photo" style="width:46px;height:46px;flex:none"></image-slot>
+            <div style="font-size:14.5px;font-weight:600;margin-top:11px">{{ s.name }}</div>
+            <div style="font-size:12px;color:#A0A099;margin-top:2px">{{ s.role }}</div>
+            <div style="width:100%;height:1px;background:#F2F2EE;margin:15px 0"></div>
+            <sc-if value="{{ s.signed }}" hint-placeholder-val="{{ false }}">
+              <div style="font-family:'Caveat',cursive;font-size:30px;color:var(--accent-strong);line-height:1">{{ s.name }}</div>
+              <div style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:#1F7A63;font-weight:600;margin-top:8px">{{ icons.checkSm }}Signé le {{ s.at }}</div>
+            </sc-if>
+            <sc-if value="{{ s.pending }}" hint-placeholder-val="{{ true }}">
+              <div style="font-family:'Caveat',cursive;font-size:30px;color:#D6D6CE;line-height:1">en attente</div>
+              <button onClick="{{ s.onSign }}" style="display:inline-flex;align-items:center;gap:7px;margin-top:10px;padding:8px 15px;border:none;border-radius:9px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:var(--accent-strong)">{{ icons.penLine }}Signer</button>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;justify-content:flex-start;margin-top:16px"><button onClick="{{ goCR }}" style="display:inline-flex;align-items:center;gap:7px;padding:10px 15px;border:1px solid #E0E0DB;border-radius:10px;background:#fff;color:#44443F;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#F4F4F0">{{ icons.arrowLeft }}Revoir le compte-rendu</button></div>
+    </sc-if>
+
+  </div>
+
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+    <div role="status" aria-live="polite" style="position:fixed;left:50%;bottom:24px;transform:translate(-50%,0);z-index:200;display:flex;align-items:center;gap:11px;background:#1B1B19;color:#fff;padding:11px 13px 11px 15px;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.28);max-width:92vw;animation:kz-toast .26s cubic-bezier(.22,.61,.36,1)">
+      <span style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;flex:none">{{ toastIcon }}</span>
+      <span style="font-size:13.5px;font-weight:500">{{ toastMessage }}</span>
+      <button onClick="{{ dismissToast }}" aria-label="Fermer la notification" style="width:26px;height:26px;border-radius:7px;border:none;background:transparent;color:#A8A8A2;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none">{{ toastClose }}</button>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;accent&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;Teal&quot;, &quot;Corail&quot;, &quot;Océan&quot;], &quot;default&quot;: &quot;Teal&quot;, &quot;tsType&quot;: &quot;string&quot; }
+}">
+class Component extends DCLogic {
+  state = {
+    status: 'a-planifier',
+    step: 'planification',
+    toast: null,
+    plan: { date: '2 juillet 2026', time: '14:00', modalite: 'présentiel', lieu: 'EPITECH Paris — Salle B204' },
+    participants: { alternant: true, peda: true, entreprise: true },
+    cr: {
+      synthese: "Lucas a consolidé ses compétences front-end et progresse régulièrement sur la partie back-end. L'autonomie acquise en entreprise se ressent nettement sur la qualité du code livré.",
+      forts: "Très bonne maîtrise du développement d'interfaces et de l'intégration d'API. Rigueur sur les tests. Bonne communication avec l'équipe.",
+      axes: "Approfondir l'architecture multicouche et la mise en production (CI/CD). Gagner en autonomie sur la conception de bases de données.",
+      objectifs: "Prendre en charge un module complet de bout en bout d'ici la fin du S4 et présenter une mise en production en intégration continue.",
+      presenceRate: '98%', presenceNote: 'Ponctuel, aucune absence injustifiée.',
+      note: 'tres-satisfaisant',
+      apprEntreprise: "Collaborateur fiable et impliqué, monte vite en compétences. Très bonne intégration dans l'équipe produit.",
+      apprAlternant: "Je me sens de plus en plus à l'aise sur le back-end et j'aimerais piloter une fonctionnalité complète au prochain semestre."
+    },
+    signatures: { alternant: null, peda: null, entreprise: null }
+  };
+
+  alt = { prenom: 'Lucas', nom: 'Girard', promo: 'Expert Dév. Full Stack', tuteurPeda: 'Julien Mercier', tuteurEntreprise: 'Marc Dubois' };
+  bilan = { title: 'Bilan de mi-parcours — S3' };
+  signedAt = '23 juin 2026 à 14:32';
+
+  referentiel = [
+    { id: 'b1', code: 'BC01', name: "Concevoir et développer des composants d'interface", comps: [{ n: 'Maquetter une application', p: 3 }, { n: 'Développer une interface web', p: 3 }, { n: "Composants d'accès aux données", p: 2 }] },
+    { id: 'b2', code: 'BC02', name: 'Concevoir et développer la persistance des données', comps: [{ n: 'Concevoir une base de données', p: 2 }, { n: 'Mettre en place une base de données', p: 2 }, { n: 'Développer dans le langage BDD', p: 1 }] },
+    { id: 'b3', code: 'BC03', name: 'Concevoir et développer une application multicouche', comps: [{ n: 'Développer des composants métier', p: 2 }, { n: 'Application gérée par les données', p: 1 }, { n: 'Plans de tests', p: 1 }, { n: 'Déploiement en CI', p: 0 }] },
+    { id: 'b4', code: 'BC04', name: 'Gérer un projet en équipe agile', comps: [{ n: 'Collaborer en gestion agile', p: 2 }, { n: 'Concevoir une application sécurisée', p: 1 }] }
+  ];
+  levels = [
+    { k: 0, label: 'Non acquis', short: 'NA', bg: '#EDEDE9', color: '#8A8A83', badge: '#C4C4BC' },
+    { k: 1, label: 'En cours', short: 'EC', bg: '#F7EFDA', color: '#9A6B12', badge: '#E0A93B' },
+    { k: 2, label: 'Acquis', short: 'A', bg: '#E4F2EC', color: '#2C7A63', badge: '#3FA98C' },
+    { k: 3, label: 'Maîtrisé', short: 'M', bg: '#D4EAE0', color: '#1F7A63', badge: '#1F7A63' }
+  ];
+  statusFlow = ['a-planifier', 'planifie', 'en-cours', 'a-signer', 'signe'];
+  statusMeta = {
+    'a-planifier': { label: 'À planifier', color: '#8A8A83', bg: '#EDEDE9' },
+    'planifie': { label: 'Planifié', color: '#3D5E8E', bg: '#E8EEF7' },
+    'en-cours': { label: 'En cours', color: '#9A6B12', bg: '#F7EFDA' },
+    'a-signer': { label: 'À signer', color: '#6B4E96', bg: '#EEE7F5' },
+    'signe': { label: 'Signé', color: '#1F7A63', bg: '#E4F2EC' }
+  };
+  noteScale = [['tres-satisfaisant', 'Très satisfaisant'], ['satisfaisant', 'Satisfaisant'], ['a-consolider', 'À consolider'], ['insuffisant', 'Insuffisant']];
+
+  componentDidMount() { this.applyTheme(); }
+  componentDidUpdate() { this.applyTheme(); }
+  applyTheme() {
+    const map = { 'Teal': { a: '#2E9E82', s: '#1F7A63', soft: '#E7F4EE' }, 'Corail': { a: '#E06A41', s: '#B54F2C', soft: '#FBEADF' }, 'Océan': { a: '#3F6FB0', s: '#2E5288', soft: '#E8EFF8' } };
+    const t = map[this.props.accent] || map['Teal'];
+    const r = document.documentElement;
+    r.style.setProperty('--accent', t.a); r.style.setProperty('--accent-strong', t.s); r.style.setProperty('--accent-soft', t.soft);
+  }
+
+  initialsOf(name) { const w = (name || '').trim().split(' '); return ((w[0] ? w[0][0] : '') + (w[1] ? w[1][0] : '')).toUpperCase(); }
+  slug(name) { return 'kz-av-' + (name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''); }
+  setPlan(k, v) { this.setState(s => ({ plan: { ...s.plan, [k]: v } })); }
+  setModalite(m) { this.setState(s => ({ plan: { ...s.plan, modalite: m, lieu: m === 'visio' ? 'https://meet.kizuna.app/bilan-lucas' : 'EPITECH Paris — Salle B204' } })); }
+  toggleParticipant(k) { this.setState(s => ({ participants: { ...s.participants, [k]: !s.participants[k] } })); }
+  setCr(k, v) { this.setState(s => ({ cr: { ...s.cr, [k]: v } })); }
+  setNote(n) { this.setState(s => ({ cr: { ...s.cr, note: n } })); }
+
+  goStep(step) { this.setState({ step }); }
+  doPlanifier() { this.setState({ status: 'planifie', step: 'preparation' }); }
+  doDemarrer() { this.setState({ status: 'en-cours', step: 'compte-rendu' }); }
+  doEnvoyer() { this.setState({ status: 'a-signer', step: 'signatures' }); this.showToast('Bilan envoyé pour signature'); }
+  sign(party) {
+    const sig = { ...this.state.signatures, [party]: this.signedAt };
+    const all = sig.alternant && sig.peda && sig.entreprise;
+    this.setState({ signatures: sig, status: all ? 'signe' : this.state.status });
+    this.showToast(all ? 'Bilan signé' : 'Signature enregistrée');
+  }
+  showToast(message) {
+    if (this._toastTimer) clearTimeout(this._toastTimer);
+    const id = Date.now();
+    this.setState({ toast: { id, message } });
+    this._toastTimer = setTimeout(() => this.setState(s => (s.toast && s.toast.id === id ? { toast: null } : null)), 4000);
+  }
+  dismissToast() { if (this._toastTimer) clearTimeout(this._toastTimer); this.setState({ toast: null }); }
+
+  renderVals() {
+    const st = this.state;
+    const icons = this.buildIcons();
+    const L = this.levels;
+    const statusIdx = this.statusFlow.indexOf(st.status);
+    const sm = this.statusMeta[st.status];
+
+    const fullName = this.alt.prenom + ' ' + this.alt.nom;
+    const trinome = [
+      { role: 'Alternant', name: fullName, initials: this.initialsOf(fullName), avId: this.slug(fullName), bg: '#E4F2EC', color: '#1F7A63' },
+      { role: 'Tuteur pédagogique', name: this.alt.tuteurPeda, initials: this.initialsOf(this.alt.tuteurPeda), avId: this.slug(this.alt.tuteurPeda), bg: '#E8EEF7', color: '#3D5E8E' },
+      { role: "Tuteur d'entreprise", name: this.alt.tuteurEntreprise, initials: this.initialsOf(this.alt.tuteurEntreprise), avId: this.slug(this.alt.tuteurEntreprise), bg: '#FBEAE1', color: '#B5572F' }
+    ];
+
+    // stepper (4 work steps mapped against status progress)
+    const stepDefs = [
+      { key: 'planification', label: 'Planification', reachedAt: 1 },
+      { key: 'preparation', label: 'Préparation', reachedAt: 2 },
+      { key: 'compte-rendu', label: 'Compte-rendu', reachedAt: 3 },
+      { key: 'signatures', label: 'Signatures', reachedAt: 4 }
+    ];
+    const steps = stepDefs.map((s, i) => {
+      const current = st.step === s.key;
+      const done = statusIdx >= s.reachedAt;
+      const dotBg = done ? 'var(--accent)' : (current ? '#fff' : '#fff');
+      const dotBorder = (done || current) ? 'var(--accent)' : '#D6D6CE';
+      const dotColor = done ? '#fff' : (current ? 'var(--accent-strong)' : '#A0A099');
+      return {
+        key: s.key, label: s.label, num: String(i + 1),
+        onClick: () => this.goStep(s.key),
+        done, showNum: !done,
+        dotStyle: `width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none;background:${dotBg};border:2px solid ${dotBorder};color:${dotColor}`,
+        labelStyle: `font-size:13px;font-weight:${current ? 600 : 500};color:${current ? '#1B1B19' : (done ? '#44443F' : '#A0A099')}`,
+        hasBar: i < stepDefs.length - 1, barColor: statusIdx >= s.reachedAt + 1 ? 'var(--accent)' : '#E6E6E1'
+      };
+    });
+
+    // blocs recap
+    const blocs = this.referentiel.map(b => {
+      const comps = b.comps.map(c => {
+        const ep = c.p, ee = Math.max(0, Math.min(3, ep + (this.initialsOf(c.n).charCodeAt(0) % 2 ? 0 : -1))), ea = Math.max(0, Math.min(3, ep < 3 ? ep + 1 : 3));
+        const mk = (lv, letter, who) => ({ letter, short: L[lv].short, bg: L[lv].bg, color: L[lv].color, badge: L[lv].badge, title: who + ' : ' + L[lv].label });
+        return { name: c.n, chips: [mk(ea, 'A', 'Auto'), mk(ee, 'E', 'Entreprise'), mk(ep, 'P', 'Pédago')] };
+      });
+      const evaluated = b.comps.filter(c => c.p > 0).length === b.comps.length;
+      const pct = Math.round(b.comps.reduce((s, c) => s + c.p, 0) / (b.comps.length * 3) * 100);
+      const validated = b.comps.every(c => c.p >= 2);
+      return { ...b, comps, pct: pct + '%', badgeLabel: validated ? 'Validé' : 'En cours', badgeStyle: `padding:2px 9px;border-radius:999px;font-size:11px;font-weight:600;white-space:nowrap;background:${validated ? '#E4F2EC' : '#F4F4F0'};color:${validated ? '#1F7A63' : '#86867F'}` };
+    });
+
+    // planning helpers
+    const isVisio = st.plan.modalite === 'visio';
+    const modaliteOptions = [['présentiel', 'Présentiel', icons.mapPin], ['visio', 'Visio', icons.video]].map(([k, label, icon]) => {
+      const sel = st.plan.modalite === k;
+      return { label, icon, onClick: () => this.setModalite(k), style: `flex:1;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 12px;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;background:${sel ? 'var(--accent-soft)' : '#fff'};border:1.5px solid ${sel ? 'var(--accent)' : '#E8E8E3'};color:${sel ? 'var(--accent-strong)' : '#3A3A35'}` };
+    });
+    const partDefs = [['alternant', fullName, 'Alternant', '#E4F2EC', '#1F7A63'], ['peda', this.alt.tuteurPeda, 'Tuteur pédagogique', '#E8EEF7', '#3D5E8E'], ['entreprise', this.alt.tuteurEntreprise, "Tuteur d'entreprise", '#FBEAE1', '#B5572F']];
+    const participants = partDefs.map(([k, name, role, bg, color]) => {
+      const on = st.participants[k];
+      return { name, role, bg, color, initials: this.initialsOf(name), avId: this.slug(name), onToggle: () => this.toggleParticipant(k),
+        toggleStyle: `position:relative;width:40px;height:23px;border-radius:999px;border:none;cursor:pointer;flex:none;background:${on ? 'var(--accent)' : '#D8D8D2'}`,
+        knobStyle: `position:absolute;top:2.5px;left:${on ? '19.5px' : '2.5px'};width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)` };
+    });
+
+    const noteOptions = this.noteScale.map(([k, label]) => {
+      const sel = st.cr.note === k;
+      return { label, onClick: () => this.setNote(k), style: `display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:9px;font-size:13.5px;font-weight:500;cursor:pointer;text-align:left;width:100%;background:${sel ? 'var(--accent-soft)' : '#fff'};border:1.5px solid ${sel ? 'var(--accent)' : '#E8E8E3'};color:${sel ? 'var(--accent-strong)' : '#3A3A35'}`,
+        radioStyle: `width:15px;height:15px;border-radius:50%;flex:none;border:${sel ? '4px solid var(--accent)' : '2px solid #CFCFC8'};background:#fff` };
+    });
+
+    // signatures
+    const sg = st.signatures;
+    const signDefs = [['alternant', fullName, 'Alternant', '#E4F2EC', '#1F7A63'], ['peda', this.alt.tuteurPeda, 'Tuteur pédagogique', '#E8EEF7', '#3D5E8E'], ['entreprise', this.alt.tuteurEntreprise, "Tuteur d'entreprise", '#FBEAE1', '#B5572F']];
+    const signCards = signDefs.map(([k, name, role, bg, color]) => {
+      const at = sg[k];
+      return { name, role, bg, color, initials: this.initialsOf(name), avId: this.slug(name), signed: !!at, pending: !at, at, onSign: () => this.sign(k), border: at ? '#C5E4D6' : '#ECECE7' };
+    });
+    const signedCount = [sg.alternant, sg.peda, sg.entreprise].filter(Boolean).length;
+    const allSigned = signedCount === 3;
+
+    return {
+      icons, alt: { ...this.alt, fullName }, bilan: this.bilan, trinome,
+      hasToast: !!st.toast, toastMessage: st.toast ? st.toast.message : '', toastIcon: icons.checkSm, toastClose: icons.x, dismissToast: () => this.dismissToast(),
+      statusLabel: sm.label, statusColor: sm.color, statusBg: sm.bg,
+      steps,
+      isPlanif: st.step === 'planification', isPrep: st.step === 'preparation', isCR: st.step === 'compte-rendu', isSign: st.step === 'signatures',
+      plan: st.plan, onPlanDate: e => this.setPlan('date', e.target.value), onPlanTime: e => this.setPlan('time', e.target.value), onPlanLieu: e => this.setPlan('lieu', e.target.value),
+      modaliteOptions, participants,
+      lieuLabel: isVisio ? 'Lien de visioconférence' : 'Lieu', lieuIcon: isVisio ? icons.video : icons.mapPin, lieuPlaceholder: isVisio ? 'https://…' : 'Adresse ou salle',
+      doPlanifier: () => this.doPlanifier(), planifCta: st.status === 'a-planifier' ? 'Planifier le bilan' : 'Mettre à jour',
+      goPlanif: () => this.goStep('planification'), goPrep: () => this.goStep('preparation'), goCR: () => this.goStep('compte-rendu'),
+      blocs, legendInline: 'A = auto-évaluation · E = entreprise · P = pédagogique',
+      doDemarrer: () => this.doDemarrer(),
+      cr: st.cr,
+      onCr: { synthese: e => this.setCr('synthese', e.target.value), forts: e => this.setCr('forts', e.target.value), axes: e => this.setCr('axes', e.target.value), objectifs: e => this.setCr('objectifs', e.target.value), presenceRate: e => this.setCr('presenceRate', e.target.value), presenceNote: e => this.setCr('presenceNote', e.target.value), apprEntreprise: e => this.setCr('apprEntreprise', e.target.value), apprAlternant: e => this.setCr('apprAlternant', e.target.value) },
+      noteOptions, doEnvoyer: () => this.doEnvoyer(),
+      signCards, allSigned, notAllSigned: !allSigned, signedCountLabel: signedCount + '/3 signature' + (signedCount > 1 ? 's' : '') + ' apposée' + (signedCount > 1 ? 's' : '')
+    };
+  }
+
+  svg(parts, size) { return React.createElement('svg', { width: size || 19, height: size || 19, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' }, parts.map((p, i) => React.createElement(p[0], Object.assign({ key: i }, p[1])))); }
+  buildIcons() {
+    const S = (a, b) => this.svg(a, b);
+    return {
+      arrowLeft: S([['path', { d: 'm12 19-7-7 7-7' }], ['path', { d: 'M19 12H5' }]], 16),
+      arrowRight: S([['path', { d: 'M5 12h14' }], ['path', { d: 'm12 5 7 7-7 7' }]], 17),
+      calendar: S([['rect', { x: 3, y: 4, width: 18, height: 18, rx: 2 }], ['path', { d: 'M16 2v4' }], ['path', { d: 'M8 2v4' }], ['path', { d: 'M3 10h18' }]], 18),
+      checkSm: S([['path', { d: 'M20 6 9 17l-5-5' }]], 14),
+      checkCircle: S([['path', { d: 'M21.801 10A10 10 0 1 1 17 3.335' }], ['path', { d: 'm9 11 3 3L22 4' }]], 19),
+      video: S([['path', { d: 'm22 8-6 4 6 4V8Z' }], ['rect', { x: 2, y: 6, width: 14, height: 12, rx: 2 }]], 16),
+      mapPin: S([['path', { d: 'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z' }], ['circle', { cx: 12, cy: 10, r: 3 }]], 16),
+      penLine: S([['path', { d: 'M12 20h9' }], ['path', { d: 'M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z' }]], 16),
+      download: S([['path', { d: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4' }], ['path', { d: 'm7 10 5 5 5-5' }], ['path', { d: 'M12 15V3' }]], 16),
+      thumbsUp: S([['path', { d: 'M7 10v12' }], ['path', { d: 'M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z' }]], 16),
+      trend: S([['path', { d: 'M16 7h6v6' }], ['path', { d: 'm22 7-8.5 8.5-5-5L2 17' }]], 16),
+      x: S([['path', { d: 'M18 6 6 18' }], ['path', { d: 'm6 6 12 12' }]], 18)
+    };
+  }
+}
+</script>
+</body>
+</html>

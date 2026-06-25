@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--accent:#2E9E82;--accent-strong:#1F7A63;--accent-soft:#E8F4EF;--sidebar:#103A30;--sidebar-glow:rgba(46,158,130,.18);--row-pad:13px 16px;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Geist',-apple-system,system-ui,sans-serif;background:#EEEDE7;color:#1B1B19;-webkit-font-smoothing:antialiased;}
+  button{font-family:inherit;}
+  a{text-decoration:none;color:inherit;}
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-thumb{background:#DEDED8;border-radius:6px;border:2px solid #EEEDE7;}
+  ::-webkit-scrollbar-thumb:hover{background:#CFCFC8;}
+  @keyframes kz-toast{from{transform:translate(-50%,12px);}to{transform:translate(-50%,0);}}
+</style>
+<script src="./image-slot.js"></script>
+</helmet>
+
+<div style="display:flex;height:100vh;width:100%;overflow:hidden;background:#EEEDE7">
+
+  <!-- SIDEBAR -->
+  <aside style="width:256px;flex:none;height:100%;background:var(--sidebar);display:flex;flex-direction:column;padding:20px 14px;position:relative;overflow:hidden">
+    <div style="position:absolute;top:-90px;right:-70px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,var(--sidebar-glow) 0%,transparent 70%);pointer-events:none"></div>
+    <div style="display:flex;align-items:center;gap:11px;padding:4px 8px 18px;position:relative">
+      <img src="uploads/logo.png" alt="Kizuna" style="width:40px;height:40px;object-fit:contain;flex:none" />
+      <div><div style="font-size:17px;font-weight:700;letter-spacing:-.02em;line-height:1;color:#fff">Kizuna</div><div style="font-size:11px;color:rgba(255,255,255,.46);margin-top:4px">Espace tuteur</div></div>
+    </div>
+
+    <div style="font-size:10.5px;font-weight:600;color:rgba(255,255,255,.36);letter-spacing:.06em;padding:4px 8px 7px;position:relative">RÔLE</div>
+    <div style="display:flex;gap:4px;background:rgba(255,255,255,.07);padding:3px;border-radius:11px;margin-bottom:18px;position:relative">
+      <sc-for list="{{ roleTabs }}" as="r" hint-placeholder-count="2"><button onClick="{{ r.onClick }}" style="{{ r.style }}">{{ r.label }}</button></sc-for>
+    </div>
+
+    <nav style="display:flex;flex-direction:column;gap:3px;position:relative">
+      <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="3">
+        <button onClick="{{ n.onClick }}" style="display:flex;align-items:center;gap:11px;width:100%;padding:10px 11px;border:none;background:{{ n.bg }};color:{{ n.color }};border-radius:10px;font-size:14px;font-weight:{{ n.weight }};cursor:pointer;text-align:left" style-hover="{{ n.hover }}">
+          <span style="display:flex;flex:none">{{ n.icon }}</span><span style="flex:1">{{ n.label }}</span>
+          <sc-if value="{{ n.showBadge }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;font-weight:600;background:rgba(255,255,255,.16);color:#fff;padding:1px 8px;border-radius:999px">{{ n.badge }}</span></sc-if>
+        </button>
+      </sc-for>
+    </nav>
+
+    <div style="flex:1"></div>
+    <div style="border:1px solid rgba(255,255,255,.1);border-radius:13px;padding:11px;background:rgba(255,255,255,.05);display:flex;align-items:center;gap:10px;position:relative">
+      <image-slot id="{{ persona.avId }}" shape="circle" fallback="{{ persona.initials }}" fallback-bg="var(--accent)" fallback-color="#fff" placeholder="Photo" style="width:36px;height:36px;flex:none"></image-slot>
+      <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff">{{ persona.name }}</div><div style="font-size:11.5px;color:rgba(255,255,255,.46);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ persona.role }}</div></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div style="flex:1;display:flex;flex-direction:column;height:100%;min-width:0">
+    <header style="height:64px;flex:none;border-bottom:1px solid #E3E2DC;background:rgba(238,237,231,.82);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:space-between;padding:0 28px">
+      <div style="display:flex;align-items:center;gap:9px;font-size:13.5px;color:#9A9A93">
+        <span>{{ persona.org }}</span><span style="color:#CFCFC8">/</span><span style="color:#1B1B19;font-weight:600">{{ pageLabel }}</span>
+      </div>
+      <dc-import name="Notifications" items="{{ notifs }}" accent="var(--accent)" accent-soft="var(--accent-soft)" accent-strong="var(--accent-strong)" all-href="#" hint-size="38px,38px"></dc-import>
+    </header>
+    <dc-import name="Accessibilite" hint-size="0,0"></dc-import>
+
+    <main style="flex:1;overflow-y:auto;padding:30px 26px 60px">
+      <div style="max-width:1100px;margin:0 auto">
+
+        <!-- DASHBOARD -->
+        <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
+          <h1 style="font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0">Bonjour {{ persona.firstName }}</h1>
+          <p style="font-size:14.5px;color:#76766F;margin:8px 0 0">Vous suivez {{ altCountLabel }} en tant que {{ persona.roleLower }}.</p>
+
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:26px">
+            <sc-for list="{{ stats }}" as="c" hint-placeholder-count="4">
+              <div style="background:#fff;border:1px solid #E6E5DF;border-radius:14px;padding:16px 17px">
+                <div style="display:flex;align-items:center;justify-content:space-between"><div style="font-size:12.5px;color:#86867F;font-weight:500">{{ c.label }}</div><div style="width:30px;height:30px;border-radius:8px;background:{{ c.chipBg }};color:{{ c.chipColor }};display:flex;align-items:center;justify-content:center">{{ c.icon }}</div></div>
+                <div style="font-size:26px;font-weight:700;letter-spacing:-.02em;margin-top:10px;line-height:1">{{ c.value }}</div>
+                <div style="font-size:12px;color:#A4A49C;margin-top:5px">{{ c.sub }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="font-size:15px;font-weight:600;margin:28px 0 14px">Mes alternants</div>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px">
+            <sc-for list="{{ myAlternants }}" as="a" hint-placeholder-count="3">
+              <button onClick="{{ a.onOpen }}" style="text-align:left;background:#fff;border:1px solid #E6E5DF;border-radius:16px;padding:18px;cursor:pointer;display:flex;flex-direction:column" style-hover="border-color:var(--accent)">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <image-slot id="{{ a.avId }}" shape="circle" fallback="{{ a.initials }}" fallback-bg="{{ a.avBg }}" fallback-color="{{ a.avColor }}" placeholder="Photo" style="width:42px;height:42px;flex:none"></image-slot>
+                  <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:600">{{ a.fullName }}</div><div style="font-size:12.5px;color:#86867F">{{ a.promo }} · {{ a.entreprise }}</div></div>
+                  <sc-if value="{{ a.hasTodo }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;font-weight:600;background:#FBE3DC;color:#B5432A;padding:2px 8px;border-radius:999px;white-space:nowrap">{{ a.todoLabel }}</span></sc-if>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;margin-top:15px">
+                  <div style="flex:1;height:7px;border-radius:999px;background:#F0F0EC;overflow:hidden"><div style="height:100%;width:{{ a.pct }};border-radius:999px;background:var(--accent)"></div></div>
+                  <span style="font-size:12.5px;color:#76766F;font-weight:600;width:36px;text-align:right">{{ a.pct }}</span>
+                </div>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- MES ALTERNANTS -->
+        <sc-if value="{{ isAlternants }}" hint-placeholder-val="{{ false }}">
+          <h1 style="font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0">Mes alternants</h1>
+          <p style="font-size:14.5px;color:#76766F;margin:8px 0 0">Cliquez sur un alternant pour évaluer ses compétences et consulter son suivi.</p>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:24px">
+            <sc-for list="{{ myAlternants }}" as="a" hint-placeholder-count="3">
+              <button onClick="{{ a.onOpen }}" style="text-align:left;background:#fff;border:1px solid #E6E5DF;border-radius:16px;padding:18px;cursor:pointer" style-hover="border-color:var(--accent)">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <image-slot id="{{ a.avId }}" shape="circle" fallback="{{ a.initials }}" fallback-bg="{{ a.avBg }}" fallback-color="{{ a.avColor }}" placeholder="Photo" style="width:42px;height:42px;flex:none"></image-slot>
+                  <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:600">{{ a.fullName }}</div><div style="font-size:12.5px;color:#86867F">{{ a.promo }} · {{ a.entreprise }}</div></div>
+                  <span style="display:flex;color:#C6C6BE">{{ icons.chevronRight }}</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;margin-top:15px">
+                  <div style="flex:1;height:7px;border-radius:999px;background:#F0F0EC;overflow:hidden"><div style="height:100%;width:{{ a.pct }};border-radius:999px;background:var(--accent)"></div></div>
+                  <span style="font-size:12.5px;color:#76766F;font-weight:600;width:36px;text-align:right">{{ a.pct }}</span>
+                </div>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- ÉVALUATION (alternant detail) -->
+        <sc-if value="{{ isEvaluation }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ backToAlternants }}" style="display:inline-flex;align-items:center;gap:7px;font-size:13.5px;color:#76766F;font-weight:500;background:none;border:none;cursor:pointer;padding:0;margin-bottom:18px" style-hover="color:#1B1B19">{{ icons.arrowLeft }}Mes alternants</button>
+
+          <div style="background:#fff;border:1px solid #E6E5DF;border-radius:18px;padding:20px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+            <image-slot id="{{ sel.avId }}" shape="circle" fallback="{{ sel.initials }}" fallback-bg="{{ sel.avBg }}" fallback-color="{{ sel.avColor }}" placeholder="Photo" style="width:56px;height:56px;flex:none"></image-slot>
+            <div style="flex:1;min-width:200px"><div style="font-size:20px;font-weight:700;letter-spacing:-.01em">{{ sel.fullName }}</div><div style="font-size:13.5px;color:#76766F;margin-top:3px">{{ sel.promo }} · {{ sel.entreprise }}</div></div>
+            <span style="display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:9px;background:#F4F4F0;font-size:12.5px;font-weight:600;color:#44443F">{{ icons.calendar }}Semestre 3</span>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+              <div style="width:58px;height:58px;border-radius:50%;background:conic-gradient(var(--accent) {{ sel.deg }}, #EDEDE9 0);display:flex;align-items:center;justify-content:center"><div style="width:44px;height:44px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">{{ sel.pct }}</div></div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:18px">
+            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+              <sc-for list="{{ levelLegend }}" as="l" hint-placeholder-count="4"><div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:{{ l.dot }}"></span><span style="font-size:12px;color:#76766F">{{ l.label }}</span></div></sc-for>
+            </div>
+            <button onClick="{{ saveEval }}" style="{{ saveBtnStyle }}"><span style="display:flex">{{ saveIcon }}</span>{{ saveLabel }}</button>
+          </div>
+
+          <div style="background:#fff;border:1px solid #E6E5DF;border-radius:14px;padding:11px 16px;margin-top:14px;display:flex;align-items:center;gap:10px;font-size:13px;color:#5B5B55"><span style="display:flex;color:var(--accent-strong)">{{ icons.info }}</span>Vous renseignez la colonne <strong style="font-weight:600;margin:0 3px">{{ persona.colLabel }}</strong>. Les autres évaluations sont en lecture seule.</div>
+
+          <div style="display:flex;flex-direction:column;gap:12px;margin-top:14px">
+            <sc-for list="{{ blocs }}" as="b" hint-placeholder-count="4">
+              <div style="background:#fff;border:1px solid #E6E5DF;border-radius:16px;overflow:hidden">
+                <div style="display:flex;align-items:center;gap:11px;padding:14px 18px;background:#FCFCFB;border-bottom:1px solid #F2F2EE">
+                  <span style="font-size:11.5px;font-weight:700;color:var(--accent-strong);background:var(--accent-soft);padding:3px 8px;border-radius:6px;font-family:'Geist Mono',monospace;flex:none">{{ b.code }}</span>
+                  <span style="font-size:14.5px;font-weight:600;flex:1;min-width:0">{{ b.name }}</span>
+                  <span style="font-size:12px;color:#86867F;white-space:nowrap">{{ b.acquired }}</span>
+                </div>
+                <div>
+                  <sc-for list="{{ b.comps }}" as="c" hint-placeholder-count="3">
+                    <div style="display:flex;align-items:center;gap:16px;padding:12px 18px;border-bottom:1px solid #F4F4F0;flex-wrap:wrap">
+                      <div style="flex:1;min-width:200px;font-size:13.5px;color:#33332F;font-weight:500">{{ c.name }}</div>
+                      <div style="display:flex;align-items:center;gap:8px">
+                        <sc-for list="{{ c.readChips }}" as="r" hint-placeholder-count="2"><div title="{{ r.title }}" style="display:flex;align-items:center;gap:6px"><span style="width:22px;height:22px;border-radius:6px;background:{{ r.bg }};color:{{ r.color }};display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700">{{ r.letter }}</span><span style="font-size:11.5px;color:{{ r.color }};font-weight:600;width:64px">{{ r.label }}</span></div></sc-for>
+                      </div>
+                      <div style="display:flex;align-items:center;gap:9px;flex:none">
+                        <span style="font-size:11px;font-weight:600;color:#A0A099;white-space:nowrap">{{ c.editTag }}</span>
+                        <div style="display:flex;gap:3px">
+                          <sc-for list="{{ c.editButtons }}" as="e" hint-placeholder-count="4"><button onClick="{{ e.onClick }}" title="{{ e.title }}" style="{{ e.style }}">{{ e.short }}</button></sc-for>
+                        </div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <!-- journal à valider (entreprise) -->
+          <sc-if value="{{ showJournalValidation }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:15px;font-weight:600;margin:28px 0 14px">Journal à valider</div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <sc-for list="{{ journalToValidate }}" as="j" hint-placeholder-count="2">
+                <div style="background:#fff;border:1px solid #E6E5DF;border-radius:14px;padding:16px 18px">
+                  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+                    <div style="font-size:14.5px;font-weight:600">{{ j.title }}</div>
+                    <span style="font-size:12px;color:#A0A099;white-space:nowrap">{{ j.date }}</span>
+                  </div>
+                  <div style="font-size:13.5px;color:#6E6E68;line-height:1.55;margin-top:7px">{{ j.text }}</div>
+                  <div style="display:flex;align-items:center;gap:9px;margin-top:13px">
+                    <button onClick="{{ j.onValidate }}" style="display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:var(--accent-strong)">{{ icons.check }}Valider</button>
+                    <button style="padding:7px 13px;border:1px solid #E0E0DB;border-radius:8px;background:#fff;color:#5B5B55;font-size:13px;font-weight:500;cursor:pointer" style-hover="background:#F4F4F0">Demander une précision</button>
+                  </div>
+                </div>
+              </sc-for>
+              <sc-if value="{{ journalValidatedEmpty }}" hint-placeholder-val="{{ false }}"><div style="background:#fff;border:1px solid #E6E5DF;border-radius:14px;padding:22px;text-align:center;font-size:13.5px;color:#1F7A63;font-weight:500;display:flex;align-items:center;justify-content:center;gap:9px">{{ icons.check }}Toutes les entrées sont validées.</div></sc-if>
+            </div>
+          </sc-if>
+        </sc-if>
+
+        <!-- BILANS -->
+        <sc-if value="{{ isBilans }}" hint-placeholder-val="{{ false }}">
+          <h1 style="font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0">Bilans</h1>
+          <p style="font-size:14.5px;color:#76766F;margin:8px 0 0">Les rendez-vous tripartites de vos alternants.</p>
+          <div style="display:flex;flex-direction:column;gap:12px;margin-top:24px">
+            <sc-for list="{{ bilans }}" as="b" hint-placeholder-count="3">
+              <a href="Fiche Bilan.dc.html" style="background:#fff;border:1px solid #E6E5DF;border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;cursor:pointer" style-hover="border-color:var(--accent)">
+                <div style="width:46px;height:46px;border-radius:12px;background:{{ b.iconBg }};color:{{ b.iconColor }};display:flex;align-items:center;justify-content:center;flex:none">{{ icons.calendar }}</div>
+                <div style="flex:1;min-width:180px"><div style="font-size:15px;font-weight:600">{{ b.alt }}</div><div style="font-size:13px;color:#6E6E68;margin-top:3px">{{ b.label }}</div></div>
+                <div style="text-align:right;min-width:130px"><div style="font-size:13px;font-weight:600">{{ b.date }}</div><span style="display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:{{ b.statusColor }};margin-top:3px"><span style="width:6px;height:6px;border-radius:50%;background:{{ b.statusColor }}"></span>{{ b.statusLabel }}</span></div>
+              </a>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- SUPPORT -->
+        <sc-if value="{{ isSupport }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
+            <div style="max-width:560px"><h1 style="font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0">Support</h1><p style="font-size:14.5px;color:#76766F;margin:8px 0 0;line-height:1.5">Un blocage avec la plateforme ou le suivi d'un alternant ? Ouvrez un ticket à l'équipe support.</p></div>
+            <button onClick="{{ openTicket }}" style="display:flex;align-items:center;gap:8px;padding:11px 16px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(31,122,99,.25);flex:none" style-hover="background:var(--accent-strong)">{{ icons.plus }}Nouveau ticket</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;margin-top:24px">
+            <sc-for list="{{ tickets }}" as="t" hint-placeholder-count="2">
+              <div style="background:#fff;border:1px solid #E6E5DF;border-radius:14px;padding:16px 18px">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+                  <div style="font-size:15px;font-weight:600">{{ t.subject }}</div>
+                  <span style="display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 8px;border-radius:999px;font-size:11.5px;font-weight:600;background:{{ t.statusBg }};color:{{ t.statusColor }};white-space:nowrap;flex:none"><span style="width:6px;height:6px;border-radius:50%;background:{{ t.statusColor }}"></span>{{ t.statusLabel }}</span>
+                </div>
+                <div style="font-size:13.5px;color:#6E6E68;line-height:1.55;margin-top:7px">{{ t.text }}</div>
+                <div style="display:flex;align-items:center;gap:8px;margin-top:13px;flex-wrap:wrap">
+                  <span style="display:inline-flex;align-items:center;padding:3px 10px;border-radius:7px;font-size:11.5px;font-weight:600;background:{{ t.typeBg }};color:{{ t.typeColor }}">{{ t.typeLabel }}</span>
+                  <span style="display:inline-flex;align-items:center;padding:3px 10px;border-radius:7px;font-size:11.5px;font-weight:600;background:{{ t.prioBg }};color:{{ t.prioColor }}">{{ t.prioLabel }}</span>
+                  <span style="flex:1"></span>
+                  <span style="font-size:12px;color:#A0A099">{{ t.date }}</span>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ ticketsEmpty }}" hint-placeholder-val="{{ false }}"><div style="background:#fff;border:1px solid #E6E5DF;border-radius:14px;padding:40px;text-align:center"><div style="font-size:15px;font-weight:600;color:#44443F">Aucun ticket</div><div style="font-size:13.5px;color:#9A9A93;margin-top:5px">Ouvrez un ticket dès que vous rencontrez un problème.</div></div></sc-if>
+          </div>
+        </sc-if>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- TICKET MODAL -->
+  <sc-if value="{{ ticketModalOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:24px">
+      <div onClick="{{ closeTicket }}" style="position:absolute;inset:0;background:rgba(22,22,20,.4)"></div>
+      <div style="position:relative;width:520px;max-width:100%;max-height:88vh;overflow-y:auto;background:#fff;border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.25)">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:20px 22px;border-bottom:1px solid #EFEFEA">
+          <div><div style="font-size:17px;font-weight:700">Nouveau ticket</div><div style="font-size:12.5px;color:#86867F;margin-top:3px">Décrivez votre demande ou le problème rencontré.</div></div>
+          <button onClick="{{ closeTicket }}" style="width:32px;height:32px;border-radius:9px;border:1px solid #E6E5DF;background:#fff;color:#76766F;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none" style-hover="background:#F4F4F0">{{ icons.x }}</button>
+        </div>
+        <div style="padding:18px 22px">
+          <label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin-bottom:6px">Sujet</label>
+          <input value="{{ ticketForm.subject }}" onChange="{{ onTicketSubject }}" placeholder="Résumez votre demande en quelques mots…" style="width:100%;padding:10px 12px;border:1px solid #E0E0DB;border-radius:9px;font-size:14px;background:#fff;outline:none;color:#1B1B19" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)" />
+          <label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin:15px 0 9px">Type de demande</label>
+          <div style="display:flex;gap:8px"><sc-for list="{{ ticketTypeOptions }}" as="t" hint-placeholder-count="2"><button onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</button></sc-for></div>
+          <label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin:15px 0 6px">Priorité</label>
+          <select value="{{ ticketForm.priority }}" onChange="{{ onTicketPriority }}" style="width:100%;padding:10px 12px;border:1px solid #E0E0DB;border-radius:9px;font-size:14px;background:#fff;outline:none;color:#1B1B19" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)"><option value="basse">Basse</option><option value="moyenne">Moyenne</option><option value="haute">Haute</option></select>
+          <label style="display:block;font-size:12.5px;font-weight:600;color:#44443F;margin:15px 0 6px">Description</label>
+          <textarea value="{{ ticketForm.text }}" onChange="{{ onTicketText }}" placeholder="Donnez le maximum de détails (étapes, message d'erreur…)" rows="4" style="width:100%;padding:10px 12px;border:1px solid #E0E0DB;border-radius:9px;font-size:13.5px;background:#fff;outline:none;resize:vertical;line-height:1.5;color:#1B1B19" style-focus="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)"></textarea>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid #EFEFEA">
+          <button onClick="{{ closeTicket }}" style="padding:10px 16px;border:1px solid #E0E0DB;border-radius:9px;background:#fff;color:#44443F;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#F4F4F0">Annuler</button>
+          <button onClick="{{ submitTicket }}" style="{{ ticketSubmitStyle }}">{{ icons.check }}Envoyer le ticket</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+    <div role="status" aria-live="polite" style="position:fixed;left:50%;bottom:24px;transform:translate(-50%,0);z-index:200;display:flex;align-items:center;gap:11px;background:#1B1B19;color:#fff;padding:11px 13px 11px 15px;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.28);max-width:92vw;animation:kz-toast .26s cubic-bezier(.22,.61,.36,1)">
+      <span style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;flex:none">{{ toastIcon }}</span>
+      <span style="font-size:13.5px;font-weight:500">{{ toastMessage }}</span>
+      <button onClick="{{ dismissToast }}" aria-label="Fermer la notification" style="width:26px;height:26px;border-radius:7px;border:none;background:transparent;color:#A8A8A2;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none">{{ toastClose }}</button>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;accent&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;Teal&quot;, &quot;Corail&quot;, &quot;Océan&quot;], &quot;default&quot;: &quot;Teal&quot;, &quot;tsType&quot;: &quot;string&quot; }
+}">
+class Component extends DCLogic {
+  referentiel = [
+    { id: 'b1', code: 'BC01', name: "Concevoir et développer des composants d'interface", comps: [
+      { id: 'c1', name: 'Maquetter une application' }, { id: 'c2', name: 'Développer une interface utilisateur web' }, { id: 'c3', name: "Développer des composants d'accès aux données" }
+    ] },
+    { id: 'b2', code: 'BC02', name: 'Concevoir et développer la persistance des données', comps: [
+      { id: 'c4', name: 'Concevoir une base de données' }, { id: 'c5', name: 'Mettre en place une base de données' }, { id: 'c6', name: "Développer des composants dans le langage d'une base de données" }
+    ] },
+    { id: 'b3', code: 'BC03', name: 'Concevoir et développer une application multicouche', comps: [
+      { id: 'c7', name: 'Développer des composants métier' }, { id: 'c8', name: 'Concevoir une application gérée par les données' }, { id: 'c9', name: 'Préparer et exécuter les plans de tests' }, { id: 'c10', name: 'Déployer une application en intégration continue' }
+    ] },
+    { id: 'b4', code: 'BC04', name: 'Gérer un projet et collaborer en équipe agile', comps: [
+      { id: 'c11', name: 'Collaborer en gestion de projet agile' }, { id: 'c12', name: 'Concevoir une application sécurisée' }
+    ] }
+  ];
+  levels = [
+    { k: 0, label: 'Non acquis', short: 'NA', bg: '#EDEDE9', color: '#8A8A83', dot: '#C4C4BC' },
+    { k: 1, label: 'En cours', short: 'EC', bg: '#F7EFDA', color: '#9A6B12', dot: '#E0A93B' },
+    { k: 2, label: 'Acquis', short: 'A', bg: '#E4F2EC', color: '#2C7A63', dot: '#3FA98C' },
+    { k: 3, label: 'Maîtrisé', short: 'M', bg: '#D4EAE0', color: '#1F7A63', dot: '#1F7A63' }
+  ];
+
+  state = {
+    roleView: 'peda',
+    view: 'dashboard',
+    selId: null,
+    saved: false, dirty: false, toast: null,
+    ticketModalOpen: false,
+    ticketForm: { subject: '', type: 'demande', priority: 'moyenne', text: '' },
+    tickets: [
+      { id: 't1', subject: "Un alternant n'apparaît pas dans ma liste", type: 'bug', priority: 'haute', text: "Sofia Lemaire m'a été affectée par l'administrateur mais je ne la vois pas dans « Mes alternants ».", status: 'progress', date: '19 juin 2026' },
+      { id: 't2', subject: "Exporter les évaluations d'un semestre en PDF", type: 'demande', priority: 'basse', text: "Serait-il possible d'exporter la grille de compétences pour la joindre au dossier ?", status: 'open', date: '16 juin 2026' }
+    ],
+    alternants: this.seedAlternants(),
+    journal: {
+      al1: [
+        { id: 'j1', title: 'Mise en place du pipeline CI/CD', text: 'Configuration de GitHub Actions pour les tests et le déploiement automatique.', date: '18 juin 2026', validated: false },
+        { id: 'j2', title: "Refonte du module d'authentification", text: 'Implémentation JWT + refresh tokens et revue de sécurité.', date: '5 juin 2026', validated: false },
+        { id: 'j3', title: 'Tableau de bord client', text: 'Composants React et intégration API.', date: '22 mai 2026', validated: true }
+      ]
+    }
+  };
+
+  seedAlternants() {
+    const clamp = v => Math.max(0, Math.min(3, v));
+    const hash = s => (s || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+    const ref = this.referentiel;
+    const mk = (base) => { const ev = {}; ref.forEach(b => b.comps.forEach(c => { const h = hash(c.id); const p = clamp(base + (h % 3 - 1)); ev[c.id] = { a: clamp(p + 1), e: clamp(p + (h % 2 ? 0 : -1)), p: clamp(p) }; })); return ev; };
+    return [
+      { id: 'al1', prenom: 'Lucas', nom: 'Girard', promo: 'Expert Dév. Full Stack', entreprise: 'Capgemini', tuteurPeda: 'Julien Mercier', tuteurEntreprise: 'Marc Dubois', ev: mk(2) },
+      { id: 'al2', prenom: 'Yanis', nom: 'Benali', promo: 'Expert Dév. Full Stack', entreprise: 'BNP Paribas', tuteurPeda: 'Julien Mercier', tuteurEntreprise: 'Claire Petit', ev: mk(2) },
+      { id: 'al3', prenom: 'Hugo', nom: 'Caron', promo: 'Expert Dév. Full Stack', entreprise: 'Ubisoft', tuteurPeda: 'Julien Mercier', tuteurEntreprise: 'Hugo Bernard', ev: mk(1) },
+      { id: 'al4', prenom: 'Sofia', nom: 'Lemaire', promo: 'Architecte Logiciel', entreprise: 'Capgemini', tuteurPeda: 'Sophie Laurent', tuteurEntreprise: 'Marc Dubois', ev: mk(1) }
+    ];
+  }
+
+  componentDidMount() { this.applyTheme(); }
+  componentDidUpdate() { this.applyTheme(); }
+  applyTheme() {
+    const map = {
+      'peda': { a: '#2E9E82', s: '#1F7A63', soft: '#E8F4EF', sidebar: '#103A30', glow: 'rgba(46,158,130,.18)' },
+      'entreprise': { a: '#E06A41', s: '#B54F2C', soft: '#FBEBE3', sidebar: '#3A2218', glow: 'rgba(224,106,65,.18)' }
+    };
+    const t = map[this.state.roleView] || map['peda'];
+    const r = document.documentElement;
+    r.style.setProperty('--accent', t.a); r.style.setProperty('--accent-strong', t.s); r.style.setProperty('--accent-soft', t.soft);
+    r.style.setProperty('--sidebar', t.sidebar); r.style.setProperty('--sidebar-glow', t.glow);
+  }
+
+  avatarPalette = [{ bg: '#E4F2EC', color: '#1F7A63' }, { bg: '#FBEAE1', color: '#B5572F' }, { bg: '#E8EEF7', color: '#3D5E8E' }, { bg: '#F7EFDA', color: '#8A6516' }, { bg: '#EEE7F5', color: '#6B4E96' }];
+  hash(s) { return (s || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0); }
+  avatarFor(s) { return this.avatarPalette[this.hash(s) % this.avatarPalette.length]; }
+  initialsOf(p, n) { return ((p ? p[0] : '') + (n ? n[0] : '')).toUpperCase(); }
+  slug(name) { return 'kz-av-' + (name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''); }
+
+  persona() {
+    return this.state.roleView === 'peda'
+      ? { name: 'Julien Mercier', firstName: 'Julien', role: 'Tuteur pédagogique', roleLower: 'tuteur pédagogique', org: 'EPITECH Paris', col: 'p', colLabel: 'Tuteur pédagogique', initials: 'JM', avBg: '#E8EEF7', avColor: '#3D5E8E', avId: 'kz-av-julien-mercier' }
+      : { name: 'Marc Dubois', firstName: 'Marc', role: "Tuteur d'entreprise", roleLower: "tuteur d'entreprise", org: 'Capgemini', col: 'e', colLabel: "Tuteur d'entreprise", initials: 'MD', avBg: '#FBEAE1', avColor: '#B5572F', avId: 'kz-av-marc-dubois' };
+  }
+  myAlternantsRaw() {
+    const p = this.persona();
+    return this.state.alternants.filter(a => p.col === 'p' ? a.tuteurPeda === p.name : a.tuteurEntreprise === p.name);
+  }
+  altOverall(a) { const vals = this.referentiel.flatMap(b => b.comps.map(c => a.ev[c.id].p)); return Math.round(vals.reduce((s, v) => s + v, 0) / (vals.length * 3) * 100); }
+
+  setEval(altId, compId, col, lvl) { this.setState(s => ({ dirty: true, alternants: s.alternants.map(a => a.id === altId ? { ...a, ev: { ...a.ev, [compId]: { ...a.ev[compId], [col]: lvl } } } : a) })); }
+  saveEval() { this.setState({ saved: false, dirty: false }); this.showToast('Évaluation enregistrée'); }
+  validateJournal(id) { this.setState(s => ({ journal: { ...s.journal, al1: (s.journal.al1 || []).map(j => j.id === id ? { ...j, validated: true } : j) } })); this.showToast('Entrée de journal validée'); }
+  showToast(message) {
+    if (this._toastTimer) clearTimeout(this._toastTimer);
+    const id = Date.now();
+    this.setState({ toast: { id, message } });
+    this._toastTimer = setTimeout(() => this.setState(s => (s.toast && s.toast.id === id ? { toast: null } : null)), 4000);
+  }
+  dismissToast() { if (this._toastTimer) clearTimeout(this._toastTimer); this.setState({ toast: null }); }
+  openTicket() { this.setState({ ticketModalOpen: true, ticketForm: { subject: '', type: 'demande', priority: 'moyenne', text: '' } }); }
+  closeTicket() { this.setState({ ticketModalOpen: false }); }
+  setTicket(k, v) { this.setState(s => ({ ticketForm: { ...s.ticketForm, [k]: v } })); }
+  submitTicket() {
+    const f = this.state.ticketForm;
+    if (!f.subject.trim()) return;
+    this.setState(s => ({ ticketModalOpen: false, tickets: [{ id: 't' + Date.now(), subject: f.subject, type: f.type, priority: f.priority, text: f.text.trim() || '—', status: 'open', date: '23 juin 2026' }, ...s.tickets] }));
+    this.showToast('Ticket envoyé');
+  }
+
+  renderVals() {
+    const st = this.state;
+    const icons = this.buildIcons();
+    const persona = this.persona();
+    const L = this.levels;
+    const col = persona.col;
+
+    const roleTabs = [['peda', 'Pédagogique'], ['entreprise', 'Entreprise']].map(([k, label]) => {
+      const a = k === st.roleView;
+      return { label, onClick: () => this.setState({ roleView: k, view: 'dashboard', selId: null, dirty: false }), style: `flex:1;padding:7px 10px;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;background:${a ? '#fff' : 'transparent'};color:${a ? '#1B1B19' : 'rgba(255,255,255,.6)'};box-shadow:${a ? '0 1px 2px rgba(0,0,0,.16)' : 'none'}` };
+    });
+
+    const raw = this.myAlternantsRaw();
+    const toEvalCount = raw.reduce((sum, a) => sum + this.referentiel.flatMap(b => b.comps).filter(c => a.ev[c.id][col] === 0).length, 0);
+    const navDefs = [
+      { key: 'dashboard', label: 'Tableau de bord', icon: icons.dash },
+      { key: 'alternants', label: 'Mes alternants', icon: icons.users, badge: toEvalCount > 0 ? String(toEvalCount) : '' },
+      { key: 'echeancier', label: 'Échéancier', icon: icons.calendarRange, link: 'Échéancier.dc.html' },
+      { key: 'bilans', label: 'Bilans', icon: icons.calendar },
+      { key: 'support', label: 'Support', icon: icons.buoy }
+    ];
+    const navItems = navDefs.map(n => { const active = (n.key === st.view) || (n.key === 'alternants' && st.view === 'evaluation'); return { ...n, showBadge: !!n.badge && !active, badge: n.badge, bg: active ? 'var(--accent)' : 'transparent', color: active ? '#fff' : 'rgba(255,255,255,.62)', hover: active ? 'background:var(--accent)' : 'background:rgba(255,255,255,.07);color:#fff', weight: active ? 600 : 500, onClick: n.link ? () => { window.location.href = n.link; } : () => this.setState({ view: n.key }) }; });
+
+    const labels = { dashboard: 'Tableau de bord', alternants: 'Mes alternants', evaluation: 'Évaluation', bilans: 'Bilans', support: 'Support' };
+    const tStyle = { demande: { label: 'Demande', bg: '#E8EEF7', color: '#3D5E8E' }, bug: { label: 'Bug', bg: '#FBEAE1', color: '#B5432A' } };
+    const pStyle = { basse: { label: 'Priorité basse', bg: '#EDEDE9', color: '#6E6E68' }, moyenne: { label: 'Priorité moyenne', bg: '#F7EFDA', color: '#8A6516' }, haute: { label: 'Priorité haute', bg: '#FBE3DC', color: '#B5432A' } };
+    const sStyle = { open: { label: 'Ouvert', color: '#9A6B12', bg: '#F7EFDA' }, progress: { label: 'En cours', color: '#3D5E8E', bg: '#E8EEF7' }, resolved: { label: 'Résolu', color: '#1F7A63', bg: '#E4F2EC' } };
+    const tickets = st.tickets.map(t => ({ ...t, typeLabel: tStyle[t.type].label, typeBg: tStyle[t.type].bg, typeColor: tStyle[t.type].color, prioLabel: pStyle[t.priority].label, prioBg: pStyle[t.priority].bg, prioColor: pStyle[t.priority].color, statusLabel: sStyle[t.status].label, statusColor: sStyle[t.status].color, statusBg: sStyle[t.status].bg }));
+    const ticketTypeOptions = [['demande', 'Demande'], ['bug', 'Signaler un bug']].map(([k, label]) => { const sel = st.ticketForm.type === k; return { label, onClick: () => this.setTicket('type', k), style: `flex:1;padding:9px 12px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;text-align:center;background:${sel ? 'var(--accent-soft)' : '#fff'};border:1.5px solid ${sel ? 'var(--accent)' : '#E8E8E3'};color:${sel ? 'var(--accent-strong)' : '#3A3A35'}` }; });
+
+    const myAlternants = raw.map(a => {
+      const av = this.avatarFor(a.prenom + a.nom);
+      const todo = this.referentiel.flatMap(b => b.comps).filter(c => a.ev[c.id][col] === 0).length;
+      return { ...a, fullName: a.prenom + ' ' + a.nom, initials: this.initialsOf(a.prenom, a.nom), avBg: av.bg, avColor: av.color, avId: this.slug(a.prenom + ' ' + a.nom), pct: this.altOverall(a) + '%', hasTodo: todo > 0, todoLabel: todo + ' à évaluer', onOpen: () => this.setState({ view: 'evaluation', selId: a.id, dirty: false }) };
+    });
+
+    const avgProg = raw.length ? Math.round(raw.reduce((s, a) => s + this.altOverall(a), 0) / raw.length) : 0;
+    const stats = [
+      { label: 'Mes alternants', value: String(raw.length), sub: 'en suivi', icon: icons.users, chipBg: 'var(--accent-soft)', chipColor: 'var(--accent-strong)' },
+      { label: 'À évaluer', value: String(toEvalCount), sub: 'compétences', icon: icons.target, chipBg: '#F7EFDA', chipColor: '#9A6B12' },
+      { label: 'Bilans à venir', value: '2', sub: 'ce trimestre', icon: icons.calendar, chipBg: '#E8EEF7', chipColor: '#3D5E8E' },
+      { label: 'Progression moyenne', value: avgProg + '%', sub: 'de mes alternants', icon: icons.trend, chipBg: 'var(--accent-soft)', chipColor: 'var(--accent-strong)' }
+    ];
+
+    // evaluation view
+    const selAlt = st.alternants.find(a => a.id === st.selId) || raw[0] || st.alternants[0];
+    const letterMap = { a: 'A', e: 'E', p: 'P' }, whoMap = { a: 'Auto-évaluation', e: 'Tuteur entreprise', p: 'Tuteur pédagogique' };
+    const readers = ['a', 'e', 'p'].filter(k => k !== col);
+    const blocs = this.referentiel.map(b => {
+      const comps = b.comps.map(c => {
+        const ev = selAlt ? selAlt.ev[c.id] : { a: 0, e: 0, p: 0 };
+        const readChips = readers.map(k => { const lv = L[ev[k]]; return { letter: letterMap[k], bg: lv.bg, color: lv.color, label: lv.label, title: whoMap[k] + ' : ' + lv.label }; });
+        const cur = ev[col];
+        const editButtons = L.map(l => ({ short: l.short, title: l.label, onClick: () => this.setEval(selAlt.id, c.id, col, l.k), style: `width:34px;height:30px;border-radius:7px;border:1px solid ${l.k === cur ? l.dot : '#E6E6E1'};background:${l.k === cur ? l.dot : '#fff'};color:${l.k === cur ? '#fff' : '#9A9A93'};font-size:11.5px;font-weight:700;cursor:pointer` }));
+        return { ...c, readChips, editButtons, editTag: 'Votre éval.' };
+      });
+      const acq = b.comps.filter(c => (selAlt ? selAlt.ev[c.id].p : 0) >= 2).length;
+      return { ...b, comps, acquired: acq + '/' + b.comps.length + ' acquises' };
+    });
+    const selView = selAlt ? { fullName: selAlt.prenom + ' ' + selAlt.nom, initials: this.initialsOf(selAlt.prenom, selAlt.nom), avId: this.slug(selAlt.prenom + ' ' + selAlt.nom), promo: selAlt.promo, entreprise: selAlt.entreprise, avBg: this.avatarFor(selAlt.prenom + selAlt.nom).bg, avColor: this.avatarFor(selAlt.prenom + selAlt.nom).color, pct: this.altOverall(selAlt) + '%', deg: (this.altOverall(selAlt) * 3.6) + 'deg' } : {};
+
+    // journal validation (entreprise + Lucas selected)
+    const jr = (st.journal.al1 || []);
+    const pending = jr.filter(j => !j.validated);
+    const showJournalValidation = st.roleView === 'entreprise' && selAlt && selAlt.id === 'al1';
+    const journalToValidate = pending.map(j => ({ ...j, onValidate: () => this.validateJournal(j.id) }));
+
+    // bilans
+    const bilanStatus = { planned: { label: 'Planifié', color: '#9A6B12' }, signed: { label: 'Signé', color: '#1F7A63' }, done: { label: 'Réalisé', color: '#3D5E8E' } };
+    const bilansRaw = [
+      { alt: raw[0] ? raw[0].prenom + ' ' + raw[0].nom : 'Lucas Girard', label: 'Bilan de mi-parcours — S3', date: '2 juil. 2026', status: 'planned', iconBg: '#F7EFDA', iconColor: '#9A6B12' },
+      { alt: raw[1] ? raw[1].prenom + ' ' + raw[1].nom : 'Yanis Benali', label: 'Bilan de mi-parcours — S3', date: '4 juil. 2026', status: 'planned', iconBg: '#F7EFDA', iconColor: '#9A6B12' },
+      { alt: raw[0] ? raw[0].prenom + ' ' + raw[0].nom : 'Lucas Girard', label: 'Bilan semestriel — S2', date: '15 janv. 2026', status: 'signed', iconBg: '#E4F2EC', iconColor: '#1F7A63' }
+    ];
+    const bilans = bilansRaw.map(b => ({ ...b, statusLabel: bilanStatus[b.status].label, statusColor: bilanStatus[b.status].color }));
+
+    return {
+      notifs: [
+        { id: 'tn1', type: 'competence', title: 'Compétences à évaluer', detail: 'Lucas Girard · 4 compétences en attente', time: 'Il y a 30 min', href: '#', unread: true },
+        { id: 'tn2', type: 'bilan', title: 'Bilan à préparer', detail: 'Lucas Girard · mi-parcours S3 · 2 juil.', time: 'Il y a 3 h', href: 'Fiche Bilan.dc.html', unread: true },
+        { id: 'tn3', type: 'message', title: 'Nouveau message du trinôme', detail: 'Yanis Benali · « le format du rapport S2 ? »', time: 'Il y a 5 h', href: 'Messagerie.dc.html', unread: true },
+        { id: 'tn4', type: 'journal', title: 'Journal à valider', detail: 'Lucas Girard · 2 entrées en attente', time: 'Hier', href: '#', unread: false }
+      ],
+      icons, persona, roleTabs, navItems, pageLabel: labels[st.view],
+      hasToast: !!st.toast, toastMessage: st.toast ? st.toast.message : '', toastIcon: icons.check, toastClose: icons.x, dismissToast: () => this.dismissToast(),
+      isDashboard: st.view === 'dashboard', isAlternants: st.view === 'alternants', isEvaluation: st.view === 'evaluation', isBilans: st.view === 'bilans', isSupport: st.view === 'support',
+      tickets, ticketsEmpty: tickets.length === 0,
+      openTicket: () => this.openTicket(), closeTicket: () => this.closeTicket(), ticketModalOpen: st.ticketModalOpen,
+      ticketForm: st.ticketForm, ticketTypeOptions,
+      onTicketSubject: e => this.setTicket('subject', e.target.value), onTicketText: e => this.setTicket('text', e.target.value), onTicketPriority: e => this.setTicket('priority', e.target.value),
+      submitTicket: () => this.submitTicket(),
+      ticketSubmitStyle: `display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border:none;border-radius:9px;background:var(--accent);color:#fff;font-size:14px;font-weight:600;cursor:${st.ticketForm.subject.trim() ? 'pointer' : 'not-allowed'};opacity:${st.ticketForm.subject.trim() ? 1 : .5}`,
+      altCountLabel: raw.length + (raw.length > 1 ? ' alternants' : ' alternant'),
+      stats, myAlternants,
+      backToAlternants: () => this.setState({ view: 'alternants' }),
+      sel: selView, blocs, levelLegend: L.map(l => ({ label: l.label, dot: l.dot })),
+      saveEval: () => this.saveEval(),
+      saveLabel: st.dirty ? 'Enregistrer les évaluations' : 'Tout est enregistré',
+      saveIcon: st.dirty ? icons.save : icons.check,
+      saveBtnStyle: `display:inline-flex;align-items:center;gap:7px;padding:10px 16px;border:none;border-radius:10px;background:${st.dirty ? 'var(--accent)' : '#1F7A63'};color:#fff;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(31,122,99,.25);opacity:${st.dirty || st.saved ? 1 : .85}`,
+      showJournalValidation, journalToValidate, journalValidatedEmpty: pending.length === 0,
+      bilans
+    };
+  }
+
+  svg(parts, size) { return React.createElement('svg', { width: size || 19, height: size || 19, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' }, parts.map((p, i) => React.createElement(p[0], Object.assign({ key: i }, p[1])))); }
+  buildIcons() {
+    const S = (a, b) => this.svg(a, b);
+    return {
+      dash: S([['rect', { x: 3, y: 3, width: 7, height: 9, rx: 1 }], ['rect', { x: 14, y: 3, width: 7, height: 5, rx: 1 }], ['rect', { x: 14, y: 12, width: 7, height: 9, rx: 1 }], ['rect', { x: 3, y: 16, width: 7, height: 5, rx: 1 }]]),
+      users: S([['path', { d: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2' }], ['circle', { cx: 9, cy: 7, r: 4 }], ['path', { d: 'M22 21v-2a4 4 0 0 0-3-3.87' }], ['path', { d: 'M16 3.13a4 4 0 0 1 0 7.75' }]]),
+      calendar: S([['rect', { x: 3, y: 4, width: 18, height: 18, rx: 2 }], ['path', { d: 'M16 2v4' }], ['path', { d: 'M8 2v4' }], ['path', { d: 'M3 10h18' }]], 17),
+      calendarRange: S([['rect', { x: 3, y: 4, width: 18, height: 18, rx: 2 }], ['path', { d: 'M16 2v4' }], ['path', { d: 'M8 2v4' }], ['path', { d: 'M3 10h18' }], ['path', { d: 'M8 14h.01' }], ['path', { d: 'M12 14h.01' }], ['path', { d: 'M16 14h.01' }], ['path', { d: 'M8 18h.01' }], ['path', { d: 'M12 18h.01' }]], 17),
+      bell: S([['path', { d: 'M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9' }], ['path', { d: 'M10.3 21a1.94 1.94 0 0 0 3.4 0' }]], 18),
+      target: S([['circle', { cx: 12, cy: 12, r: 10 }], ['circle', { cx: 12, cy: 12, r: 6 }], ['circle', { cx: 12, cy: 12, r: 2 }]]),
+      trend: S([['path', { d: 'M16 7h6v6' }], ['path', { d: 'm22 7-8.5 8.5-5-5L2 17' }]]),
+      check: S([['path', { d: 'M20 6 9 17l-5-5' }]], 17),
+      save: S([['path', { d: 'M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z' }], ['path', { d: 'M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7' }], ['path', { d: 'M7 3v4a1 1 0 0 0 1 1h7' }]], 17),
+      arrowLeft: S([['path', { d: 'm12 19-7-7 7-7' }], ['path', { d: 'M19 12H5' }]], 17),
+      chevronRight: S([['path', { d: 'm9 18 6-6-6-6' }]], 18),
+      info: S([['circle', { cx: 12, cy: 12, r: 10 }], ['path', { d: 'M12 16v-4' }], ['path', { d: 'M12 8h.01' }]], 16),
+      buoy: S([['circle', { cx: 12, cy: 12, r: 10 }], ['path', { d: 'm4.93 4.93 4.24 4.24' }], ['path', { d: 'm14.83 9.17 4.24-4.24' }], ['path', { d: 'm14.83 14.83 4.24 4.24' }], ['path', { d: 'm9.17 14.83-4.24 4.24' }], ['circle', { cx: 12, cy: 12, r: 4 }]]),
+      x: S([['path', { d: 'M18 6 6 18' }], ['path', { d: 'm6 6 12 12' }]], 18),
+      plus: S([['path', { d: 'M5 12h14' }], ['path', { d: 'M12 5v14' }]], 17)
+    };
+  }
+}
+</script>
+</body>
+</html>
