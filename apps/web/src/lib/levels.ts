@@ -74,6 +74,18 @@ export const TICKET_TYPE_LABELS: Record<'bug' | 'demande', string> = {
   demande: 'Demande',
 };
 
+export const NOTIFICATION_TYPE_META: Record<
+  'journal' | 'message' | 'bilan' | 'echeance' | 'ticket' | 'system',
+  { label: string; dot: string }
+> = {
+  journal: { label: 'Journal', dot: 'bg-[#2E9E82]' },
+  message: { label: 'Message', dot: 'bg-[#4F7CF0]' },
+  bilan: { label: 'Bilan', dot: 'bg-[#6B5BD2]' },
+  echeance: { label: 'Échéance', dot: 'bg-[#E06A41]' },
+  ticket: { label: 'Support', dot: 'bg-[#9A6B12]' },
+  system: { label: 'Système', dot: 'bg-[#76766F]' },
+};
+
 export const EVALUATOR_LABELS: Record<EvaluatorRole, string> = {
   auto: 'Auto',
   peda: 'Tuteur péda.',

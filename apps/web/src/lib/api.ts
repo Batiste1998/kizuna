@@ -72,6 +72,23 @@ export interface BilansView {
   bilans: Bilan[];
 }
 
+export type NotificationType = 'journal' | 'message' | 'bilan' | 'echeance' | 'ticket' | 'system';
+
+export interface NotificationItem {
+  id: string;
+  type: NotificationType;
+  title: string;
+  detail: string | null;
+  href: string | null;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface NotificationsList {
+  unreadCount: number;
+  notifications: NotificationItem[];
+}
+
 export type TicketType = 'bug' | 'demande';
 export type TicketPriority = 'basse' | 'moyenne' | 'haute';
 export type TicketStatus = 'open' | 'in_progress' | 'resolved';
@@ -234,6 +251,11 @@ export const api = {
   },
   deleteDocument: (documentId: string) =>
     request<{ id: string }>(`/documents/${documentId}`, { method: 'DELETE' }),
+  getNotifications: () => request<NotificationsList>('/notifications'),
+  markNotificationRead: (id: string) =>
+    request<{ ok: true }>(`/notifications/${id}/read`, { method: 'POST' }),
+  markAllNotificationsRead: () =>
+    request<{ ok: true }>('/notifications/read-all', { method: 'POST' }),
   getTickets: () => request<{ canTriage: boolean; tickets: TicketSummary[] }>('/tickets'),
   createTicket: (input: {
     subject: string;

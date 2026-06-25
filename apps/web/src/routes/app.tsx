@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { signOut, useSession } from '#/lib/auth-client';
 import { Button } from '#/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
+import { NotificationsBell } from '#/components/notifications-bell';
 
 export const Route = createFileRoute('/app')({
   component: AppPage,
@@ -68,9 +69,12 @@ function AppPage() {
               {appRole}
             </span>
           </div>
-          <Button variant="outline" size="sm" onClick={handleSignOut}>
-            Se déconnecter
-          </Button>
+          <div className="flex items-center gap-2">
+            <NotificationsBell />
+            <Button variant="outline" size="sm" onClick={handleSignOut}>
+              Se déconnecter
+            </Button>
+          </div>
         </div>
       </header>
 
