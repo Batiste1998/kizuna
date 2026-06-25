@@ -1,0 +1,17 @@
+**/node_modules
+**/dist
+**/.output
+**/.nitro
+**/.tanstack
+**/.turbo
+**/coverage
+**/*.tsbuildinfo
+.git
+.github
+maquettes
+var
+apps/api/var
+**/*.log
+.env
+.env.*
+!.env.example

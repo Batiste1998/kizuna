@@ -91,11 +91,31 @@ Tous avec le mot de passe `Password123!` :
 | `pnpm db:seed`     | Insère les données de démo                    |
 | `pnpm db:studio`   | Drizzle Studio                                |
 
-## Roadmap (jalons commités)
+## Déploiement (production)
 
-1. **Fondations** — monorepo, schéma de données, auth + RBAC, squelette front, CI ← _en cours_
-2. Compétences / référentiel + tri-évaluation
-3. Journal d'activités → Bilans → Échéancier
-4. Messagerie → Documents → Support / tickets → Notifications
-5. Espaces Admin / Super Admin
-6. Déploiement (Docker / CD — Bloc 5)
+Images Docker multi-stage (`apps/api/Dockerfile`, `apps/web/Dockerfile`) + stack
+`docker-compose.prod.yml` (PostgreSQL + API + Web). L'API **applique les migrations au
+démarrage** puis sert l'application ; les documents uploadés sont persistés dans un volume.
+
+```bash
+# Secret obligatoire (32+ caractères)
+export BETTER_AUTH_SECRET=$(openssl rand -base64 32)
+# URLs publiques (à adapter au domaine)
+export API_PUBLIC_URL=http://localhost:3001
+export WEB_PUBLIC_URL=http://localhost:3000
+
+docker compose -f docker-compose.prod.yml up -d --build
+# (optionnel) données de démo :
+docker compose -f docker-compose.prod.yml exec api pnpm db:seed
+docker compose -f docker-compose.prod.yml exec api pnpm --filter @kizuna/api seed:users
+```
+
+> `VITE_API_URL` est inliné dans le bundle web au build (build-arg) ; il doit pointer vers
+> l'URL **publique** de l'API. La CI `.github/workflows/docker.yml` valide la construction des
+> deux images à chaque push.
+
+## Modules
+
+Auth/RBAC (Better Auth, 2FA, organisations) · Compétences (tri-évaluation) · Journal · Bilans ·
+Échéancier · Messagerie de trinôme · Documents · Support/Tickets · Notifications événementielles ·
+Espaces Alternant / Tuteur / Admin établissement / Super Admin.
