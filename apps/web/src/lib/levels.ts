@@ -30,6 +30,16 @@ export const BILAN_STATUS_META: Record<BilanStatus, { label: string; className: 
   signed: { label: 'Signé', className: 'bg-[#E4F2EC] text-[#2C7A63]' },
 };
 
+export const AUTHOR_RELATION_META: Record<
+  'alternant' | 'peda' | 'entreprise' | 'other',
+  { label: string; className: string }
+> = {
+  alternant: { label: 'Alternant', className: 'bg-[#E8F4EF] text-[#1F7A63]' },
+  peda: { label: 'Tuteur péda.', className: 'bg-[#EAF0F8] text-[#2E5288]' },
+  entreprise: { label: 'Tuteur entr.', className: 'bg-[#FBEBE3] text-[#B54F2C]' },
+  other: { label: 'Autre', className: 'bg-[#EDEDE9] text-[#76766F]' },
+};
+
 export const EVALUATOR_LABELS: Record<EvaluatorRole, string> = {
   auto: 'Auto',
   peda: 'Tuteur péda.',

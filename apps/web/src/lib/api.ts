@@ -72,6 +72,23 @@ export interface BilansView {
   bilans: Bilan[];
 }
 
+export type AuthorRelation = 'alternant' | 'peda' | 'entreprise' | 'other';
+
+export interface Message {
+  id: string;
+  body: string;
+  createdAt: string;
+  authorUserId: string;
+  authorName: string | null;
+  authorRelation: AuthorRelation;
+}
+
+export interface MessagerieView {
+  alternantProfilId: string;
+  canPost: boolean;
+  messages: Message[];
+}
+
 export interface Echeance {
   id: string;
   title: string;
@@ -141,5 +158,12 @@ export const api = {
     request<Echeance>(`/alternants/${alternantProfilId}/echeances`, {
       method: 'POST',
       body: JSON.stringify(input),
+    }),
+  getMessages: (alternantProfilId: string) =>
+    request<MessagerieView>(`/alternants/${alternantProfilId}/messages`),
+  sendMessage: (alternantProfilId: string, body: string) =>
+    request<Message>(`/alternants/${alternantProfilId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ body }),
     }),
 };

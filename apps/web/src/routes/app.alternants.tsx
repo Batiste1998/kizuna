@@ -111,6 +111,13 @@ function AlternantsPage() {
                     >
                       Échéancier
                     </Link>
+                    <Link
+                      to="/app/alternants/$alternantId/messagerie"
+                      params={{ alternantId: a.alternantProfilId }}
+                      className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium hover:border-brand"
+                    >
+                      Messagerie
+                    </Link>
                   </div>
                 </div>
               );
