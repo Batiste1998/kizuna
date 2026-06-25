@@ -36,6 +36,13 @@
       "when": 1782389877200,
       "tag": "0004_bouncy_korvac",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1782390170967,
+      "tag": "0005_careful_violations",
+      "breakpoints": true
     }
   ]
 }

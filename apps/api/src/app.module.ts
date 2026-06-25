@@ -9,6 +9,7 @@ import { BilansModule } from './bilans/bilans.module';
 import { CompetencesModule } from './competences/competences.module';
 import { EcheancierModule } from './echeancier/echeancier.module';
 import { JournalModule } from './journal/journal.module';
+import { MessagerieModule } from './messagerie/messagerie.module';
 import { HealthModule } from './health/health.module';
 
 @Module({
@@ -27,6 +28,7 @@ import { HealthModule } from './health/health.module';
     CompetencesModule,
     EcheancierModule,
     JournalModule,
+    MessagerieModule,
     HealthModule,
   ],
 })

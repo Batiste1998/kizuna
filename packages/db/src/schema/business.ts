@@ -202,3 +202,19 @@ export const echeance = pgTable('echeance', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * Messagerie de trinôme : un fil par alternant, visible et alimenté par
+ * l'alternant et ses deux tuteurs.
+ */
+export const message = pgTable('message', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  alternantProfilId: uuid('alternant_profil_id')
+    .notNull()
+    .references(() => alternantProfil.id, { onDelete: 'cascade' }),
+  authorUserId: text('author_user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  body: text('body').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});

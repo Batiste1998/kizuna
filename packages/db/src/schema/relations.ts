@@ -10,6 +10,7 @@ import {
   entreprise,
   evaluation,
   journalEntry,
+  message,
   promotion,
   referentiel,
 } from './business';
@@ -100,6 +101,15 @@ export const alternantProfilRelations = relations(alternantProfil, ({ one, many 
   evaluations: many(evaluation),
   journalEntries: many(journalEntry),
   bilans: many(bilan),
+  messages: many(message),
+}));
+
+export const messageRelations = relations(message, ({ one }) => ({
+  alternantProfil: one(alternantProfil, {
+    fields: [message.alternantProfilId],
+    references: [alternantProfil.id],
+  }),
+  author: one(user, { fields: [message.authorUserId], references: [user.id] }),
 }));
 
 export const bilanRelations = relations(bilan, ({ one }) => ({
