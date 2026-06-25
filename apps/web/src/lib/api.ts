@@ -72,6 +72,24 @@ export interface BilansView {
   bilans: Bilan[];
 }
 
+export type DocumentCategory = 'convention' | 'livret' | 'compte_rendu' | 'bulletin' | 'autre';
+
+export interface DocumentItem {
+  id: string;
+  category: DocumentCategory;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  uploadedByUserId: string | null;
+  createdAt: string;
+}
+
+export interface DocumentsView {
+  alternantProfilId: string;
+  canUpload: boolean;
+  documents: DocumentItem[];
+}
+
 export type AuthorRelation = 'alternant' | 'peda' | 'entreprise' | 'other';
 
 export interface Message {
@@ -166,4 +184,36 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ body }),
     }),
+  getDocuments: (alternantProfilId: string) =>
+    request<DocumentsView>(`/alternants/${alternantProfilId}/documents`),
+  uploadDocument: async (alternantProfilId: string, file: File, category: string) => {
+    const form = new FormData();
+    form.append('category', category);
+    form.append('file', file);
+    const res = await fetch(`${apiURL}/alternants/${alternantProfilId}/documents`, {
+      method: 'POST',
+      credentials: 'include',
+      body: form,
+    });
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { message?: string } | null;
+      throw new Error(body?.message ?? `Erreur ${res.status}`);
+    }
+    return res.json() as Promise<DocumentItem>;
+  },
+  deleteDocument: (documentId: string) =>
+    request<{ id: string }>(`/documents/${documentId}`, { method: 'DELETE' }),
+  downloadDocument: async (documentId: string, fileName: string) => {
+    const res = await fetch(`${apiURL}/documents/${documentId}/download`, {
+      credentials: 'include',
+    });
+    if (!res.ok) throw new Error('Téléchargement impossible');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
 };

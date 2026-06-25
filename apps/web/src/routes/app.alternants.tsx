@@ -118,6 +118,13 @@ function AlternantsPage() {
                     >
                       Messagerie
                     </Link>
+                    <Link
+                      to="/app/alternants/$alternantId/documents"
+                      params={{ alternantId: a.alternantProfilId }}
+                      className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium hover:border-brand"
+                    >
+                      Documents
+                    </Link>
                   </div>
                 </div>
               );

@@ -40,6 +40,17 @@ export const AUTHOR_RELATION_META: Record<
   other: { label: 'Autre', className: 'bg-[#EDEDE9] text-[#76766F]' },
 };
 
+export const DOCUMENT_CATEGORY_LABELS: Record<
+  'convention' | 'livret' | 'compte_rendu' | 'bulletin' | 'autre',
+  string
+> = {
+  convention: 'Convention',
+  livret: 'Livret',
+  compte_rendu: 'Compte-rendu',
+  bulletin: 'Bulletin',
+  autre: 'Autre',
+};
+
 export const EVALUATOR_LABELS: Record<EvaluatorRole, string> = {
   auto: 'Auto',
   peda: 'Tuteur péda.',
