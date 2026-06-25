@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { validateEnv } from './config/env.validation';
 import { DatabaseModule } from './database/database.module';
 import { AccessModule } from './access/access.module';
+import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
 import { AlternantsModule } from './alternants/alternants.module';
 import { BilansModule } from './bilans/bilans.module';
@@ -25,6 +26,7 @@ import { HealthModule } from './health/health.module';
     }),
     DatabaseModule,
     AccessModule,
+    AdminModule,
     AuthModule,
     AlternantsModule,
     BilansModule,
