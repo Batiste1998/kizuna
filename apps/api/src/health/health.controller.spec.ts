@@ -4,7 +4,7 @@ import { DatabaseService } from '../database/database.service';
 
 describe('HealthController', () => {
   it('reports ok when the database responds', async () => {
-    const databaseMock = { db: { execute: jest.fn().mockResolvedValue(undefined) } };
+    const databaseMock = { db: { execute: vi.fn().mockResolvedValue(undefined) } };
     const moduleRef = await Test.createTestingModule({
       controllers: [HealthController],
       providers: [{ provide: DatabaseService, useValue: databaseMock }],
@@ -19,7 +19,7 @@ describe('HealthController', () => {
   });
 
   it('reports degraded when the database throws', async () => {
-    const databaseMock = { db: { execute: jest.fn().mockRejectedValue(new Error('down')) } };
+    const databaseMock = { db: { execute: vi.fn().mockRejectedValue(new Error('down')) } };
     const moduleRef = await Test.createTestingModule({
       controllers: [HealthController],
       providers: [{ provide: DatabaseService, useValue: databaseMock }],
