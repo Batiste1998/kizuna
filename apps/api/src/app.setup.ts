@@ -15,6 +15,13 @@ export function configureApp(app: INestApplication): void {
   const config = app.get(ConfigService);
   const auth = app.get<Auth>(AUTH);
 
+  // CORS must run BEFORE the Better Auth handler so cross-origin preflights
+  // (OPTIONS) and credentialed responses get the right headers.
+  app.enableCors({
+    origin: config.getOrThrow<string[]>('CORS_ORIGINS'),
+    credentials: true,
+  });
+
   app.use('/api/auth', toNodeHandler(auth));
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
@@ -22,9 +29,4 @@ export function configureApp(app: INestApplication): void {
   app.useGlobalPipes(
     new ValidationPipe({ whitelist: true, transform: true, forbidNonWhitelisted: true }),
   );
-
-  app.enableCors({
-    origin: config.getOrThrow<string[]>('CORS_ORIGINS'),
-    credentials: true,
-  });
 }

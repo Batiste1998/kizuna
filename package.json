@@ -24,7 +24,7 @@
     "docker:down": "docker compose down"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "onlyBuiltDependencies": ["esbuild", "lightningcss", "@tailwindcss/oxide"]
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

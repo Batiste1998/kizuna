@@ -1,0 +1,126 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap');
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+/*
+ * Kizuna design tokens — extracted from the original mockups (Design System.dc.html).
+ * shadcn/ui semantic variables are mapped onto Kizuna's palette so components
+ * inherit the product identity instead of the default shadcn look.
+ */
+:root {
+  --radius: 0.625rem; /* ~10px — Kizuna buttons/inputs */
+
+  /* Warm neutral ramp */
+  --background: #eeede7; /* app background */
+  --foreground: #1b1b19; /* ink */
+  --surface: #fafaf8;
+  --card: #ffffff;
+  --card-foreground: #1b1b19;
+  --popover: #ffffff;
+  --popover-foreground: #1b1b19;
+
+  --muted: #f0efe9;
+  --muted-foreground: #76766f;
+  --secondary: #f0efe9;
+  --secondary-foreground: #44443f;
+  --ui-accent: #e6e5df; /* shadcn hover surface (neutral, not the brand accent) */
+  --ui-accent-foreground: #44443f;
+
+  --border: #e0dfd8;
+  --input: #e0dfd8;
+  --destructive: #e5484d;
+
+  /* Brand accent — defaults to the platform (super admin) purple; overridden per role. */
+  --accent: #4f7cf0;
+  --accent-strong: #3b63cc;
+  --accent-soft: #eef2fd;
+  --sidebar: #14161c;
+
+  --primary: var(--accent);
+  --primary-foreground: #ffffff;
+  --ring: var(--accent);
+}
+
+/* Per-role accent identity (set data-role on a container or <html>). */
+[data-role='alternant'],
+[data-role='tuteur_pedagogique'] {
+  --accent: #2e9e82;
+  --accent-strong: #1f7a63;
+  --accent-soft: #e8f4ef;
+  --sidebar: #103a30;
+}
+[data-role='tuteur_entreprise'] {
+  --accent: #e06a41;
+  --accent-strong: #b54f2c;
+  --accent-soft: #fbebe3;
+  --sidebar: #3a2218;
+}
+[data-role='admin'] {
+  --accent: #3f6fb0;
+  --accent-strong: #2e5288;
+  --accent-soft: #eaf0f8;
+  --sidebar: #16243a;
+}
+[data-role='super_admin'] {
+  --accent: #4f7cf0;
+  --accent-strong: #3b63cc;
+  --accent-soft: #eef2fd;
+  --sidebar: #14161c;
+}
+[data-role='support'] {
+  --accent: #6b5bd2;
+  --accent-strong: #4f40b0;
+  --accent-soft: #efecfb;
+  --sidebar: #171a24;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--ui-accent);
+  --color-accent-foreground: var(--ui-accent-foreground);
+  --color-brand: var(--accent);
+  --color-brand-strong: var(--accent-strong);
+  --color-brand-soft: var(--accent-soft);
+  --color-sidebar: var(--sidebar);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+
+  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 8px);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  body {
+    margin: 0;
+    background: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
