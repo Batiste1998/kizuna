@@ -1,6 +1,6 @@
 import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { randomBytes, randomUUID } from 'node:crypto';
-import { and, asc, eq, inArray } from 'drizzle-orm';
+import { and, asc, eq, inArray, lt } from 'drizzle-orm';
 import { schema } from '@kizuna/db';
 import { DatabaseService } from '../database/database.service';
 import { AUTH } from '../auth/auth.constants';
@@ -11,6 +11,23 @@ import type { CreatableMemberRole } from '@kizuna/shared';
 export interface AdminOverview {
   organizationName: string;
   counts: { alternants: number; members: number; entreprises: number; promotions: number };
+}
+
+export interface AdminDashboard {
+  organizationName: string;
+  counts: {
+    alternants: number;
+    associationsComplete: number;
+    associationsPartial: number;
+    lateBilans: number;
+  };
+  suiviATraiter: Array<{
+    alternantProfilId: string;
+    name: string | null;
+    reason: string;
+    status: 'late' | 'incomplete';
+  }>;
+  promotions: Array<{ id: string; name: string; alternantCount: number; progressPct: number }>;
 }
 
 @Injectable()
@@ -68,6 +85,126 @@ export class AdminService {
         entreprises: entreprises.length,
         promotions: promotions.length,
       },
+    };
+  }
+
+  async dashboard(user: AuthUser): Promise<AdminDashboard> {
+    const orgId = await this.resolveOrg(user);
+    const [org] = await this.db
+      .select({ name: schema.organization.name })
+      .from(schema.organization)
+      .where(eq(schema.organization.id, orgId));
+
+    const profils = await this.db
+      .select({ id: schema.alternantProfil.id, userId: schema.alternantProfil.userId, promotionId: schema.alternantProfil.promotionId })
+      .from(schema.alternantProfil)
+      .where(eq(schema.alternantProfil.organizationId, orgId));
+    const profilIds = profils.map((p) => p.id);
+
+    const associations = profilIds.length
+      ? await this.db
+          .select()
+          .from(schema.association)
+          .where(inArray(schema.association.alternantProfilId, profilIds))
+      : [];
+    const assocByProfil = new Map(associations.map((a) => [a.alternantProfilId, a]));
+    const isComplete = (a?: (typeof associations)[number]) =>
+      !!(a && a.entrepriseId && a.tuteurPedaUserId && a.tuteurEntrepriseUserId);
+    const completeCount = profils.filter((p) => isComplete(assocByProfil.get(p.id))).length;
+
+    const lateBilans = profilIds.length
+      ? await this.db
+          .select({ alternantProfilId: schema.bilan.alternantProfilId })
+          .from(schema.bilan)
+          .where(
+            and(
+              inArray(schema.bilan.alternantProfilId, profilIds),
+              eq(schema.bilan.status, 'planned'),
+              lt(schema.bilan.scheduledAt, new Date()),
+            ),
+          )
+      : [];
+    const lateByProfil = new Set(lateBilans.map((b) => b.alternantProfilId));
+
+    const userIds = profils.map((p) => p.userId);
+    const users = userIds.length
+      ? await this.db
+          .select({ id: schema.user.id, name: schema.user.name })
+          .from(schema.user)
+          .where(inArray(schema.user.id, userIds))
+      : [];
+    const nameById = new Map(users.map((u) => [u.id, u.name]));
+
+    const suiviATraiter = profils
+      .map((p) => {
+        const a = assocByProfil.get(p.id);
+        const missing: string[] = [];
+        if (!a?.entrepriseId) missing.push('entreprise');
+        if (!a?.tuteurEntrepriseUserId) missing.push("tuteur d'entreprise");
+        if (!a?.tuteurPedaUserId) missing.push('tuteur pédagogique');
+        const late = lateByProfil.has(p.id);
+        return { id: p.id, name: nameById.get(p.userId) ?? null, late, missing };
+      })
+      .filter((x) => x.late || x.missing.length > 0)
+      .map((x) => ({
+        alternantProfilId: x.id,
+        name: x.name,
+        reason: x.late ? 'Bilan de suivi en retard' : `À assigner : ${x.missing.join(', ')}`,
+        status: (x.late ? 'late' : 'incomplete') as 'late' | 'incomplete',
+      }));
+
+    const promotions = await this.db
+      .select({ id: schema.promotion.id, name: schema.promotion.name })
+      .from(schema.promotion)
+      .where(eq(schema.promotion.organizationId, orgId));
+    const totalCompetences = (
+      await this.db.select({ id: schema.competence.id }).from(schema.competence)
+    ).length;
+    const evals = profilIds.length
+      ? await this.db
+          .select({
+            alternantProfilId: schema.evaluation.alternantProfilId,
+            level: schema.evaluation.level,
+          })
+          .from(schema.evaluation)
+          .where(
+            and(
+              inArray(schema.evaluation.alternantProfilId, profilIds),
+              eq(schema.evaluation.evaluator, 'auto'),
+            ),
+          )
+      : [];
+    const evaluatedByProfil = new Map<string, number>();
+    for (const e of evals) {
+      if (e.level !== 'NA')
+        evaluatedByProfil.set(e.alternantProfilId, (evaluatedByProfil.get(e.alternantProfilId) ?? 0) + 1);
+    }
+    const promoProgress = promotions.map((pr) => {
+      const inPromo = profils.filter((p) => p.promotionId === pr.id);
+      const pct =
+        inPromo.length && totalCompetences > 0
+          ? Math.round(
+              (inPromo.reduce(
+                (s, p) => s + Math.min(1, (evaluatedByProfil.get(p.id) ?? 0) / totalCompetences),
+                0,
+              ) /
+                inPromo.length) *
+                100,
+            )
+          : 0;
+      return { id: pr.id, name: pr.name, alternantCount: inPromo.length, progressPct: pct };
+    });
+
+    return {
+      organizationName: org?.name ?? '',
+      counts: {
+        alternants: profils.length,
+        associationsComplete: completeCount,
+        associationsPartial: profils.length - completeCount,
+        lateBilans: lateByProfil.size,
+      },
+      suiviATraiter: suiviATraiter.slice(0, 8),
+      promotions: promoProgress,
     };
   }
 

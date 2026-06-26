@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
 import {
+  Briefcase,
   Building2,
   CalendarClock,
   ClipboardCheck,
@@ -8,6 +9,7 @@ import {
   GraduationCap,
   LayoutDashboard,
   LifeBuoy,
+  Link2,
   LogOut,
   Menu,
   MessagesSquare,
@@ -42,6 +44,10 @@ const NAV_ICONS: Record<NavIcon, LucideIcon> = {
   users: Users,
   ecoles: GraduationCap,
   settings: SlidersHorizontal,
+  associations: Link2,
+  membres: Users,
+  entreprises: Briefcase,
+  promotions: GraduationCap,
 };
 
 /**

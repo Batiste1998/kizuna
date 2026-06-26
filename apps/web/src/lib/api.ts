@@ -130,6 +130,23 @@ export interface AdminOverview {
   counts: { alternants: number; members: number; entreprises: number; promotions: number };
 }
 
+export interface AdminDashboard {
+  organizationName: string;
+  counts: {
+    alternants: number;
+    associationsComplete: number;
+    associationsPartial: number;
+    lateBilans: number;
+  };
+  suiviATraiter: Array<{
+    alternantProfilId: string;
+    name: string | null;
+    reason: string;
+    status: 'late' | 'incomplete';
+  }>;
+  promotions: Array<{ id: string; name: string; alternantCount: number; progressPct: number }>;
+}
+
 export interface AdminAlternant {
   alternantProfilId: string;
   name: string | null;
@@ -389,6 +406,7 @@ export const api = {
   deleteSuperUser: (id: string) =>
     request<{ id: string }>(`/superadmin/users/${id}`, { method: 'DELETE' }),
   adminOverview: () => request<AdminOverview>('/admin/overview'),
+  adminDashboard: () => request<AdminDashboard>('/admin/dashboard'),
   adminAlternants: () => request<AdminAlternant[]>('/admin/alternants'),
   adminMembers: () => request<AdminMember[]>('/admin/members'),
   createAdminMember: (input: {

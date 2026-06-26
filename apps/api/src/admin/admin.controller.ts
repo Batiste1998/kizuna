@@ -20,6 +20,11 @@ export class AdminController {
     return this.service.overview(user);
   }
 
+  @Get('dashboard')
+  dashboard(@CurrentUser() user: AuthUser) {
+    return this.service.dashboard(user);
+  }
+
   @Get('alternants')
   alternants(@CurrentUser() user: AuthUser) {
     return this.service.listAlternants(user);

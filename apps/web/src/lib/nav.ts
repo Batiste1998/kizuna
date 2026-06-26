@@ -16,7 +16,11 @@ export type NavIcon =
   | 'compte'
   | 'users'
   | 'ecoles'
-  | 'settings';
+  | 'settings'
+  | 'associations'
+  | 'membres'
+  | 'entreprises'
+  | 'promotions';
 
 export interface NavItem {
   to: string;
@@ -68,6 +72,24 @@ export function navForMe(me: Me): NavSection[] {
           { to: '/app/ecoles', label: 'Écoles', icon: 'ecoles' },
           { to: '/app/support', label: 'Support', icon: 'support' },
           { to: '/app/compte', label: 'Paramètres', icon: 'settings' },
+        ],
+      },
+    ];
+  }
+
+  // School administrators get the dedicated "Espace école" navigation.
+  if (isAdmin(me)) {
+    return [
+      {
+        title: 'Espace école',
+        items: [
+          { to: '/app/admin', label: 'Tableau de bord', icon: 'dashboard' },
+          { to: '/app/admin/alternants', label: 'Alternants', icon: 'alternants' },
+          { to: '/app/admin/associations', label: 'Associations', icon: 'associations' },
+          { to: '/app/admin/membres', label: 'Membres', icon: 'membres' },
+          { to: '/app/admin/entreprises', label: 'Entreprises', icon: 'entreprises' },
+          { to: '/app/admin/promotions', label: 'Promotions', icon: 'promotions' },
+          { to: '/app/support', label: 'Support', icon: 'support' },
         ],
       },
     ];

@@ -23,6 +23,8 @@ function AppHome() {
   // The super admin's home is the dedicated platform dashboard.
   if (me.role === 'super_admin') return <Navigate to="/app/superadmin" replace />;
   const isAdmin = me.memberRoles.some((r) => r === 'admin' || r === 'owner');
+  // School admins land on their "Espace école" dashboard.
+  if (isAdmin) return <Navigate to="/app/admin" replace />;
   const isTutor = me.memberRoles.some((r) => r === 'tuteur_pedagogique' || r === 'tuteur_entreprise');
 
   return (
