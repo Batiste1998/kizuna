@@ -300,7 +300,7 @@ function SchoolSwitcher({ me }: { me: Me }) {
       {open && multi && (
         <>
           <div className="fixed inset-0 z-20" onClick={() => setOpen(false)} />
-          <div className="absolute inset-x-0 top-full z-30 mt-1.5 rounded-xl border border-hairline bg-popover p-1.5 shadow-lg">
+          <div className="absolute inset-x-0 top-full z-30 mt-1.5 rounded-xl border border-hairline bg-popover p-1.5 text-popover-foreground shadow-lg">
             <div className="px-2 pt-1 pb-1.5 text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
               Mes établissements
             </div>
