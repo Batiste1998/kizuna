@@ -84,7 +84,7 @@ function AlternantsPage() {
                       </span>
                     </div>
                     <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                      <div className="h-full rounded-full bg-brand" style={{ width: `${pct}%` }} />
+                      <div className="bg-brand-gradient h-full rounded-full" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
 

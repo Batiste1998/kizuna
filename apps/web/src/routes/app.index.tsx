@@ -104,8 +104,11 @@ function AlternantDashboard() {
                   {progress.done}/{progress.total} compétences
                 </span>
               </div>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
-                <div className="h-full rounded-full bg-brand" style={{ width: `${pct}%` }} />
+              <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="bg-brand-gradient h-full rounded-full transition-all"
+                  style={{ width: `${pct}%` }}
+                />
               </div>
             </>
           ) : (
@@ -181,12 +184,15 @@ function TutorDashboard() {
                 key={a.alternantProfilId}
                 to="/app/alternants/$alternantId/competences"
                 params={{ alternantId: a.alternantProfilId }}
-                className="rounded-xl border border-border bg-card p-4 shadow-sm transition-colors hover:border-brand"
+                className="rounded-2xl border border-hairline bg-card p-5 shadow-md transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
               >
-                <div className="font-medium">{a.name}</div>
+                <div className="font-semibold">{a.name}</div>
                 <div className="text-xs text-muted-foreground">{a.promotionName ?? '—'}</div>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
-                  <div className="h-full rounded-full bg-brand" style={{ width: `${pct}%` }} />
+                <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="bg-brand-gradient h-full rounded-full transition-all"
+                    style={{ width: `${pct}%` }}
+                  />
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground">{pct}% évalué</div>
               </Link>
@@ -286,9 +292,12 @@ function DashCard({ title, to, children }: { title: string; to: string; children
   return (
     <Link
       to={to as '/app'}
-      className="block rounded-xl border border-border bg-card p-4 shadow-sm transition-colors hover:border-brand"
+      className="block rounded-2xl border border-hairline bg-card p-5 shadow-md transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
     >
-      <div className="mb-2 text-xs font-semibold text-muted-foreground">{title}</div>
+      <div className="mb-2.5 flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+        <span className="h-1.5 w-1.5 rounded-full bg-brand" />
+        {title}
+      </div>
       {children}
     </Link>
   );
@@ -296,9 +305,9 @@ function DashCard({ title, to, children }: { title: string; to: string; children
 
 function Kpi({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-      <div className="text-2xl font-bold tracking-tight">{value}</div>
-      <div className="text-xs text-muted-foreground">{label}</div>
+    <div className="rounded-2xl border border-hairline bg-card p-5 shadow-md">
+      <div className="text-3xl font-bold tracking-tight">{value}</div>
+      <div className="mt-0.5 text-xs text-muted-foreground">{label}</div>
     </div>
   );
 }

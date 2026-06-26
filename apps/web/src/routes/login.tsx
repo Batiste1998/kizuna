@@ -6,6 +6,7 @@ import { Button } from '#/components/ui/button';
 import { Input } from '#/components/ui/input';
 import { Label } from '#/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
+import { Logo } from '#/components/logo';
 
 export const Route = createFileRoute('/login')({
   component: LoginPage,
@@ -31,14 +32,16 @@ function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-6 py-16">
-      <Card className="w-full max-w-md">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-16">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-32 left-1/2 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-brand-soft blur-3xl"
+      />
+      <Card className="relative w-full max-w-md">
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar text-sm font-bold text-white">
-              K
-            </div>
-            <span className="font-semibold">Kizuna</span>
+          <div className="flex items-center gap-2.5">
+            <Logo className="h-10 w-10" />
+            <span className="font-bold tracking-tight">Kizuna</span>
           </div>
           <CardTitle className="mt-3">Connexion</CardTitle>
           <CardDescription>Accédez à votre espace de suivi d’alternance.</CardDescription>

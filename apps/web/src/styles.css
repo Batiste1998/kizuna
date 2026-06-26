@@ -3,38 +3,40 @@
 @import 'tw-animate-css';
 
 /*
- * Kizuna design tokens — extracted from the original mockups (Design System.dc.html).
- * shadcn/ui semantic variables are mapped onto Kizuna's palette so components
- * inherit the product identity instead of the default shadcn look.
+ * Kizuna design tokens — "le lien".
+ * A soft, light, depth-driven system: the cool off-white canvas stays quiet so the
+ * per-role accent (the identity of each member of the trinôme) carries the colour.
+ * No dark surfaces — the sidebar is a light, role-tinted panel.
  */
 :root {
-  --radius: 0.625rem; /* ~10px — Kizuna buttons/inputs */
+  --radius: 0.875rem; /* 14px — softer corners throughout */
 
-  /* Warm neutral ramp */
-  --background: #eeede7; /* app background */
-  --foreground: #1b1b19; /* ink */
-  --surface: #fafaf8;
+  /* Cool neutral ramp */
+  --background: #f5f6f8; /* app canvas */
+  --foreground: #14161b; /* ink */
+  --surface: #ffffff;
   --card: #ffffff;
-  --card-foreground: #1b1b19;
+  --card-foreground: #14161b;
   --popover: #ffffff;
-  --popover-foreground: #1b1b19;
+  --popover-foreground: #14161b;
 
-  --muted: #f0efe9;
-  --muted-foreground: #76766f;
-  --secondary: #f0efe9;
-  --secondary-foreground: #44443f;
-  --ui-accent: #e6e5df; /* shadcn hover surface (neutral, not the brand accent) */
-  --ui-accent-foreground: #44443f;
+  --muted: #f1f3f6;
+  --muted-foreground: #6c7280;
+  --secondary: #f1f3f6;
+  --secondary-foreground: #3f434c;
+  --ui-accent: #eef0f4; /* neutral hover surface (not the brand accent) */
+  --ui-accent-foreground: #3f434c;
 
-  --border: #e0dfd8;
-  --input: #e0dfd8;
+  --border: #ecedf1; /* recedes — depth comes from shadow, not outlines */
+  --hairline: #f0f1f4;
+  --input: #e2e5ea;
   --destructive: #e5484d;
 
-  /* Brand accent — defaults to the platform (super admin) purple; overridden per role. */
+  /* Brand accent — defaults to the platform (super admin) blue; overridden per role. */
   --accent: #4f7cf0;
   --accent-strong: #3b63cc;
   --accent-soft: #eef2fd;
-  --sidebar: #14161c;
+  --sidebar: #f4f6fd; /* light role-tinted nav panel */
 
   --primary: var(--accent);
   --primary-foreground: #ffffff;
@@ -47,31 +49,31 @@
   --accent: #2e9e82;
   --accent-strong: #1f7a63;
   --accent-soft: #e8f4ef;
-  --sidebar: #103a30;
+  --sidebar: #f3faf7;
 }
 [data-role='tuteur_entreprise'] {
   --accent: #e06a41;
   --accent-strong: #b54f2c;
   --accent-soft: #fbebe3;
-  --sidebar: #3a2218;
+  --sidebar: #fdf6f2;
 }
 [data-role='admin'] {
   --accent: #3f6fb0;
   --accent-strong: #2e5288;
   --accent-soft: #eaf0f8;
-  --sidebar: #16243a;
+  --sidebar: #f4f7fc;
 }
 [data-role='super_admin'] {
   --accent: #4f7cf0;
   --accent-strong: #3b63cc;
   --accent-soft: #eef2fd;
-  --sidebar: #14161c;
+  --sidebar: #f4f6fd;
 }
 [data-role='support'] {
   --accent: #6b5bd2;
   --accent-strong: #4f40b0;
   --accent-soft: #efecfb;
-  --sidebar: #171a24;
+  --sidebar: #f6f4fc;
 }
 
 @theme inline {
@@ -95,6 +97,7 @@
   --color-brand-soft: var(--accent-soft);
   --color-sidebar: var(--sidebar);
   --color-border: var(--border);
+  --color-hairline: var(--hairline);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-destructive: var(--destructive);
@@ -102,10 +105,17 @@
   --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
 
-  --radius-sm: calc(var(--radius) - 2px);
-  --radius-md: var(--radius);
-  --radius-lg: calc(var(--radius) + 4px);
-  --radius-xl: calc(var(--radius) + 8px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 10px);
+
+  /* Soft, layered elevation (slightly cool) — overrides Tailwind's shadow scale. */
+  --shadow-xs: 0 1px 2px rgba(20, 23, 33, 0.05);
+  --shadow-sm: 0 1px 2px rgba(20, 23, 33, 0.04), 0 2px 6px rgba(20, 23, 33, 0.05);
+  --shadow-md: 0 2px 4px rgba(20, 23, 33, 0.04), 0 8px 20px rgba(20, 23, 33, 0.07);
+  --shadow-lg: 0 4px 8px rgba(20, 23, 33, 0.05), 0 18px 38px rgba(20, 23, 33, 0.1);
 }
 
 @layer base {
@@ -118,6 +128,27 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+@layer components {
+  /* The "lien" gradient — the single signature flourish. Decorative surfaces only
+     (brand mark, progress threads): no body text sits on the lighter stop. */
+  .bg-brand-gradient {
+    background-image: linear-gradient(140deg, var(--accent), var(--accent-strong));
+  }
+  /* Primary action — kept in the darker half of the ramp so white text passes AA. */
+  .bg-brand-action {
+    background-image: linear-gradient(
+      170deg,
+      color-mix(in srgb, var(--accent) 55%, var(--accent-strong)),
+      var(--accent-strong)
+    );
+  }
+  /* Soft coloured glow used under the brand mark / primary CTA. */
+  .shadow-brand {
+    box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--accent) 60%, transparent);
   }
 }
 
