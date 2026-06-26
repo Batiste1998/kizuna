@@ -6,6 +6,7 @@ import { randomUUID } from 'node:crypto';
 config({ path: resolve(process.cwd(), '../../.env') });
 
 import { eq } from 'drizzle-orm';
+import type { PgTable } from 'drizzle-orm/pg-core';
 import { createDb, schema } from '@kizuna/db';
 import { createAuth } from './auth/auth';
 import type {
@@ -764,7 +765,7 @@ async function main() {
   ]);
 
   // --- 12. Counts ----------------------------------------------------------
-  const tables: Array<[string, any]> = [
+  const tables: Array<[string, PgTable]> = [
     ['organizations', schema.organization],
     ['referentiels', schema.referentiel],
     ['promotions', schema.promotion],
