@@ -25,7 +25,14 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api, type Me } from '#/lib/api';
-import { navForMe, roleLabelForMe, themeRoleForMe, type NavIcon, type NavSection } from '#/lib/nav';
+import {
+  navForMe,
+  roleLabelForMe,
+  spaceLabelForMe,
+  themeRoleForMe,
+  type NavIcon,
+  type NavSection,
+} from '#/lib/nav';
 import { authClient, signOut } from '#/lib/auth-client';
 import { cn } from '#/lib/utils';
 import { NotificationsBell } from './notifications-bell';
@@ -146,16 +153,16 @@ function SidebarNav({
   return (
     <aside
       className={cn(
-        'flex-col gap-1 overflow-y-auto border-r border-hairline bg-sidebar px-3.5 py-5 text-secondary-foreground md:sticky md:top-0 md:h-screen',
+        'flex-col gap-1 overflow-y-auto bg-sidebar px-3.5 py-5 text-white/70 md:sticky md:top-0 md:h-screen',
         className,
       )}
     >
       <div className="mb-5 flex items-center justify-between px-1.5">
         <div className="flex items-center gap-2.5">
-          <Logo className="h-9 w-9" />
+          <Logo className="h-9 w-9" chip={false} />
           <div className="leading-tight">
-            <div className="font-bold tracking-tight">Kizuna</div>
-            <div className="text-[11px] font-medium text-muted-foreground">Suivi d’alternance</div>
+            <div className="font-bold tracking-tight text-white">Kizuna</div>
+            <div className="text-[11px] font-medium text-white/45">{spaceLabelForMe(me)}</div>
           </div>
         </div>
         {onClose && (
@@ -163,7 +170,7 @@ function SidebarNav({
             type="button"
             onClick={onClose}
             aria-label="Fermer le menu"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-card"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-white/60 hover:bg-white/10 hover:text-white"
           >
             <X className="h-4 w-4" />
           </button>
@@ -175,7 +182,7 @@ function SidebarNav({
       <nav className="flex-1 space-y-5">
         {sections.map((section) => (
           <div key={section.title}>
-            <div className="px-2.5 pb-1.5 text-[10px] font-bold tracking-[0.08em] text-muted-foreground uppercase">
+            <div className="px-2.5 pb-1.5 text-[10px] font-bold tracking-[0.08em] text-white/35 uppercase">
               {section.title}
             </div>
             <ul className="space-y-0.5">
@@ -187,10 +194,10 @@ function SidebarNav({
                       to={item.to as '/app'}
                       activeOptions={{ exact: item.to === '/app' }}
                       onClick={onNavigate}
-                      className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-secondary-foreground transition-colors hover:bg-card"
+                      className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/65 transition-colors hover:bg-white/10 hover:text-white"
                       activeProps={{
                         className:
-                          'bg-brand-soft text-brand-strong font-semibold shadow-sm hover:bg-brand-soft',
+                          'bg-brand text-white font-semibold shadow-sm shadow-black/20 hover:bg-brand hover:text-white',
                       }}
                     >
                       <Icon className="h-[18px] w-[18px] shrink-0" />
@@ -204,20 +211,20 @@ function SidebarNav({
         ))}
       </nav>
 
-      <div className="mt-5 flex items-center gap-2.5 rounded-2xl border border-hairline bg-card p-2.5 shadow-sm">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-soft text-xs font-bold text-brand-strong">
+      <div className="mt-5 flex items-center gap-2.5 rounded-2xl border border-white/10 bg-white/5 p-2.5">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white">
           {initials(me.name)}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-semibold">{me.name}</div>
-          <div className="truncate text-[11px] text-muted-foreground">{roleLabelForMe(me)}</div>
+          <div className="truncate text-sm font-semibold text-white">{me.name}</div>
+          <div className="truncate text-[11px] text-white/45">{roleLabelForMe(me)}</div>
         </div>
         <button
           type="button"
           onClick={onSignOut}
           aria-label="Se déconnecter"
           title="Se déconnecter"
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white/55 transition-colors hover:bg-white/10 hover:text-white"
         >
           <LogOut className="h-4 w-4" />
         </button>
@@ -274,20 +281,20 @@ function SchoolSwitcher({ me }: { me: Me }) {
         onClick={() => multi && setOpen((o) => !o)}
         disabled={switching}
         className={cn(
-          'flex w-full items-center gap-2.5 rounded-xl border border-hairline bg-card px-2.5 py-2 text-left shadow-sm',
-          multi && 'transition-colors hover:border-brand',
+          'flex w-full items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 px-2.5 py-2 text-left',
+          multi && 'transition-colors hover:bg-white/10',
         )}
       >
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-xs font-bold text-brand-strong">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand text-xs font-bold text-white">
           {initials(active.name)}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-semibold">{active.name}</div>
-          <div className="truncate text-[11px] text-muted-foreground">
+          <div className="truncate text-sm font-semibold text-white">{active.name}</div>
+          <div className="truncate text-[11px] text-white/45">
             {multi ? `${data.schools.length} écoles` : (active.city ?? 'Établissement')}
           </div>
         </div>
-        {multi && <ChevronsUpDown className="h-4 w-4 shrink-0 text-muted-foreground" />}
+        {multi && <ChevronsUpDown className="h-4 w-4 shrink-0 text-white/50" />}
       </button>
 
       {open && multi && (

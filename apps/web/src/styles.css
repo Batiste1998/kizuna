@@ -36,7 +36,7 @@
   --accent: #4f7cf0;
   --accent-strong: #3b63cc;
   --accent-soft: #eef2fd;
-  --sidebar: #f4f6fd; /* light role-tinted nav panel */
+  --sidebar: #14161c; /* dark role-tinted nav panel */
 
   --primary: var(--accent);
   --primary-foreground: #ffffff;
@@ -49,31 +49,31 @@
   --accent: #2e9e82;
   --accent-strong: #1f7a63;
   --accent-soft: #e8f4ef;
-  --sidebar: #f3faf7;
+  --sidebar: #103a30;
 }
 [data-role='tuteur_entreprise'] {
   --accent: #e06a41;
   --accent-strong: #b54f2c;
   --accent-soft: #fbebe3;
-  --sidebar: #fdf6f2;
+  --sidebar: #3a2218;
 }
 [data-role='admin'] {
   --accent: #3f6fb0;
   --accent-strong: #2e5288;
   --accent-soft: #eaf0f8;
-  --sidebar: #f4f7fc;
+  --sidebar: #16243a;
 }
 [data-role='super_admin'] {
   --accent: #4f7cf0;
   --accent-strong: #3b63cc;
   --accent-soft: #eef2fd;
-  --sidebar: #f4f6fd;
+  --sidebar: #14161c;
 }
 [data-role='support'] {
   --accent: #6b5bd2;
   --accent-strong: #4f40b0;
   --accent-soft: #efecfb;
-  --sidebar: #f6f4fc;
+  --sidebar: #171a24;
 }
 
 @theme inline {

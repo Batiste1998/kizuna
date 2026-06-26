@@ -47,6 +47,14 @@ export function themeRoleForMe(me: Me): string {
   return 'alternant';
 }
 
+/** Short label for the navigation header (the "space" the user is in). */
+export function spaceLabelForMe(me: Me): string {
+  if (me.role === 'super_admin') return 'Espace super admin';
+  if (me.role === 'support') return 'Espace support';
+  if (isAdmin(me)) return 'Espace école';
+  return 'Suivi d’alternance';
+}
+
 /** Human-readable label for the user's primary role. */
 export function roleLabelForMe(me: Me): string {
   if (me.role === 'super_admin') return 'Super administrateur';
