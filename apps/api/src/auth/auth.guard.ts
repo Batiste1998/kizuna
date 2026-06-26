@@ -40,8 +40,12 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException('Authentication required');
     }
 
-    request.user = session.user as AuthUser;
-    request.session = session.session as AuthSession;
+    const authSession = session.session as AuthSession;
+    request.user = {
+      ...(session.user as AuthUser),
+      activeOrganizationId: authSession.activeOrganizationId ?? null,
+    };
+    request.session = authSession;
     return true;
   }
 }

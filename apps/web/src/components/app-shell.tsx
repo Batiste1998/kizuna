@@ -1,9 +1,11 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
 import {
   Briefcase,
   Building2,
   CalendarClock,
+  Check,
+  ChevronsUpDown,
   ClipboardCheck,
   FolderClosed,
   GraduationCap,
@@ -21,9 +23,10 @@ import {
   X,
   type LucideIcon,
 } from 'lucide-react';
-import type { Me } from '#/lib/api';
+import { toast } from 'sonner';
+import { api, type Me } from '#/lib/api';
 import { navForMe, roleLabelForMe, themeRoleForMe, type NavIcon, type NavSection } from '#/lib/nav';
-import { signOut } from '#/lib/auth-client';
+import { authClient, signOut } from '#/lib/auth-client';
 import { cn } from '#/lib/utils';
 import { NotificationsBell } from './notifications-bell';
 import { Logo } from './logo';
@@ -167,6 +170,8 @@ function SidebarNav({
         )}
       </div>
 
+      <SchoolSwitcher me={me} />
+
       <nav className="flex-1 space-y-5">
         {sections.map((section) => (
           <div key={section.title}>
@@ -218,6 +223,102 @@ function SidebarNav({
         </button>
       </div>
     </aside>
+  );
+}
+
+/**
+ * Active-school selector for admins who manage several establishments. Changing
+ * the school updates the session's active organization, then reloads so every
+ * "Espace école" view reflects the new context.
+ */
+function SchoolSwitcher({ me }: { me: Me }) {
+  const isAdmin =
+    me.role !== 'super_admin' && me.memberRoles.some((r) => r === 'admin' || r === 'owner');
+  const [data, setData] = useState<{
+    activeId: string | null;
+    schools: Array<{ id: string; name: string; city: string | null }>;
+  } | null>(null);
+  const [open, setOpen] = useState(false);
+  const [switching, setSwitching] = useState(false);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    api
+      .adminSchools()
+      .then(setData)
+      .catch(() => undefined);
+  }, [isAdmin]);
+
+  if (!isAdmin || !data || data.schools.length === 0) return null;
+
+  const active = data.schools.find((s) => s.id === data.activeId) ?? data.schools[0];
+  const multi = data.schools.length > 1;
+
+  async function choose(id: string) {
+    setOpen(false);
+    if (id === active.id) return;
+    setSwitching(true);
+    try {
+      await authClient.organization.setActive({ organizationId: id });
+      window.location.reload();
+    } catch {
+      toast.error('Changement d’établissement impossible');
+      setSwitching(false);
+    }
+  }
+
+  return (
+    <div className="relative mb-4">
+      <button
+        type="button"
+        onClick={() => multi && setOpen((o) => !o)}
+        disabled={switching}
+        className={cn(
+          'flex w-full items-center gap-2.5 rounded-xl border border-hairline bg-card px-2.5 py-2 text-left shadow-sm',
+          multi && 'transition-colors hover:border-brand',
+        )}
+      >
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-xs font-bold text-brand-strong">
+          {initials(active.name)}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-sm font-semibold">{active.name}</div>
+          <div className="truncate text-[11px] text-muted-foreground">
+            {multi ? `${data.schools.length} écoles` : (active.city ?? 'Établissement')}
+          </div>
+        </div>
+        {multi && <ChevronsUpDown className="h-4 w-4 shrink-0 text-muted-foreground" />}
+      </button>
+
+      {open && multi && (
+        <>
+          <div className="fixed inset-0 z-20" onClick={() => setOpen(false)} />
+          <div className="absolute inset-x-0 top-full z-30 mt-1.5 rounded-xl border border-hairline bg-popover p-1.5 shadow-lg">
+            <div className="px-2 pt-1 pb-1.5 text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+              Mes établissements
+            </div>
+            {data.schools.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => choose(s.id)}
+                disabled={switching}
+                className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition-colors hover:bg-muted"
+              >
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-brand-soft text-[11px] font-bold text-brand-strong">
+                  {initials(s.name)}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium">{s.name}</span>
+                  {s.city && <span className="block truncate text-[11px] text-muted-foreground">{s.city}</span>}
+                </span>
+                {s.id === active.id && <Check className="h-4 w-4 shrink-0 text-brand-strong" />}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 

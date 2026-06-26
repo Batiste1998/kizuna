@@ -41,14 +41,43 @@ export class AdminService {
     return this.database.db;
   }
 
-  /** The organization the current user administrates, or 403. */
-  private async resolveOrg(user: AuthUser): Promise<string> {
-    const [membership] = await this.db
-      .select()
+  /** Organizations the user administrates (admin or owner). */
+  private async adminOrgIds(user: AuthUser): Promise<string[]> {
+    const rows = await this.db
+      .select({ organizationId: schema.member.organizationId })
       .from(schema.member)
-      .where(and(eq(schema.member.userId, user.id), eq(schema.member.role, 'admin')));
-    if (!membership) throw new ForbiddenException('Réservé aux administrateurs d’établissement');
-    return membership.organizationId;
+      .where(and(eq(schema.member.userId, user.id), inArray(schema.member.role, ['admin', 'owner'])));
+    return [...new Set(rows.map((r) => r.organizationId))];
+  }
+
+  /**
+   * The organization the current user administrates, or 403. When the admin
+   * belongs to several schools, the session's active organization wins (set via
+   * the org switcher); otherwise the first membership is used.
+   */
+  private async resolveOrg(user: AuthUser): Promise<string> {
+    const ids = await this.adminOrgIds(user);
+    if (ids.length === 0) throw new ForbiddenException('Réservé aux administrateurs d’établissement');
+    if (user.activeOrganizationId && ids.includes(user.activeOrganizationId)) {
+      return user.activeOrganizationId;
+    }
+    return ids[0];
+  }
+
+  /** The schools the current admin can manage, plus the currently active one. */
+  async listSchools(user: AuthUser) {
+    const ids = await this.adminOrgIds(user);
+    if (ids.length === 0) return { activeId: null, schools: [] };
+    const schools = await this.db
+      .select({ id: schema.organization.id, name: schema.organization.name, city: schema.organization.city })
+      .from(schema.organization)
+      .where(inArray(schema.organization.id, ids))
+      .orderBy(asc(schema.organization.name));
+    const activeId =
+      user.activeOrganizationId && ids.includes(user.activeOrganizationId)
+        ? user.activeOrganizationId
+        : ids[0];
+    return { activeId, schools };
   }
 
   async overview(user: AuthUser): Promise<AdminOverview> {

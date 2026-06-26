@@ -25,6 +25,11 @@ export class AdminController {
     return this.service.dashboard(user);
   }
 
+  @Get('schools')
+  schools(@CurrentUser() user: AuthUser) {
+    return this.service.listSchools(user);
+  }
+
   @Get('alternants')
   alternants(@CurrentUser() user: AuthUser) {
     return this.service.listAlternants(user);

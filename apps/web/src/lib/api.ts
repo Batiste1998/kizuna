@@ -407,6 +407,10 @@ export const api = {
     request<{ id: string }>(`/superadmin/users/${id}`, { method: 'DELETE' }),
   adminOverview: () => request<AdminOverview>('/admin/overview'),
   adminDashboard: () => request<AdminDashboard>('/admin/dashboard'),
+  adminSchools: () =>
+    request<{ activeId: string | null; schools: Array<{ id: string; name: string; city: string | null }> }>(
+      '/admin/schools',
+    ),
   adminAlternants: () => request<AdminAlternant[]>('/admin/alternants'),
   adminMembers: () => request<AdminMember[]>('/admin/members'),
   createAdminMember: (input: {

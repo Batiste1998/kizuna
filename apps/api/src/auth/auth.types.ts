@@ -16,6 +16,8 @@ export interface AuthUser {
   twoFactorEnabled?: boolean | null;
   createdAt: Date;
   updatedAt: Date;
+  /** Active organization from the session (organization plugin), if any. */
+  activeOrganizationId?: string | null;
 }
 
 export interface AuthSession {
