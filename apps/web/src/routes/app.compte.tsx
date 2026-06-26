@@ -19,7 +19,7 @@ function ComptePage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-6 py-8">
       <div>
-        <h1 className="text-lg font-bold tracking-tight">Mon compte</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Mon compte</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Informations et sécurité de votre compte.
         </p>

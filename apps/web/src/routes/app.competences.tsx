@@ -4,6 +4,7 @@ import { useSession } from '#/lib/auth-client';
 import { api } from '#/lib/api';
 import { CompetencesPanel } from '#/components/competences-panel';
 import { Centered } from '#/components/shell';
+import { PageShell } from '#/components/super-ui';
 
 export const Route = createFileRoute('/app/competences')({
   component: MyCompetencesPage,
@@ -47,18 +48,12 @@ function MyCompetencesPage() {
   if (!profilId) return <Centered>Chargement…</Centered>;
 
   return (
-    <main className="min-h-screen">
-      <header className="border-b border-border bg-card/70 backdrop-blur">
-        <div className="mx-auto max-w-4xl px-6 py-4">
-          <Link to="/app" className="text-xs text-muted-foreground hover:text-brand">
-            ← Espace
-          </Link>
-          <h1 className="text-lg font-bold tracking-tight">Mes compétences</h1>
-        </div>
-      </header>
-      <section className="mx-auto max-w-4xl px-6 py-8">
-        <CompetencesPanel alternantProfilId={profilId} />
-      </section>
-    </main>
+    <PageShell
+      title="Mes compétences"
+      maxWidth="max-w-4xl"
+      subtitle="Votre auto-évaluation et celle de vos tuteurs, bloc par bloc."
+    >
+      <CompetencesPanel alternantProfilId={profilId} />
+    </PageShell>
   );
 }

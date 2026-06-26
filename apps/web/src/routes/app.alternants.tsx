@@ -4,6 +4,7 @@ import { useSession } from '#/lib/auth-client';
 import { api, type TutorAlternant } from '#/lib/api';
 import { EVALUATOR_LABELS } from '#/lib/levels';
 import { Centered } from '#/components/shell';
+import { PageShell } from '#/components/super-ui';
 
 export const Route = createFileRoute('/app/alternants')({
   component: AlternantsPage,
@@ -30,17 +31,11 @@ function AlternantsPage() {
   if (!session) return null;
 
   return (
-    <main className="min-h-screen">
-      <header className="border-b border-border bg-card/70 backdrop-blur">
-        <div className="mx-auto max-w-4xl px-6 py-4">
-          <Link to="/app" className="text-xs text-muted-foreground hover:text-brand">
-            ← Espace
-          </Link>
-          <h1 className="text-lg font-bold tracking-tight">Mes alternants</h1>
-        </div>
-      </header>
-
-      <section className="mx-auto max-w-4xl px-6 py-8">
+    <PageShell
+      title="Mes alternants"
+      maxWidth="max-w-4xl"
+      subtitle="Les alternants que vous suivez et leur progression."
+    >
         {list && list.length === 0 ? (
           <p className="rounded-xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
             Aucun alternant ne vous est rattaché. Cet espace est destiné aux tuteurs.
@@ -137,7 +132,6 @@ function AlternantsPage() {
             })}
           </div>
         )}
-      </section>
-    </main>
+    </PageShell>
   );
 }

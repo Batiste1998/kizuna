@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { PageShell } from '#/components/super-ui';
 import { useSession } from '#/lib/auth-client';
 import { CompetencesPanel } from '#/components/competences-panel';
 import { Centered } from '#/components/shell';
@@ -21,18 +22,8 @@ function AlternantCompetencesPage() {
   if (!session) return null;
 
   return (
-    <main className="min-h-screen">
-      <header className="border-b border-border bg-card/70 backdrop-blur">
-        <div className="mx-auto max-w-4xl px-6 py-4">
-          <Link to="/app/alternants" className="text-xs text-muted-foreground hover:text-brand">
-            ← Mes alternants
-          </Link>
-          <h1 className="text-lg font-bold tracking-tight">Compétences de l’alternant</h1>
-        </div>
-      </header>
-      <section className="mx-auto max-w-4xl px-6 py-8">
+    <PageShell title="Compétences de l’alternant" maxWidth="max-w-4xl" back={{ to: "/app/alternants", label: "Mes alternants" }}>
         <CompetencesPanel alternantProfilId={alternantId} />
-      </section>
-    </main>
+    </PageShell>
   );
 }
