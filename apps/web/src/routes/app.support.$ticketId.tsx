@@ -1,11 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { toast } from 'sonner';
-import { useSession } from '#/lib/auth-client';
 import { api, type TicketDetail, type TicketStatus } from '#/lib/api';
 import { TICKET_PRIORITY_META, TICKET_STATUS_META, TICKET_TYPE_LABELS } from '#/lib/levels';
 import { Button } from '#/components/ui/button';
-import { Centered } from '#/components/shell';
+import { Avatar, ForbiddenSuper, PageShell, Panel } from '#/components/super-ui';
 import { cn } from '#/lib/utils';
 
 export const Route = createFileRoute('/app/support/$ticketId')({
@@ -14,36 +13,40 @@ export const Route = createFileRoute('/app/support/$ticketId')({
 
 const STATUSES: TicketStatus[] = ['open', 'in_progress', 'resolved'];
 
+function Badge({ meta }: { meta: { label: string; className: string } }) {
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center rounded-full px-2.5 py-0.5 text-[11.5px] font-semibold',
+        meta.className,
+      )}
+    >
+      {meta.label}
+    </span>
+  );
+}
+
 function TicketPage() {
   const { ticketId } = Route.useParams();
-  const { data: session, isPending } = useSession();
-  const navigate = useNavigate();
   const [detail, setDetail] = useState<TicketDetail | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(false);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
-    if (!isPending && !session) void navigate({ to: '/login' });
-  }, [isPending, session, navigate]);
-
-  useEffect(() => {
-    if (!session) return;
     api
       .getTicket(ticketId)
       .then(setDetail)
-      .catch((e: Error) => setError(e.message));
-  }, [session, ticketId]);
+      .catch(() => setError(true));
+  }, [ticketId]);
 
   async function handleReply(e: FormEvent) {
     e.preventDefault();
     if (!detail || !draft.trim()) return;
     setSending(true);
     try {
-      const message = await api.replyTicket(ticketId, draft.trim());
-      setDetail({ ...detail, messages: [...detail.messages, message] });
+      await api.replyTicket(ticketId, draft.trim());
       setDraft('');
-      // refresh status/assignee after a support reply
       const fresh = await api.getTicket(ticketId);
       setDetail(fresh);
     } catch (err) {
@@ -75,93 +78,76 @@ function TicketPage() {
     }
   }
 
-  if (isPending) return <Centered>Chargement…</Centered>;
-  if (!session) return null;
-  if (error) {
+  if (error) return <ForbiddenSuper />;
+  if (!detail) {
     return (
-      <Centered>
-        <div className="text-center">
-          <p className="font-medium">{error}</p>
-          <Link to="/app/support" className="mt-4 inline-block text-sm text-brand hover:underline">
-            ← Retour
-          </Link>
-        </div>
-      </Centered>
+      <PageShell title="Ticket" maxWidth="max-w-3xl" back={{ to: '/app/support', label: 'Support' }}>
+        <Panel className="px-5 py-14 text-center text-sm text-muted-foreground">Chargement…</Panel>
+      </PageShell>
     );
   }
-  if (!detail) return <Centered>Chargement…</Centered>;
 
   const { ticket } = detail;
-  const status = TICKET_STATUS_META[ticket.status];
-  const prio = TICKET_PRIORITY_META[ticket.priority];
 
   return (
-    <main className="min-h-screen">
-      <header className="border-b border-border bg-card/70 backdrop-blur">
-        <div className="mx-auto max-w-3xl px-6 py-4">
-          <Link to="/app/support" className="text-xs text-muted-foreground hover:text-brand">
-            ← Support
-          </Link>
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-xs text-muted-foreground">{ticket.ref}</span>
-            <h1 className="text-lg font-bold tracking-tight">{ticket.subject}</h1>
-          </div>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px]">
-            <span className={cn('rounded-full px-2 py-0.5 font-semibold', status.className)}>
-              {status.label}
-            </span>
-            <span className={cn('rounded-full px-2 py-0.5 font-semibold', prio.className)}>
-              {prio.label}
-            </span>
-            <span className="text-muted-foreground">
-              {TICKET_TYPE_LABELS[ticket.type]}
-              {ticket.requesterName ? ` · ${ticket.requesterName}` : ''}
-              {ticket.assigneeName ? ` · assigné à ${ticket.assigneeName}` : ''}
-            </span>
-          </div>
-        </div>
-      </header>
+    <PageShell
+      title={ticket.subject}
+      maxWidth="max-w-3xl"
+      back={{ to: '/app/support', label: 'Support' }}
+    >
+      <div className="-mt-2 flex flex-wrap items-center gap-2">
+        <span className="font-mono text-xs text-muted-foreground">{ticket.ref}</span>
+        <Badge meta={TICKET_STATUS_META[ticket.status]} />
+        <Badge meta={TICKET_PRIORITY_META[ticket.priority]} />
+        <span className="text-sm text-muted-foreground">
+          {TICKET_TYPE_LABELS[ticket.type]}
+          {ticket.requesterName ? ` · ${ticket.requesterName}` : ''}
+          {ticket.assigneeName ? ` · assigné à ${ticket.assigneeName}` : ''}
+        </span>
+      </div>
 
-      <section className="mx-auto max-w-3xl space-y-5 px-6 py-8">
-        {detail.canTriage && (
-          <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3 shadow-sm">
-            <span className="text-xs font-medium text-muted-foreground">Statut :</span>
-            {STATUSES.map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setStatus(s)}
-                className={cn(
-                  'rounded-md px-3 py-1 text-xs font-semibold transition-colors',
-                  ticket.status === s
-                    ? TICKET_STATUS_META[s].className
-                    : 'bg-card text-muted-foreground hover:bg-accent',
-                )}
-              >
-                {TICKET_STATUS_META[s].label}
-              </button>
-            ))}
-            <span className="ml-auto">
-              <Button size="sm" variant="outline" onClick={assignToMe}>
-                M’assigner
-              </Button>
-            </span>
-          </div>
-        )}
-
-        <div className="space-y-3">
-          {detail.messages.map((m) => (
-            <div
-              key={m.id}
+      {detail.canTriage && (
+        <Panel className="flex flex-wrap items-center gap-2 p-3">
+          <span className="px-1 text-xs font-medium text-muted-foreground">Statut :</span>
+          {STATUSES.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setStatus(s)}
               className={cn(
-                'rounded-xl border p-4 shadow-sm',
-                m.authorIsSupport ? 'border-brand/30 bg-brand-soft/40' : 'border-border bg-card',
+                'rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors',
+                ticket.status === s
+                  ? 'bg-brand text-white'
+                  : 'text-muted-foreground hover:bg-muted',
+              )}
+            >
+              {TICKET_STATUS_META[s].label}
+            </button>
+          ))}
+          <span className="ml-auto">
+            <Button size="sm" variant="outline" onClick={assignToMe}>
+              M’assigner
+            </Button>
+          </span>
+        </Panel>
+      )}
+
+      <div className="flex flex-col gap-3">
+        {detail.messages.map((m) => (
+          <div key={m.id} className={cn('flex gap-3', m.authorIsSupport && 'flex-row-reverse')}>
+            <Avatar name={m.authorName} role={m.authorIsSupport ? 'support' : undefined} size={36} />
+            <div
+              className={cn(
+                'max-w-[80%] rounded-2xl border px-4 py-3',
+                m.authorIsSupport
+                  ? 'border-brand-soft bg-brand-soft/60'
+                  : 'border-hairline bg-card shadow-sm',
               )}
             >
               <div className="mb-1 flex items-center gap-2 text-xs">
-                <span className="font-medium">{m.authorName}</span>
+                <span className="font-semibold">{m.authorName}</span>
                 {m.authorIsSupport && (
-                  <span className="rounded-full bg-brand-soft px-1.5 py-0.5 text-[10px] font-semibold text-brand-strong">
+                  <span className="rounded-full bg-brand-soft px-1.5 py-0.5 text-[10px] font-bold text-brand-strong">
                     Support
                   </span>
                 )}
@@ -174,10 +160,12 @@ function TicketPage() {
               </div>
               <p className="text-sm whitespace-pre-wrap text-secondary-foreground">{m.body}</p>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
+      </div>
 
-        {ticket.status !== 'resolved' && (
+      {ticket.status !== 'resolved' ? (
+        <Panel className="p-3">
           <form onSubmit={handleReply} className="flex items-end gap-2">
             <textarea
               value={draft}
@@ -185,14 +173,18 @@ function TicketPage() {
               rows={2}
               maxLength={5000}
               placeholder="Votre réponse…"
-              className="flex-1 resize-none rounded-md border border-input bg-card px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none"
+              className="flex-1 resize-none rounded-lg border border-input bg-card px-3.5 py-2.5 text-sm shadow-xs transition-all placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-4 focus-visible:ring-ring/15 focus-visible:outline-none"
             />
             <Button type="submit" disabled={sending || !draft.trim()}>
               Répondre
             </Button>
           </form>
-        )}
-      </section>
-    </main>
+        </Panel>
+      ) : (
+        <p className="rounded-2xl border border-hairline bg-muted/40 px-5 py-4 text-center text-sm text-muted-foreground">
+          Ce ticket est résolu.
+        </p>
+      )}
+    </PageShell>
   );
 }

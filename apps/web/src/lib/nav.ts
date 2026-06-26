@@ -85,6 +85,19 @@ export function navForMe(me: Me): NavSection[] {
     ];
   }
 
+  // Support staff pilot the ticket queue.
+  if (me.role === 'support') {
+    return [
+      {
+        title: 'Support',
+        items: [
+          { to: '/app/support', label: 'Tickets', icon: 'support' },
+          { to: '/app/compte', label: 'Mon compte', icon: 'compte' },
+        ],
+      },
+    ];
+  }
+
   // School administrators get the dedicated "Espace école" navigation.
   if (isAdmin(me)) {
     return [

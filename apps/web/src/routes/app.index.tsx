@@ -22,6 +22,7 @@ export const Route = createFileRoute('/app/')({
 function AppHome() {
   const me = useMe();
   if (me.role === 'super_admin') return <Navigate to="/app/superadmin" replace />;
+  if (me.role === 'support') return <Navigate to="/app/support" replace />;
   const isAdmin = me.memberRoles.some((r) => r === 'admin' || r === 'owner');
   if (isAdmin) return <Navigate to="/app/admin" replace />;
   const isTutor = me.memberRoles.some(
