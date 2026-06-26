@@ -27,18 +27,18 @@ const DEMO_USERS: DemoUser[] = [
     email: 'superadmin@kizuna.dev',
     appRole: 'super_admin',
   },
-  { key: 'support', name: 'Agent Support', email: 'support@kizuna.dev', appRole: 'support' },
-  { key: 'admin', name: 'Admin École', email: 'admin@kizuna.dev', memberRole: 'admin' },
-  { key: 'peda', name: 'Tuteur Péda', email: 'peda@kizuna.dev', memberRole: 'tuteur_pedagogique' },
+  { key: 'support', name: 'Sami Kadri', email: 'support@kizuna.dev', appRole: 'support' },
+  { key: 'admin', name: 'Nadia Brun', email: 'admin@kizuna.dev', memberRole: 'admin' },
+  { key: 'peda', name: 'Théo Lambert', email: 'peda@kizuna.dev', memberRole: 'tuteur_pedagogique' },
   {
     key: 'entreprise',
-    name: 'Tuteur Entreprise',
+    name: 'Eva Roussel',
     email: 'entreprise@kizuna.dev',
     memberRole: 'tuteur_entreprise',
   },
   {
     key: 'alternant',
-    name: 'Alex Alternant',
+    name: 'Léa Marin',
     email: 'alternant@kizuna.dev',
     memberRole: 'alternant',
   },
@@ -70,6 +70,10 @@ async function main() {
       userId = res.user.id;
     }
     ids[u.key] = userId;
+
+    // Keep the display name in sync even for accounts created by a prior seed
+    // (signUp only sets the name on first creation).
+    await db.update(schema.user).set({ name: u.name }).where(eq(schema.user.id, userId));
 
     if (u.appRole) {
       await db.update(schema.user).set({ role: u.appRole }).where(eq(schema.user.id, userId));

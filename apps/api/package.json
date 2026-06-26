@@ -8,6 +8,7 @@
     "build": "nest build",
     "start": "node dist/main.js",
     "seed:users": "tsx src/seed-users.ts",
+    "seed:demo": "tsx src/seed-demo-data.ts",
     "lint": "eslint \"src/**/*.ts\"",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --dir src",
