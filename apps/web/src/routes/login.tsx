@@ -89,10 +89,11 @@ function LoginPage() {
             </Link>
           </p>
 
-          <div className="mt-6 rounded-lg border border-dashed border-border bg-muted/40 p-3 text-xs text-muted-foreground">
-            <div className="font-medium text-secondary-foreground">Comptes de démo</div>
-            <div className="mt-1 font-mono">alternant@kizuna.dev · admin@kizuna.dev …</div>
-            <div className="font-mono">mot de passe : Password123!</div>
+          <div className="mt-6 border-t border-hairline pt-4 text-center text-xs text-muted-foreground">
+            Pas de compte ?{' '}
+            <Link to="/demo" className="font-medium text-brand hover:underline">
+              Découvrir la démo →
+            </Link>
           </div>
         </CardContent>
       </Card>

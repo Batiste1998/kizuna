@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
@@ -104,6 +104,7 @@
 
   --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
+  --font-display: 'Bricolage Grotesque', 'Geist', ui-sans-serif, sans-serif;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -149,6 +150,76 @@
   /* Soft coloured glow used under the brand mark / primary CTA. */
   .shadow-brand {
     box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--accent) 60%, transparent);
+  }
+
+  /* --- Light "stage": the threshold into Kizuna ----------------------------- */
+  /* The app's own light canvas. The colour now lives in the drifting auras
+     (.aura) layered on top — the teal and orange figures of the knot (絆),
+     slowly breathing. No dark surfaces. */
+  .demo-stage {
+    background-color: #f6f7f9;
+  }
+
+  /* Soft, blurred colour field that slowly drifts to give the page ambient life. */
+  .aura {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(80px);
+    will-change: transform;
+    animation: aura-drift 24s ease-in-out infinite;
+  }
+  .aura-slow {
+    animation-duration: 30s;
+  }
+  @keyframes aura-drift {
+    0% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+      transform: translate3d(5%, -4%, 0) scale(1.16);
+    }
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+  }
+
+  /* Gentle vertical float for the brand mark. */
+  .animate-float {
+    animation: float-y 6s ease-in-out infinite;
+  }
+  @keyframes float-y {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-7px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aura,
+    .animate-float {
+      animation: none;
+    }
+  }
+
+  /* The woven thread that binds the trinôme (絆) — draws itself on load. */
+  .thread-path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: thread-draw 1.3s ease-out 0.25s forwards;
+  }
+  @keyframes thread-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .thread-path {
+      animation: none;
+      stroke-dashoffset: 0;
+    }
   }
 }
 
