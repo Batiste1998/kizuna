@@ -84,7 +84,14 @@ export interface BilansView {
 }
 
 export interface PlatformOverview {
-  counts: { organizations: number; users: number; alternants: number; openTickets: number };
+  counts: {
+    organizations: number;
+    users: number;
+    alternants: number;
+    openTickets: number;
+    admins: number;
+    pending: number;
+  };
 }
 
 export interface SuperOrganization {
@@ -92,7 +99,9 @@ export interface SuperOrganization {
   name: string;
   type: string | null;
   city: string | null;
+  createdAt: string;
   memberCount: number;
+  adminCount: number;
   alternantCount: number;
 }
 
@@ -102,9 +111,19 @@ export interface SuperUser {
   email: string;
   role: string;
   banned: boolean;
+  createdAt: string;
   orgCount: number;
   memberRoles: string[];
+  organizations: string[];
 }
+
+/** Roles assignable to a new platform user by the super admin. */
+export type CreatableSuperRole =
+  | 'admin'
+  | 'tuteur_pedagogique'
+  | 'tuteur_entreprise'
+  | 'support'
+  | 'super_admin';
 
 export interface AdminOverview {
   organizationName: string;
@@ -347,9 +366,28 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(input),
     }),
+  updateSuperOrganization: (id: string, input: { name?: string; type?: string; city?: string }) =>
+    request<{ id: string }>(`/superadmin/organizations/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    }),
+  deleteSuperOrganization: (id: string) =>
+    request<{ id: string }>(`/superadmin/organizations/${id}`, { method: 'DELETE' }),
   superUsers: () => request<SuperUser[]>('/superadmin/users'),
+  createSuperUser: (input: {
+    name: string;
+    email: string;
+    role: CreatableSuperRole;
+    organizationIds?: string[];
+  }) =>
+    request<{ userId: string; temporaryPassword: string }>('/superadmin/users', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
   updateSuperUser: (id: string, input: { banned?: boolean; role?: string }) =>
     request<SuperUser>(`/superadmin/users/${id}`, { method: 'PATCH', body: JSON.stringify(input) }),
+  deleteSuperUser: (id: string) =>
+    request<{ id: string }>(`/superadmin/users/${id}`, { method: 'DELETE' }),
   adminOverview: () => request<AdminOverview>('/admin/overview'),
   adminAlternants: () => request<AdminAlternant[]>('/admin/alternants'),
   adminMembers: () => request<AdminMember[]>('/admin/members'),

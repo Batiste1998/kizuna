@@ -1,9 +1,14 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { AuthUser } from '../auth/auth.types';
 import { SuperAdminService } from './superadmin.service';
-import { CreateOrganizationDto, UpdateUserDto } from './dto/superadmin.dto';
+import {
+  CreateOrganizationDto,
+  CreateUserDto,
+  UpdateOrganizationDto,
+  UpdateUserDto,
+} from './dto/superadmin.dto';
 
 @UseGuards(AuthGuard)
 @Controller('superadmin')
@@ -25,9 +30,28 @@ export class SuperAdminController {
     return this.service.createOrganization(user, dto);
   }
 
+  @Patch('organizations/:orgId')
+  updateOrganization(
+    @CurrentUser() user: AuthUser,
+    @Param('orgId') orgId: string,
+    @Body() dto: UpdateOrganizationDto,
+  ) {
+    return this.service.updateOrganization(user, orgId, dto);
+  }
+
+  @Delete('organizations/:orgId')
+  deleteOrganization(@CurrentUser() user: AuthUser, @Param('orgId') orgId: string) {
+    return this.service.deleteOrganization(user, orgId);
+  }
+
   @Get('users')
   users(@CurrentUser() user: AuthUser) {
     return this.service.listUsers(user);
+  }
+
+  @Post('users')
+  createUser(@CurrentUser() user: AuthUser, @Body() dto: CreateUserDto) {
+    return this.service.createUser(user, dto);
   }
 
   @Patch('users/:userId')
@@ -37,5 +61,10 @@ export class SuperAdminController {
     @Body() dto: UpdateUserDto,
   ) {
     return this.service.updateUser(user, userId, dto);
+  }
+
+  @Delete('users/:userId')
+  deleteUser(@CurrentUser() user: AuthUser, @Param('userId') userId: string) {
+    return this.service.deleteUser(user, userId);
   }
 }

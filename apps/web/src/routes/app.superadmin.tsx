@@ -1,220 +1,241 @@
-import { useEffect, useState, type FormEvent } from 'react';
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { useEffect, useMemo, useState } from 'react';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { toast } from 'sonner';
-import { useSession } from '#/lib/auth-client';
+import {
+  ArrowRight,
+  Building2,
+  Check,
+  Clock,
+  GraduationCap,
+  ShieldCheck,
+  UserPlus,
+  Users,
+} from 'lucide-react';
 import { api, type PlatformOverview, type SuperOrganization, type SuperUser } from '#/lib/api';
+import { useMe } from '#/lib/me-context';
+import { primaryRole, roleMeta, timeAgo } from '#/lib/super';
 import { Button } from '#/components/ui/button';
-import { Input } from '#/components/ui/input';
-import { Centered } from '#/components/shell';
-import { cn } from '#/lib/utils';
+import { Avatar, ForbiddenSuper, PageHead, Panel, RoleBadge, StatCard } from '#/components/super-ui';
 
 export const Route = createFileRoute('/app/superadmin')({
-  component: SuperAdminPage,
+  component: SuperDashboard,
 });
 
-function SuperAdminPage() {
-  const { data: session, isPending } = useSession();
-  const navigate = useNavigate();
+const DIST_ROLES = ['admin', 'alternant', 'tuteur_entreprise', 'tuteur_pedagogique', 'support'];
+
+function SuperDashboard() {
+  const me = useMe();
   const [overview, setOverview] = useState<PlatformOverview | null>(null);
-  const [orgs, setOrgs] = useState<SuperOrganization[]>([]);
   const [users, setUsers] = useState<SuperUser[]>([]);
-  const [forbidden, setForbidden] = useState(false);
+  const [orgs, setOrgs] = useState<SuperOrganization[]>([]);
 
-  useEffect(() => {
-    if (!isPending && !session) void navigate({ to: '/login' });
-  }, [isPending, session, navigate]);
-
-  function reloadOrgs() {
-    api
-      .superOrganizations()
-      .then(setOrgs)
-      .catch(() => undefined);
-  }
-  function reloadUsers() {
-    api
-      .superUsers()
-      .then(setUsers)
-      .catch(() => undefined);
+  function reload() {
+    void api.superOverview().then(setOverview).catch(() => undefined);
+    void api.superUsers().then(setUsers).catch(() => undefined);
+    void api.superOrganizations().then(setOrgs).catch(() => undefined);
   }
 
   useEffect(() => {
-    if (!session) return;
-    api
-      .superOverview()
-      .then((o) => {
-        setOverview(o);
-        reloadOrgs();
-        reloadUsers();
-      })
-      .catch(() => setForbidden(true));
-  }, [session]);
+    if (me.role === 'super_admin') reload();
+  }, [me.role]);
 
-  async function toggleBan(u: SuperUser) {
+  const pending = useMemo(() => users.filter((u) => u.banned), [users]);
+
+  const activity = useMemo(() => {
+    const events = [
+      ...users.map((u) => ({
+        kind: 'user' as const,
+        at: u.createdAt,
+        text: `${u.name ?? u.email} ajouté · ${roleMeta(primaryRole(u)).label}`,
+      })),
+      ...orgs.map((o) => ({
+        kind: 'org' as const,
+        at: o.createdAt,
+        text: `École « ${o.name} » créée`,
+      })),
+    ];
+    return events.sort((a, b) => b.at.localeCompare(a.at)).slice(0, 6);
+  }, [users, orgs]);
+
+  const dist = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const u of users) {
+      const r = primaryRole(u);
+      counts.set(r, (counts.get(r) ?? 0) + 1);
+    }
+    const rows = DIST_ROLES.map((r) => ({ role: r, count: counts.get(r) ?? 0 }));
+    const max = Math.max(1, ...rows.map((r) => r.count));
+    return rows.map((r) => ({ ...r, pct: Math.round((r.count / max) * 100) }));
+  }, [users]);
+
+  if (me.role !== 'super_admin') return <ForbiddenSuper />;
+
+  async function activate(u: SuperUser) {
     try {
-      await api.updateSuperUser(u.id, { banned: !u.banned });
-      reloadUsers();
-      toast.success(u.banned ? 'Utilisateur réactivé' : 'Utilisateur banni');
+      await api.updateSuperUser(u.id, { banned: false });
+      toast.success(`Accès accordé à ${u.name ?? u.email}`);
+      reload();
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  }
+  async function reject(u: SuperUser) {
+    try {
+      await api.deleteSuperUser(u.id);
+      toast.success('Compte refusé');
+      reload();
     } catch (err) {
       toast.error((err as Error).message);
     }
   }
 
-  if (isPending) return <Centered>Chargement…</Centered>;
-  if (!session) return null;
-  if (forbidden) {
-    return (
-      <Centered>
-        <div className="text-center">
-          <p className="font-medium">Espace réservé au super administrateur.</p>
-          <Link to="/app" className="mt-4 inline-block text-sm text-brand hover:underline">
-            ← Retour
-          </Link>
-        </div>
-      </Centered>
-    );
-  }
-  if (!overview) return <Centered>Chargement…</Centered>;
-
   return (
-    <main data-role="super_admin" className="min-h-screen">
-      <header className="border-b border-border bg-card/70 backdrop-blur">
-        <div className="mx-auto max-w-5xl px-6 py-4">
-          <Link to="/app" className="text-xs text-muted-foreground hover:text-brand">
-            ← Espace
+    <div className="mx-auto max-w-6xl space-y-4 px-6 py-8">
+      <PageHead
+        title="Vue d'ensemble"
+        actions={
+          <>
+            <Link to="/app/ecoles">
+              <Button variant="outline">
+                <GraduationCap /> Nouvelle école
+              </Button>
+            </Link>
+            <Link to="/app/users">
+              <Button>
+                <UserPlus /> Nouvel utilisateur
+              </Button>
+            </Link>
+          </>
+        }
+      >
+        Pilotez les écoles, les comptes et le support de la plateforme Kizuna.
+      </PageHead>
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard label="Utilisateurs" value={overview?.counts.users ?? '—'} sub="comptes créés" icon={<Users />} to="/app/users" />
+        <StatCard label="Écoles partenaires" value={overview?.counts.organizations ?? '—'} sub="établissements" icon={<Building2 />} to="/app/ecoles" />
+        <StatCard label="Administrateurs" value={overview?.counts.admins ?? '—'} sub="côté écoles" icon={<ShieldCheck />} />
+        <StatCard label="Invitations en attente" value={overview?.counts.pending ?? '—'} sub="pas encore activées" icon={<Clock />} />
+      </div>
+
+      {/* Accès à valider */}
+      <Panel className="p-6">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 text-[15px] font-semibold">
+            Accès à valider
+            {pending.length > 0 && (
+              <span className="rounded-full bg-[#F7EFDA] px-2.5 py-0.5 text-[11.5px] font-bold text-[#9A6B12]">
+                {pending.length}
+              </span>
+            )}
+          </div>
+          <Link
+            to="/app/users"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-brand-strong hover:underline"
+          >
+            Tous les utilisateurs <ArrowRight className="h-3.5 w-3.5" />
           </Link>
-          <h1 className="text-lg font-bold tracking-tight">Super administration</h1>
         </div>
-      </header>
+        <p className="mt-1 mb-4 text-xs text-muted-foreground">
+          Comptes invités en attente d’activation — accordez l’accès pour qu’ils puissent se connecter.
+        </p>
 
-      <section className="mx-auto max-w-5xl space-y-8 px-6 py-8">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Kpi label="Écoles" value={overview.counts.organizations} />
-          <Kpi label="Utilisateurs" value={overview.counts.users} />
-          <Kpi label="Alternants" value={overview.counts.alternants} />
-          <Kpi label="Tickets ouverts" value={overview.counts.openTickets} />
-        </div>
-
-        <div className="space-y-3">
-          <h2 className="text-sm font-bold tracking-tight">Écoles</h2>
-          <OrgForm onCreated={reloadOrgs} />
-          <div className="grid gap-3 sm:grid-cols-3">
-            {orgs.map((o) => (
-              <div key={o.id} className="rounded-xl border border-border bg-card p-4 shadow-sm">
-                <div className="font-semibold">{o.name}</div>
-                <div className="text-xs text-muted-foreground">
-                  {[o.type, o.city].filter(Boolean).join(' · ') || '—'}
+        {pending.length === 0 ? (
+          <div className="flex items-center justify-center gap-2.5 py-8 text-sm font-medium text-[#1F7A63]">
+            <Check className="h-4 w-4" /> Tous les comptes ont accès à la plateforme.
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2.5">
+            {pending.slice(0, 5).map((u) => (
+              <div
+                key={u.id}
+                className="flex flex-wrap items-center gap-3 rounded-xl border border-hairline px-3.5 py-3"
+              >
+                <Avatar name={u.name} role={primaryRole(u)} />
+                <div className="min-w-[150px] flex-1">
+                  <div className="text-sm font-semibold">{u.name ?? '—'}</div>
+                  <div className="text-xs text-muted-foreground">{u.email}</div>
                 </div>
-                <div className="mt-2 text-xs text-muted-foreground">
-                  {o.memberCount} membre(s) · {o.alternantCount} alternant(s)
+                <RoleBadge role={primaryRole(u)} />
+                <span className="text-xs whitespace-nowrap text-muted-foreground">
+                  {u.organizations[0] ?? '—'}
+                </span>
+                <div className="flex flex-none items-center gap-2">
+                  <Button size="sm" variant="outline" onClick={() => reject(u)}>
+                    Refuser
+                  </Button>
+                  <Button size="sm" onClick={() => activate(u)}>
+                    <Check /> Activer l’accès
+                  </Button>
                 </div>
               </div>
             ))}
+            {pending.length > 5 && (
+              <Link
+                to="/app/users"
+                className="py-1.5 text-center text-xs font-semibold text-muted-foreground hover:text-foreground"
+              >
+                +{pending.length - 5} autres comptes en attente
+              </Link>
+            )}
           </div>
-        </div>
+        )}
+      </Panel>
 
-        <div className="space-y-3">
-          <h2 className="text-sm font-bold tracking-tight">Utilisateurs</h2>
-          <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
-            <table className="w-full text-sm">
-              <thead className="border-b border-border text-left text-xs text-muted-foreground">
-                <tr>
-                  <th className="px-4 py-2 font-semibold">Utilisateur</th>
-                  <th className="px-4 py-2 font-semibold">Rôle plateforme</th>
-                  <th className="px-4 py-2 font-semibold">Rôles établissement</th>
-                  <th className="px-4 py-2 font-semibold">Statut</th>
-                  <th className="px-4 py-2 font-semibold"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {users.map((u) => (
-                  <tr key={u.id}>
-                    <td className="px-4 py-2.5">
-                      <div className="font-medium">{u.name}</div>
-                      <div className="text-xs text-muted-foreground">{u.email}</div>
-                    </td>
-                    <td className="px-4 py-2.5 text-muted-foreground">{u.role}</td>
-                    <td className="px-4 py-2.5 text-xs text-muted-foreground">
-                      {u.memberRoles.length ? u.memberRoles.join(', ') : '—'}
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <span
-                        className={cn(
-                          'rounded-full px-2 py-0.5 text-[11px] font-semibold',
-                          u.banned ? 'bg-[#FBEBE3] text-[#B54F2C]' : 'bg-[#E4F2EC] text-[#2C7A63]',
-                        )}
-                      >
-                        {u.banned ? 'Banni' : 'Actif'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2.5 text-right">
-                      <Button size="sm" variant="outline" onClick={() => toggleBan(u)}>
-                        {u.banned ? 'Réactiver' : 'Bannir'}
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
+        {/* Activité récente */}
+        <Panel className="p-6">
+          <div className="text-[15px] font-semibold">Activité récente</div>
+          <div className="mb-3 text-xs text-muted-foreground">Derniers évènements sur la plateforme</div>
+          {activity.length === 0 ? (
+            <p className="py-6 text-sm text-muted-foreground">Aucune activité récente.</p>
+          ) : (
+            <div className="flex flex-col">
+              {activity.map((a, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 border-b border-hairline py-2.5 last:border-0"
+                >
+                  <div className="flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-brand-soft text-brand-strong">
+                    {a.kind === 'org' ? (
+                      <GraduationCap className="h-4 w-4" />
+                    ) : (
+                      <UserPlus className="h-4 w-4" />
+                    )}
+                  </div>
+                  <div className="flex-1 text-sm text-secondary-foreground">{a.text}</div>
+                  <div className="text-xs whitespace-nowrap text-muted-foreground">{timeAgo(a.at)}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Panel>
+
+        {/* Répartition par rôle */}
+        <Panel className="p-6">
+          <div className="text-[15px] font-semibold">Répartition par rôle</div>
+          <div className="mb-4 text-xs text-muted-foreground">Comptes créés par type</div>
+          <div className="flex flex-col gap-3.5">
+            {dist.map((d) => {
+              const meta = roleMeta(d.role);
+              return (
+                <div key={d.role}>
+                  <div className="mb-1.5 flex items-center justify-between">
+                    <span className="text-[13px] font-medium text-secondary-foreground">{meta.label}</span>
+                    <span className="text-[13px] font-semibold text-muted-foreground">{d.count}</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{ width: `${d.pct}%`, background: meta.swatch.text }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </div>
-      </section>
-    </main>
-  );
-}
-
-function Kpi({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-      <div className="text-2xl font-bold tracking-tight">{value}</div>
-      <div className="text-xs text-muted-foreground">{label}</div>
+        </Panel>
+      </div>
     </div>
-  );
-}
-
-function OrgForm({ onCreated }: { onCreated: () => void }) {
-  const [name, setName] = useState('');
-  const [type, setType] = useState('');
-  const [city, setCity] = useState('');
-  const [busy, setBusy] = useState(false);
-
-  async function submit(e: FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    try {
-      await api.createSuperOrganization({ name, type: type || undefined, city: city || undefined });
-      setName('');
-      setType('');
-      setCity('');
-      onCreated();
-      toast.success('École créée');
-    } catch (err) {
-      toast.error((err as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <form
-      onSubmit={submit}
-      className="grid gap-2 rounded-xl border border-border bg-card p-4 shadow-sm sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-center"
-    >
-      <Input
-        required
-        maxLength={200}
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Nom de l’école"
-      />
-      <Input
-        value={type}
-        onChange={(e) => setType(e.target.value)}
-        placeholder="Type (CFA, université…)"
-      />
-      <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ville" />
-      <Button type="submit" disabled={busy || !name}>
-        Créer
-      </Button>
-    </form>
   );
 }

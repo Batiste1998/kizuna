@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { signIn } from '#/lib/auth-client';
 import { Button } from '#/components/ui/button';
@@ -13,7 +13,6 @@ export const Route = createFileRoute('/login')({
 });
 
 function LoginPage() {
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,13 +21,14 @@ function LoginPage() {
     e.preventDefault();
     setLoading(true);
     const { error } = await signIn.email({ email, password });
-    setLoading(false);
     if (error) {
+      setLoading(false);
       toast.error(error.message ?? 'Échec de la connexion');
       return;
     }
-    toast.success('Connecté');
-    void navigate({ to: '/app' });
+    // Full navigation so the session store is initialised fresh from the new cookie —
+    // an SPA transition can race the session refresh and bounce back to /login.
+    window.location.href = '/app';
   }
 
   return (

@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { Link, useNavigate } from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router';
 import {
   Building2,
   CalendarClock,
@@ -13,12 +13,12 @@ import {
   MessagesSquare,
   NotebookPen,
   ShieldCheck,
+  SlidersHorizontal,
   UserCog,
   Users,
   X,
   type LucideIcon,
 } from 'lucide-react';
-import { toast } from 'sonner';
 import type { Me } from '#/lib/api';
 import { navForMe, roleLabelForMe, themeRoleForMe, type NavIcon, type NavSection } from '#/lib/nav';
 import { signOut } from '#/lib/auth-client';
@@ -39,6 +39,9 @@ const NAV_ICONS: Record<NavIcon, LucideIcon> = {
   superadmin: ShieldCheck,
   support: LifeBuoy,
   compte: UserCog,
+  users: Users,
+  ecoles: GraduationCap,
+  settings: SlidersHorizontal,
 };
 
 /**
@@ -47,15 +50,14 @@ const NAV_ICONS: Record<NavIcon, LucideIcon> = {
  * `data-role` accent is derived from the user's primary role.
  */
 export function AppShell({ me, children }: { me: Me; children: ReactNode }) {
-  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const sections = navForMe(me);
   const theme = themeRoleForMe(me);
 
   async function handleSignOut() {
     await signOut();
-    toast.success('Déconnecté');
-    void navigate({ to: '/login' });
+    // Full navigation so the cleared session can't be read back by an in-flight SPA render.
+    window.location.href = '/login';
   }
 
   return (
@@ -135,7 +137,7 @@ function SidebarNav({
   return (
     <aside
       className={cn(
-        'flex-col gap-1 overflow-y-auto border-r border-hairline bg-sidebar px-3.5 py-5 text-secondary-foreground',
+        'flex-col gap-1 overflow-y-auto border-r border-hairline bg-sidebar px-3.5 py-5 text-secondary-foreground md:sticky md:top-0 md:h-screen',
         className,
       )}
     >

@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute, Link, Navigate } from '@tanstack/react-router';
 import { ArrowRight } from 'lucide-react';
 import {
   api,
@@ -20,6 +20,8 @@ export const Route = createFileRoute('/app/')({
 
 function AppHome() {
   const me = useMe();
+  // The super admin's home is the dedicated platform dashboard.
+  if (me.role === 'super_admin') return <Navigate to="/app/superadmin" replace />;
   const isAdmin = me.memberRoles.some((r) => r === 'admin' || r === 'owner');
   const isTutor = me.memberRoles.some((r) => r === 'tuteur_pedagogique' || r === 'tuteur_entreprise');
 

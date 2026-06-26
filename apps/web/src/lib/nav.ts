@@ -13,7 +13,10 @@ export type NavIcon =
   | 'admin'
   | 'superadmin'
   | 'support'
-  | 'compte';
+  | 'compte'
+  | 'users'
+  | 'ecoles'
+  | 'settings';
 
 export interface NavItem {
   to: string;
@@ -53,6 +56,23 @@ export function roleLabelForMe(me: Me): string {
 
 /** Navigation sections filtered to what the user may actually access. */
 export function navForMe(me: Me): NavSection[] {
+  // The super admin pilots the whole platform — a dedicated navigation replaces the
+  // role-suivi sections entirely.
+  if (me.role === 'super_admin') {
+    return [
+      {
+        title: 'Pilotage',
+        items: [
+          { to: '/app/superadmin', label: 'Tableau de bord', icon: 'dashboard' },
+          { to: '/app/users', label: 'Utilisateurs', icon: 'users' },
+          { to: '/app/ecoles', label: 'Écoles', icon: 'ecoles' },
+          { to: '/app/support', label: 'Support', icon: 'support' },
+          { to: '/app/compte', label: 'Paramètres', icon: 'settings' },
+        ],
+      },
+    ];
+  }
+
   const sections: NavSection[] = [
     { title: 'Accueil', items: [{ to: '/app', label: 'Tableau de bord', icon: 'dashboard' }] },
   ];
