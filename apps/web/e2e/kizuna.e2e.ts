@@ -21,12 +21,12 @@ async function login(page: Page, email: string) {
   }).toPass({ timeout: 30_000 });
 }
 
-test('le portail présente les rôles et le lien de connexion', async ({ page }) => {
+test('le portail présente le projet et les liens de connexion / démo', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Kizuna' })).toBeVisible();
-  await expect(page.getByText('Alternant', { exact: true })).toBeVisible();
-  await expect(page.getByText('Tuteur pédagogique', { exact: true })).toBeVisible();
+  await expect(page.getByText('le lien du trinôme')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Se connecter' })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Essayer la démo/ })).toBeVisible();
 });
 
 test('un alternant se connecte et auto-évalue une compétence', async ({ page }) => {
@@ -46,7 +46,9 @@ test('un administrateur voit le tableau de bord de son établissement', async ({
   await login(page, 'admin@kizuna.dev');
 
   await page.goto('/app/admin');
-  await expect(page.getByRole('heading', { name: /Administration/ })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Alternants' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Promotions' })).toBeVisible();
+  // Le tableau de bord d'établissement : en-tête personnalisé + KPIs propres au dashboard
+  // (textes uniques, pour éviter toute collision avec les libellés de la barre latérale).
+  await expect(page.getByRole('heading', { name: /Bonjour/ })).toBeVisible();
+  await expect(page.getByText('Associations complètes')).toBeVisible();
+  await expect(page.getByText('Suivi à traiter')).toBeVisible();
 });
