@@ -1,17 +1,18 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createFileRoute, Link, Navigate } from '@tanstack/react-router';
-import { ArrowRight } from 'lucide-react';
 import {
-  api,
-  type AdminOverview,
-  type Bilan,
-  type Echeance,
-  type JournalEntry,
-  type PlatformOverview,
-  type TutorAlternant,
-} from '#/lib/api';
+  Award,
+  Briefcase,
+  CalendarClock,
+  CheckCircle2,
+  GraduationCap,
+  Target,
+  TrendingUp,
+  Users,
+} from 'lucide-react';
+import { api, type AlternantDashboard as AltDash, type TutorDashboard } from '#/lib/api';
 import { useMe } from '#/lib/me-context';
-import { BILAN_STATUS_META, JOURNAL_STATUS_META } from '#/lib/levels';
+import { Avatar, PageHead, Panel, StatCard } from '#/components/super-ui';
 import { cn } from '#/lib/utils';
 
 export const Route = createFileRoute('/app/')({
@@ -20,314 +21,290 @@ export const Route = createFileRoute('/app/')({
 
 function AppHome() {
   const me = useMe();
-  // The super admin's home is the dedicated platform dashboard.
   if (me.role === 'super_admin') return <Navigate to="/app/superadmin" replace />;
   const isAdmin = me.memberRoles.some((r) => r === 'admin' || r === 'owner');
-  // School admins land on their "Espace école" dashboard.
   if (isAdmin) return <Navigate to="/app/admin" replace />;
-  const isTutor = me.memberRoles.some((r) => r === 'tuteur_pedagogique' || r === 'tuteur_entreprise');
+  const isTutor = me.memberRoles.some(
+    (r) => r === 'tuteur_pedagogique' || r === 'tuteur_entreprise',
+  );
+  if (isTutor) return <TutorHome />;
+  return <AlternantHome />;
+}
+
+const firstName = (name?: string | null) => name?.split(' ')[0] ?? '';
+
+/* ===================== ALTERNANT ===================== */
+
+function AlternantHome() {
+  const me = useMe();
+  const [d, setD] = useState<AltDash | null>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    api
+      .alternantDashboard()
+      .then((res) => setD(res))
+      .catch(() => undefined)
+      .finally(() => setLoaded(true));
+  }, []);
+
+  const t = d?.trinome;
+  const nextDate = d?.nextBilan
+    ? new Date(d.nextBilan.scheduledAt).toLocaleDateString('fr-FR', { dateStyle: 'long' })
+    : null;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8 px-6 py-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">
-          Bonjour {me.name?.split(' ')[0] ?? ''} 👋
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Voici un aperçu de votre suivi d’alternance.
-        </p>
+    <div className="mx-auto max-w-6xl space-y-4 px-6 py-8">
+      <PageHead title={`Bonjour ${firstName(me.name)} 👋`}>
+        {d?.titleName ? (
+          <>
+            Voici votre progression sur le titre{' '}
+            <strong className="font-semibold text-secondary-foreground">{d.titleName}</strong>.
+          </>
+        ) : (
+          'Voici un aperçu de votre suivi d’alternance.'
+        )}
+      </PageHead>
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard
+          label="Progression"
+          value={d ? `${d.progressionPct}%` : '—'}
+          sub="consolidée"
+          icon={<TrendingUp />}
+          to="/app/competences"
+        />
+        <StatCard
+          label="Blocs validés"
+          value={d ? `${d.blocs.validated}/${d.blocs.total}` : '—'}
+          sub="de compétences"
+          icon={<Award />}
+          to="/app/competences"
+        />
+        <StatCard
+          label="Compétences acquises"
+          value={d ? `${d.competences.acquired}/${d.competences.total}` : '—'}
+          sub="niveau Acquis ou +"
+          icon={<CheckCircle2 />}
+          to="/app/competences"
+        />
+        <StatCard
+          label="À auto-évaluer"
+          value={d ? d.toSelfEvaluate : '—'}
+          sub="avant le bilan"
+          icon={<Target />}
+          to="/app/competences"
+        />
       </div>
 
-      {me.isAlternant && <AlternantDashboard />}
-      {isTutor && <TutorDashboard />}
-      {isAdmin && <AdminDashboard />}
-      {me.role === 'super_admin' && <SuperDashboard />}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Panel className="p-6">
+          <div className="mb-4 text-[15px] font-semibold">Mon trinôme de suivi</div>
+          <div className="flex flex-col gap-3">
+            <TrinomeRow icon={<GraduationCap className="h-4 w-4" />} role="Tuteur pédagogique" name={t?.peda} />
+            <TrinomeRow icon={<Users className="h-4 w-4" />} role="Tuteur d’entreprise" name={t?.entrepriseTutor} />
+            <TrinomeRow icon={<Briefcase className="h-4 w-4" />} role="Entreprise" name={t?.entreprise} />
+          </div>
+        </Panel>
+
+        <div className="space-y-4">
+          <Panel className="p-6">
+            <div className="mb-3 text-[15px] font-semibold">Prochain bilan</div>
+            {d?.nextBilan ? (
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-brand-soft text-brand-strong">
+                  <CalendarClock className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="font-semibold">{d.nextBilan.label}</div>
+                  <div className="text-sm text-muted-foreground">{nextDate}</div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Aucun bilan planifié pour le moment.</p>
+            )}
+          </Panel>
+
+          {loaded && d && (
+            <div className="flex items-center gap-2.5 rounded-2xl border border-brand-soft bg-brand-soft/50 px-5 py-4 text-sm font-medium text-brand-strong">
+              <Target className="h-4 w-4 shrink-0" />
+              {d.toSelfEvaluate > 0 ? (
+                <span>
+                  <strong>{d.toSelfEvaluate} compétences</strong> à auto-évaluer avant le prochain bilan.
+                </span>
+              ) : (
+                <span>Toutes vos compétences sont auto-évaluées. Beau travail !</span>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
-/* ---------- Alternant ---------- */
+function TrinomeRow({ icon, role, name }: { icon: React.ReactNode; role: string; name?: string | null }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-muted text-muted-foreground">
+        {icon}
+      </div>
+      <div>
+        <div className="text-xs text-muted-foreground">{role}</div>
+        <div className={cn('font-semibold', !name && 'font-medium text-muted-foreground/70 italic')}>
+          {name ?? 'Non assigné'}
+        </div>
+      </div>
+    </div>
+  );
+}
 
-function AlternantDashboard() {
-  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
-  const [nextBilan, setNextBilan] = useState<Bilan | null>(null);
-  const [nextEcheance, setNextEcheance] = useState<Echeance | null>(null);
-  const [lastEntry, setLastEntry] = useState<JournalEntry | null>(null);
+/* ===================== TUTEUR ===================== */
+
+function TutorHome() {
+  const me = useMe();
+  const [data, setData] = useState<TutorDashboard | null>(null);
+  const [role, setRole] = useState<'peda' | 'entreprise'>('peda');
 
   useEffect(() => {
-    let active = true;
     api
-      .myAlternantProfile()
-      .then(async ({ alternantProfilId: id }) => {
-        const [competences, bilans, echeancier, journal] = await Promise.all([
-          api.getCompetences(id).catch(() => null),
-          api.getBilans(id).catch(() => null),
-          api.getEcheances(id).catch(() => null),
-          api.getJournal(id).catch(() => null),
-        ]);
-        if (!active) return;
-        if (competences) {
-          const all = competences.blocs.flatMap((b) => b.competences);
-          setProgress({
-            done: all.filter((c) => c.evaluations.auto && c.evaluations.auto !== 'NA').length,
-            total: all.length,
-          });
-        }
-        if (bilans) {
-          const upcoming = bilans.bilans
-            .filter((b) => b.status === 'planned')
-            .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
-          setNextBilan(upcoming[0] ?? null);
-        }
-        if (echeancier) {
-          const today = new Date().toISOString().slice(0, 10);
-          const upcoming = echeancier.echeances
-            .filter((e) => e.dueDate >= today)
-            .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
-          setNextEcheance(upcoming[0] ?? null);
-        }
-        if (journal) setLastEntry(journal.entries[0] ?? null);
+      .tutorDashboard()
+      .then((res) => {
+        setData(res);
+        // Default to whichever role the tutor actually holds.
+        const roles = new Set(res.alternants.map((a) => a.myRole));
+        if (!roles.has('peda') && roles.has('entreprise')) setRole('entreprise');
       })
       .catch(() => undefined);
-    return () => {
-      active = false;
-    };
   }, []);
 
-  const pct = progress && progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
+  const roles = useMemo(
+    () => new Set((data?.alternants ?? []).map((a) => a.myRole)),
+    [data],
+  );
+  const both = roles.has('peda') && roles.has('entreprise');
+  const list = useMemo(
+    () => (data?.alternants ?? []).filter((a) => a.myRole === role),
+    [data, role],
+  );
+
+  const toEvaluate = list.reduce((s, a) => s + a.toEvaluate, 0);
+  const avgProgress =
+    list.length > 0
+      ? Math.round(
+          (list.reduce(
+            (s, a) => s + (a.progress.total > 0 ? a.progress.evaluated / a.progress.total : 0),
+            0,
+          ) /
+            list.length) *
+            100,
+        )
+      : 0;
+  const roleLabel = role === 'peda' ? 'tuteur pédagogique' : 'tuteur d’entreprise';
 
   return (
-    <Section title="Mon suivi">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <DashCard title="Auto-évaluation des compétences" to="/app/competences">
-          {progress ? (
-            <>
-              <div className="flex items-baseline justify-between">
-                <span className="text-2xl font-bold">{pct}%</span>
-                <span className="text-xs text-muted-foreground">
-                  {progress.done}/{progress.total} compétences
-                </span>
-              </div>
-              <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-muted">
-                <div
-                  className="bg-brand-gradient h-full rounded-full transition-all"
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-            </>
-          ) : (
-            <Muted>Chargement…</Muted>
-          )}
-        </DashCard>
-
-        <DashCard title="Prochain bilan" to="/app/bilans">
-          {nextBilan ? (
-            <div className="space-y-1">
-              <div className="font-medium">{nextBilan.label}</div>
-              <div className="flex items-center gap-2 text-xs">
-                <Badge meta={BILAN_STATUS_META[nextBilan.status]} />
-                <span className="text-muted-foreground">{formatDate(nextBilan.scheduledAt)}</span>
-              </div>
+    <div className="mx-auto max-w-6xl space-y-4 px-6 py-8">
+      <PageHead
+        title={`Bonjour ${firstName(me.name)} 👋`}
+        actions={
+          both ? (
+            <div className="flex rounded-xl border border-hairline bg-card p-1 shadow-sm">
+              <RoleTab active={role === 'peda'} onClick={() => setRole('peda')}>
+                Pédagogique
+              </RoleTab>
+              <RoleTab active={role === 'entreprise'} onClick={() => setRole('entreprise')}>
+                Entreprise
+              </RoleTab>
             </div>
-          ) : (
-            <Muted>Aucun bilan planifié.</Muted>
-          )}
-        </DashCard>
+          ) : undefined
+        }
+      >
+        Vous suivez{' '}
+        <strong className="font-semibold text-secondary-foreground">
+          {list.length} alternant{list.length > 1 ? 's' : ''}
+        </strong>{' '}
+        en tant que {roleLabel}.
+      </PageHead>
 
-        <DashCard title="Prochaine échéance" to="/app/echeancier">
-          {nextEcheance ? (
-            <div className="space-y-1">
-              <div className="font-medium">{nextEcheance.title}</div>
-              <div className="text-xs text-muted-foreground">{formatDate(nextEcheance.dueDate)}</div>
-            </div>
-          ) : (
-            <Muted>Aucune échéance à venir.</Muted>
-          )}
-        </DashCard>
-
-        <DashCard title="Dernière entrée de journal" to="/app/journal">
-          {lastEntry ? (
-            <div className="space-y-1">
-              <div className="font-medium">{lastEntry.title}</div>
-              <Badge meta={JOURNAL_STATUS_META[lastEntry.status]} />
-            </div>
-          ) : (
-            <Muted>Aucune entrée pour le moment.</Muted>
-          )}
-        </DashCard>
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard label="Mes alternants" value={list.length} sub="en suivi" icon={<Users />} to="/app/alternants" />
+        <StatCard label="À évaluer" value={toEvaluate} sub="compétences" icon={<Target />} />
+        <StatCard label="Bilans à venir" value={data?.upcomingBilans ?? '—'} sub="à planifier" icon={<CalendarClock />} />
+        <StatCard label="Progression moyenne" value={`${avgProgress}%`} sub="de mes alternants" icon={<TrendingUp />} />
       </div>
-    </Section>
-  );
-}
 
-/* ---------- Tuteur ---------- */
-
-function TutorDashboard() {
-  const [alternants, setAlternants] = useState<TutorAlternant[] | null>(null);
-
-  useEffect(() => {
-    api
-      .getMyAlternants()
-      .then(setAlternants)
-      .catch(() => setAlternants([]));
-  }, []);
-
-  return (
-    <Section title="Mes alternants" action={{ to: '/app/alternants', label: 'Voir tout' }}>
-      {!alternants ? (
-        <Muted>Chargement…</Muted>
-      ) : alternants.length === 0 ? (
-        <Muted>Aucun alternant ne vous est rattaché.</Muted>
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {alternants.slice(0, 4).map((a) => {
-            const pct =
-              a.progress.total > 0 ? Math.round((a.progress.evaluated / a.progress.total) * 100) : 0;
-            return (
-              <Link
-                key={a.alternantProfilId}
-                to="/app/alternants/$alternantId/competences"
-                params={{ alternantId: a.alternantProfilId }}
-                className="rounded-2xl border border-hairline bg-card p-5 shadow-md transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
-              >
-                <div className="font-semibold">{a.name}</div>
-                <div className="text-xs text-muted-foreground">{a.promotionName ?? '—'}</div>
-                <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-muted">
-                  <div
-                    className="bg-brand-gradient h-full rounded-full transition-all"
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-                <div className="mt-1 text-xs text-muted-foreground">{pct}% évalué</div>
-              </Link>
-            );
-          })}
-        </div>
-      )}
-    </Section>
-  );
-}
-
-/* ---------- Admin établissement ---------- */
-
-function AdminDashboard() {
-  const [overview, setOverview] = useState<AdminOverview | null>(null);
-
-  useEffect(() => {
-    api
-      .adminOverview()
-      .then(setOverview)
-      .catch(() => undefined);
-  }, []);
-
-  if (!overview) return null;
-
-  return (
-    <Section
-      title={`Établissement · ${overview.organizationName}`}
-      action={{ to: '/app/admin', label: 'Administration' }}
-    >
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Kpi label="Alternants" value={overview.counts.alternants} />
-        <Kpi label="Membres" value={overview.counts.members} />
-        <Kpi label="Entreprises" value={overview.counts.entreprises} />
-        <Kpi label="Promotions" value={overview.counts.promotions} />
-      </div>
-    </Section>
-  );
-}
-
-/* ---------- Super admin ---------- */
-
-function SuperDashboard() {
-  const [overview, setOverview] = useState<PlatformOverview | null>(null);
-
-  useEffect(() => {
-    api
-      .superOverview()
-      .then(setOverview)
-      .catch(() => undefined);
-  }, []);
-
-  if (!overview) return null;
-
-  return (
-    <Section title="Plateforme" action={{ to: '/app/superadmin', label: 'Super admin' }}>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Kpi label="Écoles" value={overview.counts.organizations} />
-        <Kpi label="Utilisateurs" value={overview.counts.users} />
-        <Kpi label="Alternants" value={overview.counts.alternants} />
-        <Kpi label="Tickets ouverts" value={overview.counts.openTickets} />
-      </div>
-    </Section>
-  );
-}
-
-/* ---------- Shared bits ---------- */
-
-function Section({
-  title,
-  action,
-  children,
-}: {
-  title: string;
-  action?: { to: string; label: string };
-  children: ReactNode;
-}) {
-  return (
-    <section className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-bold tracking-tight">{title}</h2>
-        {action && (
-          <Link
-            to={action.to as '/app'}
-            className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline"
-          >
-            {action.label} <ArrowRight className="h-3 w-3" />
-          </Link>
+      <div>
+        <div className="mb-3 text-[15px] font-semibold">Mes alternants</div>
+        {list.length === 0 ? (
+          <Panel className="px-5 py-14 text-center text-sm text-muted-foreground">
+            Aucun alternant rattaché pour ce rôle.
+          </Panel>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {list.map((a) => {
+              const pct =
+                a.progress.total > 0 ? Math.round((a.progress.evaluated / a.progress.total) * 100) : 0;
+              return (
+                <Link
+                  key={a.alternantProfilId}
+                  to="/app/alternants/$alternantId/competences"
+                  params={{ alternantId: a.alternantProfilId }}
+                  className="rounded-2xl border border-hairline bg-card p-5 shadow-md transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
+                >
+                  <div className="flex items-center gap-3">
+                    <Avatar name={a.name} role="alternant" size={40} />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-semibold">{a.name}</div>
+                      <div className="truncate text-xs text-muted-foreground">
+                        {[a.promotionName, a.entrepriseName].filter(Boolean).join(' · ') || '—'}
+                      </div>
+                    </div>
+                    {a.toEvaluate > 0 && (
+                      <span className="flex-none rounded-full bg-[#FBEBE3] px-2.5 py-0.5 text-[11.5px] font-semibold text-[#B54F2C]">
+                        {a.toEvaluate} à évaluer
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-3.5 flex items-center gap-3">
+                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+                      <div
+                        className="bg-brand-gradient h-full rounded-full transition-all"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <span className="w-9 text-right text-[13px] font-semibold text-secondary-foreground">
+                      {pct}%
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         )}
       </div>
-      {children}
-    </section>
-  );
-}
-
-function DashCard({ title, to, children }: { title: string; to: string; children: ReactNode }) {
-  return (
-    <Link
-      to={to as '/app'}
-      className="block rounded-2xl border border-hairline bg-card p-5 shadow-md transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
-    >
-      <div className="mb-2.5 flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-        <span className="h-1.5 w-1.5 rounded-full bg-brand" />
-        {title}
-      </div>
-      {children}
-    </Link>
-  );
-}
-
-function Kpi({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-2xl border border-hairline bg-card p-5 shadow-md">
-      <div className="text-3xl font-bold tracking-tight">{value}</div>
-      <div className="mt-0.5 text-xs text-muted-foreground">{label}</div>
     </div>
   );
 }
 
-function Badge({ meta }: { meta: { label: string; className: string } }) {
+function RoleTab({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
   return (
-    <span className={cn('inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold', meta.className)}>
-      {meta.label}
-    </span>
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors',
+        active ? 'bg-brand text-white shadow-sm' : 'text-muted-foreground hover:text-foreground',
+      )}
+    >
+      {children}
+    </button>
   );
-}
-
-function Muted({ children }: { children: ReactNode }) {
-  return <p className="text-sm text-muted-foreground">{children}</p>;
-}
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('fr-FR', { dateStyle: 'medium' });
 }

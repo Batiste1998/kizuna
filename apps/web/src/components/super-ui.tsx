@@ -3,6 +3,43 @@ import { Link } from '@tanstack/react-router';
 import { cn } from '#/lib/utils';
 import { roleMeta, type Swatch } from '#/lib/super';
 
+/**
+ * Standard page wrapper: optional back link, a large title with supporting copy,
+ * then the page content. Replaces the legacy per-page top header bar.
+ */
+export function PageShell({
+  title,
+  subtitle,
+  actions,
+  back,
+  maxWidth = 'max-w-5xl',
+  children,
+}: {
+  title: string;
+  subtitle?: ReactNode;
+  actions?: ReactNode;
+  back?: { to: string; label: string };
+  maxWidth?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={cn('mx-auto space-y-5 px-6 py-8', maxWidth)}>
+      {back && (
+        <Link
+          to={back.to as '/app'}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-brand-strong"
+        >
+          <span aria-hidden>←</span> {back.label}
+        </Link>
+      )}
+      <PageHead title={title} actions={actions}>
+        {subtitle}
+      </PageHead>
+      {children}
+    </div>
+  );
+}
+
 /** Page header: title, supporting copy, and optional right-aligned actions. */
 export function PageHead({
   title,

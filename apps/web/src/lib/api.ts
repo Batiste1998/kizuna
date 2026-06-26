@@ -303,6 +303,21 @@ export interface TutorAlternant {
   progress: { evaluated: number; total: number };
 }
 
+export interface TutorDashboard {
+  alternants: Array<TutorAlternant & { toEvaluate: number }>;
+  upcomingBilans: number;
+}
+
+export interface AlternantDashboard {
+  titleName: string;
+  progressionPct: number;
+  blocs: { validated: number; total: number };
+  competences: { acquired: number; total: number };
+  toSelfEvaluate: number;
+  trinome: { peda: string | null; entrepriseTutor: string | null; entreprise: string | null };
+  nextBilan: { label: string; scheduledAt: string } | null;
+}
+
 export const api = {
   me: () => request<Me>('/me'),
   myAlternantProfile: () => request<{ alternantProfilId: string }>('/me/alternant'),
@@ -329,6 +344,8 @@ export const api = {
       body: JSON.stringify(input),
     }),
   getMyAlternants: () => request<TutorAlternant[]>('/me/alternants'),
+  tutorDashboard: () => request<TutorDashboard>('/me/tutor-dashboard'),
+  alternantDashboard: () => request<AlternantDashboard | null>('/me/alternant-dashboard'),
   getBilans: (alternantProfilId: string) =>
     request<BilansView>(`/alternants/${alternantProfilId}/bilans`),
   createBilan: (alternantProfilId: string, input: { label: string; scheduledAt: string }) =>

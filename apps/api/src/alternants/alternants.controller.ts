@@ -14,4 +14,16 @@ export class AlternantsController {
   listForTutor(@CurrentUser() user: AuthUser) {
     return this.service.listForTutor(user);
   }
+
+  /** Tutor dashboard aggregate (supervised apprentices + upcoming bilans). */
+  @Get('me/tutor-dashboard')
+  tutorDashboard(@CurrentUser() user: AuthUser) {
+    return this.service.tutorDashboard(user);
+  }
+
+  /** Apprentice self dashboard (progress, trinôme, next bilan). */
+  @Get('me/alternant-dashboard')
+  alternantDashboard(@CurrentUser() user: AuthUser) {
+    return this.service.alternantDashboard(user);
+  }
 }
