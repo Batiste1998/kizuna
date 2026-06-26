@@ -164,7 +164,7 @@ function LevelPicker({
           onClick={() => onChange(lvl.key)}
           title={lvl.label}
           className={cn(
-            'px-2 py-1 text-xs font-semibold transition-colors',
+            'min-w-[2.25rem] px-2 py-1 text-center text-xs font-semibold transition-colors',
             value === lvl.key ? lvl.className : 'bg-card text-muted-foreground hover:bg-accent',
           )}
         >

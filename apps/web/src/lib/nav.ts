@@ -111,6 +111,7 @@ export function navForMe(me: Me): NavSection[] {
           { to: '/app/admin/entreprises', label: 'Entreprises', icon: 'entreprises' },
           { to: '/app/admin/promotions', label: 'Promotions', icon: 'promotions' },
           { to: '/app/support', label: 'Support', icon: 'support' },
+          { to: '/app/compte', label: 'Mon compte', icon: 'compte' },
         ],
       },
     ];

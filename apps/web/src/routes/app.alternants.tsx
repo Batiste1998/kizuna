@@ -83,7 +83,7 @@ function AlternantsPage() {
                     </div>
                   </div>
 
-                  <div className="mt-4 flex gap-2">
+                  <div className="mt-4 flex flex-wrap gap-2">
                     <Link
                       to="/app/alternants/$alternantId/competences"
                       params={{ alternantId: a.alternantProfilId }}
