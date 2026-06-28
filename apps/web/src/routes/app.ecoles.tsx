@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { toast } from 'sonner';
-import { MapPin, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
-import { api, type SuperOrganization } from '#/lib/api';
+import { Info, MapPin, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
+import { api, type EstablishmentType, type SuperOrganization } from '#/lib/api';
 import { useMe } from '#/lib/me-context';
 import { initials } from '#/lib/super';
 import { Button } from '#/components/ui/button';
 import { Input } from '#/components/ui/input';
 import { ForbiddenSuper, PageHead } from '#/components/super-ui';
+import { cn } from '#/lib/utils';
 
 export const Route = createFileRoute('/app/ecoles')({
   component: EcolesPage,
@@ -173,6 +174,38 @@ function OrgPanel({
   const [type, setType] = useState(org?.type ?? '');
   const [city, setCity] = useState(org?.city ?? '');
   const [busy, setBusy] = useState(false);
+  const [types, setTypes] = useState<EstablishmentType[]>([]);
+  const [addingType, setAddingType] = useState(false);
+  const [newType, setNewType] = useState('');
+
+  function loadTypes() {
+    void api.superEstablishmentTypes().then(setTypes).catch(() => undefined);
+  }
+  useEffect(() => loadTypes(), []);
+
+  async function addType() {
+    const label = newType.trim();
+    if (!label) return;
+    try {
+      const created = await api.createSuperEstablishmentType(label);
+      setNewType('');
+      setAddingType(false);
+      loadTypes();
+      setType(created.label);
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  }
+
+  async function removeType(t: EstablishmentType) {
+    try {
+      await api.deleteSuperEstablishmentType(t.id);
+      if (type === t.label) setType('');
+      loadTypes();
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  }
 
   async function submit() {
     if (!name.trim()) {
@@ -221,20 +254,87 @@ function OrgPanel({
           </label>
           <label className="block">
             <span className="mb-1.5 block text-[12.5px] font-semibold text-secondary-foreground">
-              Type
-            </span>
-            <Input
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-              placeholder="CFA, université…"
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1.5 block text-[12.5px] font-semibold text-secondary-foreground">
               Ville
             </span>
             <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Paris" />
           </label>
+
+          <div>
+            <span className="mb-2 block text-[12.5px] font-semibold text-secondary-foreground">
+              Type d’établissement
+            </span>
+            <div className="grid grid-cols-2 gap-2">
+              {types.map((t) => {
+                const active = type === t.label;
+                return (
+                  <div key={t.id} className="group relative">
+                    <button
+                      type="button"
+                      onClick={() => setType(active ? '' : t.label)}
+                      className={cn(
+                        'w-full rounded-xl border px-3 py-2.5 pr-7 text-left text-sm font-medium transition-colors',
+                        active
+                          ? 'border-brand bg-brand-soft text-brand-strong'
+                          : 'border-hairline hover:border-brand',
+                      )}
+                    >
+                      {t.label}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeType(t)}
+                      title="Supprimer ce type"
+                      aria-label={`Supprimer ${t.label}`}
+                      className="absolute top-1/2 right-1.5 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground opacity-0 transition hover:bg-[#FBEBE3] hover:text-[#B54F2C] group-hover:opacity-100"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {addingType ? (
+              <div className="mt-2 flex gap-2">
+                <Input
+                  autoFocus
+                  value={newType}
+                  onChange={(e) => setNewType(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addType())}
+                  placeholder="Nouveau type…"
+                />
+                <Button type="button" onClick={addType} disabled={!newType.trim()}>
+                  Ajouter
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setAddingType(false);
+                    setNewType('');
+                  }}
+                >
+                  Annuler
+                </Button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setAddingType(true)}
+                className="mt-2 inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand-strong hover:underline"
+              >
+                <Plus className="h-3.5 w-3.5" /> Ajouter un type
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-start gap-2.5 rounded-xl bg-brand-soft/60 px-3.5 py-3 text-[13px] text-brand-strong">
+            <Info className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>
+              Une fois créée, vous pourrez rattacher des administrateurs à cette école depuis la page
+              Utilisateurs.
+            </span>
+          </div>
         </div>
         <div className="flex items-center justify-end gap-2.5 border-t border-hairline px-6 py-4">
           <Button variant="outline" onClick={onClose}>

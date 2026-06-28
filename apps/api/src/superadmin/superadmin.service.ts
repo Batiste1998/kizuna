@@ -278,4 +278,36 @@ export class SuperAdminService {
       });
     return updated;
   }
+
+  // --- Establishment types (curated list offered when creating a school) -----
+
+  async listEstablishmentTypes(user: AuthUser) {
+    this.ensure(user);
+    return this.db
+      .select()
+      .from(schema.establishmentType)
+      .orderBy(schema.establishmentType.label);
+  }
+
+  async createEstablishmentType(user: AuthUser, label: string) {
+    this.ensure(user);
+    const trimmed = label.trim();
+    if (!trimmed) throw new ForbiddenException('Le libellé est requis.');
+    const [existing] = await this.db
+      .select()
+      .from(schema.establishmentType)
+      .where(eq(schema.establishmentType.label, trimmed));
+    if (existing) return existing;
+    const [created] = await this.db
+      .insert(schema.establishmentType)
+      .values({ id: randomUUID(), label: trimmed })
+      .returning();
+    return created;
+  }
+
+  async deleteEstablishmentType(user: AuthUser, typeId: string) {
+    this.ensure(user);
+    await this.db.delete(schema.establishmentType).where(eq(schema.establishmentType.id, typeId));
+    return { id: typeId };
+  }
 }

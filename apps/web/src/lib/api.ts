@@ -105,6 +105,12 @@ export interface SuperOrganization {
   alternantCount: number;
 }
 
+export interface EstablishmentType {
+  id: string;
+  label: string;
+  createdAt: string;
+}
+
 export interface SuperUser {
   id: string;
   name: string | null;
@@ -147,6 +153,8 @@ export interface AdminDashboard {
   promotions: Array<{ id: string; name: string; alternantCount: number; progressPct: number }>;
 }
 
+export type AlternantSuivi = 'a_jour' | 'en_retard' | 'a_completer';
+
 export interface AdminAlternant {
   alternantProfilId: string;
   name: string | null;
@@ -155,6 +163,8 @@ export interface AdminAlternant {
   entrepriseName: string | null;
   tuteurPedaName: string | null;
   tuteurEntrepriseName: string | null;
+  suivi: AlternantSuivi;
+  progressPct: number;
 }
 
 export interface AdminMember {
@@ -422,6 +432,15 @@ export const api = {
     request<SuperUser>(`/superadmin/users/${id}`, { method: 'PATCH', body: JSON.stringify(input) }),
   deleteSuperUser: (id: string) =>
     request<{ id: string }>(`/superadmin/users/${id}`, { method: 'DELETE' }),
+  superEstablishmentTypes: () =>
+    request<EstablishmentType[]>('/superadmin/establishment-types'),
+  createSuperEstablishmentType: (label: string) =>
+    request<EstablishmentType>('/superadmin/establishment-types', {
+      method: 'POST',
+      body: JSON.stringify({ label }),
+    }),
+  deleteSuperEstablishmentType: (id: string) =>
+    request<{ id: string }>(`/superadmin/establishment-types/${id}`, { method: 'DELETE' }),
   adminOverview: () => request<AdminOverview>('/admin/overview'),
   adminDashboard: () => request<AdminDashboard>('/admin/dashboard'),
   adminSchools: () =>

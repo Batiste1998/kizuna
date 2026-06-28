@@ -226,3 +226,42 @@
 .font-mono {
   font-family: var(--font-mono);
 }
+
+/* ---------------------------------------------------------------------------
+ * Accessibility preferences — toggled via classes on <html> by the a11y panel.
+ * ------------------------------------------------------------------------- */
+:root.a11y-text-grand {
+  font-size: 18px;
+}
+:root.a11y-text-xl {
+  font-size: 20px;
+}
+.a11y-dyslexia,
+.a11y-dyslexia body {
+  font-family: 'Atkinson Hyperlegible', 'Verdana', 'Tahoma', ui-sans-serif, sans-serif;
+}
+.a11y-spacing body {
+  letter-spacing: 0.03em;
+  word-spacing: 0.12em;
+  line-height: 1.85;
+}
+.a11y-underline a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+:root.a11y-contrast {
+  --foreground: #000000;
+  --muted-foreground: #3a3d44;
+  --secondary-foreground: #15171c;
+  --border: #9aa0ab;
+  --hairline: #b6bcc6;
+  --input: #6b7280;
+}
+.a11y-reduce-motion *,
+.a11y-reduce-motion *::before,
+.a11y-reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}

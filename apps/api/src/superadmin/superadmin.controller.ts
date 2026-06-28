@@ -4,6 +4,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import type { AuthUser } from '../auth/auth.types';
 import { SuperAdminService } from './superadmin.service';
 import {
+  CreateEstablishmentTypeDto,
   CreateOrganizationDto,
   CreateUserDto,
   UpdateOrganizationDto,
@@ -66,5 +67,20 @@ export class SuperAdminController {
   @Delete('users/:userId')
   deleteUser(@CurrentUser() user: AuthUser, @Param('userId') userId: string) {
     return this.service.deleteUser(user, userId);
+  }
+
+  @Get('establishment-types')
+  establishmentTypes(@CurrentUser() user: AuthUser) {
+    return this.service.listEstablishmentTypes(user);
+  }
+
+  @Post('establishment-types')
+  createEstablishmentType(@CurrentUser() user: AuthUser, @Body() dto: CreateEstablishmentTypeDto) {
+    return this.service.createEstablishmentType(user, dto.label);
+  }
+
+  @Delete('establishment-types/:typeId')
+  deleteEstablishmentType(@CurrentUser() user: AuthUser, @Param('typeId') typeId: string) {
+    return this.service.deleteEstablishmentType(user, typeId);
   }
 }

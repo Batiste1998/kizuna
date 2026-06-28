@@ -36,6 +36,7 @@ import {
 import { authClient, signOut } from '#/lib/auth-client';
 import { cn } from '#/lib/utils';
 import { NotificationsBell } from './notifications-bell';
+import { AccessibilityFab } from './accessibility-fab';
 import { Logo } from './logo';
 
 const NAV_ICONS: Record<NavIcon, LucideIcon> = {
@@ -101,12 +102,24 @@ export function AppShell({ me, children }: { me: Me; children: ReactNode }) {
           </button>
           <Brand className="md:hidden" />
           <div className="flex items-center gap-2">
+            {me.role !== 'support' && me.role !== 'super_admin' && (
+              <Link
+                to="/app/support"
+                title="Aide et support"
+                aria-label="Aide et support"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-secondary-foreground transition-colors hover:border-brand"
+              >
+                <LifeBuoy className="h-4 w-4" />
+              </Link>
+            )}
             <NotificationsBell />
           </div>
         </header>
 
         <div className="flex-1">{children}</div>
       </div>
+
+      <AccessibilityFab />
 
       {/* Mobile drawer */}
       {mobileOpen && (

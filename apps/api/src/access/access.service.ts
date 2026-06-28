@@ -1,5 +1,5 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { schema, type EvaluatorRole } from '@kizuna/db';
 import { DatabaseService } from '../database/database.service';
 import type { AuthUser } from '../auth/auth.types';
@@ -77,7 +77,7 @@ export class AccessService {
       };
     }
 
-    // Establishment admins manage their own org's apprentices.
+    // Establishment admins (admin or owner) manage their own org's apprentices.
     const [membership] = await this.db
       .select()
       .from(schema.member)
@@ -85,7 +85,7 @@ export class AccessService {
         and(
           eq(schema.member.organizationId, profil.organizationId),
           eq(schema.member.userId, user.id),
-          eq(schema.member.role, 'admin'),
+          inArray(schema.member.role, ['admin', 'owner']),
         ),
       );
     if (membership)

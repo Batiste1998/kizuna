@@ -47,6 +47,17 @@ export const entreprise = pgTable('entreprise', {
 });
 
 /** Référentiel de compétences (ex. titre RNCP). */
+/**
+ * Establishment types (CFA, université, GRETA…) managed by the super admin and
+ * offered as choices when creating a partner school. Stored as a simple curated
+ * list so the catalogue can grow without code changes.
+ */
+export const establishmentType = pgTable('establishment_type', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  label: text('label').notNull().unique(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const referentiel = pgTable('referentiel', {
   id: uuid('id').primaryKey().defaultRandom(),
   organizationId: text('organization_id').references(() => organization.id, {

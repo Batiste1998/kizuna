@@ -26,6 +26,9 @@ export function roleMeta(role: string) {
 /** The role to surface for a user row: platform role wins, else first org role. */
 export function primaryRole(u: SuperUser): string {
   if (u.role === 'super_admin' || u.role === 'support') return u.role;
+  // School owners are establishment administrators — surface them as "admin" so the
+  // count and the "Administrateur" filter stay consistent with the stat card.
+  if (u.memberRoles.some((r) => r === 'admin' || r === 'owner')) return 'admin';
   return u.memberRoles[0] ?? 'user';
 }
 

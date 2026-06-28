@@ -260,11 +260,17 @@ export function AssociationEditor({
   alternantProfilId,
   members,
   entreprises,
+  initial,
   onSaved,
 }: {
   alternantProfilId: string;
   members: AdminMember[];
   entreprises: AdminEntreprise[];
+  initial?: {
+    tuteurPedaName?: string | null;
+    tuteurEntrepriseName?: string | null;
+    entrepriseName?: string | null;
+  };
   onSaved: () => void;
 }) {
   const pedaMembers = useMemo(() => members.filter((m) => m.role === 'tuteur_pedagogique'), [members]);
@@ -276,6 +282,23 @@ export function AssociationEditor({
   const [tuteurEntrepriseUserId, setTuteurEntrepriseUserId] = useState('');
   const [entrepriseId, setEntrepriseId] = useState('');
   const [busy, setBusy] = useState(false);
+
+  // Pre-select the apprentice's current trinôme by matching the displayed names.
+  useEffect(() => {
+    if (!initial) return;
+    if (initial.tuteurPedaName) {
+      const m = pedaMembers.find((x) => (x.name ?? x.email) === initial.tuteurPedaName);
+      if (m) setTuteurPedaUserId(m.userId);
+    }
+    if (initial.tuteurEntrepriseName) {
+      const m = entrepriseMembers.find((x) => (x.name ?? x.email) === initial.tuteurEntrepriseName);
+      if (m) setTuteurEntrepriseUserId(m.userId);
+    }
+    if (initial.entrepriseName) {
+      const e = entreprises.find((x) => x.name === initial.entrepriseName);
+      if (e) setEntrepriseId(e.id);
+    }
+  }, [initial, pedaMembers, entrepriseMembers, entreprises]);
 
   async function save() {
     setBusy(true);

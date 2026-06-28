@@ -72,3 +72,10 @@ export class UpdateUserDto {
   @IsIn(['user', 'support', 'super_admin'])
   role?: 'user' | 'support' | 'super_admin';
 }
+
+export class CreateEstablishmentTypeDto {
+  @IsString()
+  @MinLength(1)
+  @MaxLength(100)
+  label!: string;
+}
