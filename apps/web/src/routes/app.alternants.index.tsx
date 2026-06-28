@@ -1,0 +1,137 @@
+import { useEffect, useState } from 'react';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { useSession } from '#/lib/auth-client';
+import { api, type TutorAlternant } from '#/lib/api';
+import { EVALUATOR_LABELS } from '#/lib/levels';
+import { Centered } from '#/components/shell';
+import { PageShell } from '#/components/super-ui';
+
+export const Route = createFileRoute('/app/alternants/')({
+  component: AlternantsPage,
+});
+
+function AlternantsPage() {
+  const { data: session, isPending } = useSession();
+  const navigate = useNavigate();
+  const [list, setList] = useState<TutorAlternant[] | null>(null);
+
+  useEffect(() => {
+    if (!isPending && !session) void navigate({ to: '/login' });
+  }, [isPending, session, navigate]);
+
+  useEffect(() => {
+    if (!session) return;
+    api
+      .getMyAlternants()
+      .then(setList)
+      .catch(() => setList([]));
+  }, [session]);
+
+  if (isPending || (!list && session)) return <Centered>Chargement…</Centered>;
+  if (!session) return null;
+
+  return (
+    <PageShell
+      title="Mes alternants"
+      maxWidth="max-w-4xl"
+      subtitle="Les alternants que vous suivez et leur progression."
+    >
+        {list && list.length === 0 ? (
+          <p className="rounded-xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
+            Aucun alternant ne vous est rattaché. Cet espace est destiné aux tuteurs.
+          </p>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {list?.map((a) => {
+              const pct =
+                a.progress.total > 0 ? (a.progress.evaluated / a.progress.total) * 100 : 0;
+              return (
+                <div
+                  key={a.alternantProfilId}
+                  className="rounded-xl border border-border bg-card p-5 shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <Link
+                        to="/app/alternants/$alternantId"
+                        params={{ alternantId: a.alternantProfilId }}
+                        className="font-semibold hover:text-brand hover:underline"
+                      >
+                        {a.name}
+                      </Link>
+                      <p className="text-xs text-muted-foreground">{a.email}</p>
+                    </div>
+                    <span className="rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand-strong">
+                      {EVALUATOR_LABELS[a.myRole]}
+                    </span>
+                  </div>
+
+                  <dl className="mt-3 space-y-0.5 text-xs text-muted-foreground">
+                    {a.promotionName && <div>Promotion : {a.promotionName}</div>}
+                    {a.entrepriseName && <div>Entreprise : {a.entrepriseName}</div>}
+                  </dl>
+
+                  <div className="mt-3">
+                    <div className="flex justify-between text-[11px] text-muted-foreground">
+                      <span>Compétences évaluées</span>
+                      <span>
+                        {a.progress.evaluated}/{a.progress.total}
+                      </span>
+                    </div>
+                    <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                      <div className="bg-brand-gradient h-full rounded-full" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Link
+                      to="/app/alternants/$alternantId/competences"
+                      params={{ alternantId: a.alternantProfilId }}
+                      className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium hover:border-brand"
+                    >
+                      Compétences
+                    </Link>
+                    <Link
+                      to="/app/alternants/$alternantId/journal"
+                      params={{ alternantId: a.alternantProfilId }}
+                      className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium hover:border-brand"
+                    >
+                      Journal
+                    </Link>
+                    <Link
+                      to="/app/alternants/$alternantId/bilans"
+                      params={{ alternantId: a.alternantProfilId }}
+                      className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium hover:border-brand"
+                    >
+                      Bilans
+                    </Link>
+                    <Link
+                      to="/app/alternants/$alternantId/echeancier"
+                      params={{ alternantId: a.alternantProfilId }}
+                      className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium hover:border-brand"
+                    >
+                      Échéancier
+                    </Link>
+                    <Link
+                      to="/app/alternants/$alternantId/messagerie"
+                      params={{ alternantId: a.alternantProfilId }}
+                      className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium hover:border-brand"
+                    >
+                      Messagerie
+                    </Link>
+                    <Link
+                      to="/app/alternants/$alternantId/documents"
+                      params={{ alternantId: a.alternantProfilId }}
+                      className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium hover:border-brand"
+                    >
+                      Documents
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+    </PageShell>
+  );
+}

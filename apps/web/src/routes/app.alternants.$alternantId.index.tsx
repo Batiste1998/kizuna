@@ -1,36 +1,83 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import {
-  ClipboardCheck,
-  CalendarClock,
-  FolderClosed,
-  GraduationCap,
-  MessagesSquare,
-  NotebookPen,
+  ArrowLeft,
+  Award,
+  Briefcase,
+  CalendarCheck,
+  CheckCircle2,
+  Target,
 } from 'lucide-react';
 import { useSession } from '#/lib/auth-client';
-import { api, type TutorAlternant } from '#/lib/api';
+import { useMe } from '#/lib/me-context';
+import {
+  api,
+  type AdminAlternant,
+  type AlternantCompetences,
+  type Bilan,
+  type CompetenceLevel,
+  type JournalEntry,
+} from '#/lib/api';
 import { Centered } from '#/components/shell';
+import { Avatar } from '#/components/super-ui';
+import { cn } from '#/lib/utils';
+import { CompetencesPanel } from '#/components/competences-panel';
+import { JournalPanel } from '#/components/journal-panel';
+import { BilansPanel } from '#/components/bilans-panel';
+import { DocumentsPanel } from '#/components/documents-panel';
 
 export const Route = createFileRoute('/app/alternants/$alternantId/')({
-  component: AlternantOverviewPage,
+  component: AlternantFichePage,
 });
 
-const TABS = [
-  { to: '/app/alternants/$alternantId/competences', label: 'Compétences', icon: GraduationCap },
-  { to: '/app/alternants/$alternantId/journal', label: 'Journal', icon: NotebookPen },
-  { to: '/app/alternants/$alternantId/bilans', label: 'Bilans', icon: ClipboardCheck },
-  { to: '/app/alternants/$alternantId/echeancier', label: 'Échéancier', icon: CalendarClock },
-  { to: '/app/alternants/$alternantId/messagerie', label: 'Messagerie', icon: MessagesSquare },
-  { to: '/app/alternants/$alternantId/documents', label: 'Documents', icon: FolderClosed },
-] as const;
+const LEVEL_VALUE: Record<CompetenceLevel, number> = { NA: 0, EC: 1, A: 2, M: 3 };
 
-function AlternantOverviewPage() {
+const TABS = [
+  { key: 'overview', label: "Vue d'ensemble" },
+  { key: 'competences', label: 'Compétences' },
+  { key: 'journal', label: "Journal d'activités" },
+  { key: 'bilans', label: 'Bilans' },
+  { key: 'documents', label: 'Documents' },
+] as const;
+type TabKey = (typeof TABS)[number]['key'];
+
+/** Highest level reached across the three evaluators (consolidated reading). */
+function consolidated(evaluations: Partial<Record<string, CompetenceLevel>>): number {
+  const vals = Object.values(evaluations).filter(Boolean) as CompetenceLevel[];
+  if (vals.length === 0) return 0;
+  return Math.max(...vals.map((v) => LEVEL_VALUE[v]));
+}
+
+function rncpNiveauLabel(level: number | null): string | null {
+  if (!level) return null;
+  const bac: Record<number, string> = { 5: 'Bac+2', 6: 'Bac+3/4', 7: 'Bac+5', 8: 'Bac+8' };
+  return bac[level] ? `Niveau ${level} (${bac[level]})` : `Niveau ${level}`;
+}
+
+function AlternantFichePage() {
   const { alternantId } = Route.useParams();
   const { data: session, isPending } = useSession();
+  const me = useMe();
   const navigate = useNavigate();
-  const [alternant, setAlternant] = useState<TutorAlternant | null>(null);
+  const isAdmin = me.memberRoles.some((r) => r === 'admin' || r === 'owner');
+
+  const [tab, setTab] = useState<TabKey>('overview');
+  const [header, setHeader] = useState<{
+    name: string | null;
+    email: string | null;
+    promotionName: string | null;
+    entrepriseName: string | null;
+    tuteurPedaName: string | null;
+    tuteurEntrepriseName: string | null;
+    progressPct: number;
+  } | null>(null);
+  const [rncpLevel, setRncpLevel] = useState<number | null>(null);
+  const [schoolName, setSchoolName] = useState<string | null>(null);
+  const [competences, setCompetences] = useState<AlternantCompetences | null>(null);
+  const [bilans, setBilans] = useState<Bilan[]>([]);
+  const [journal, setJournal] = useState<JournalEntry[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     if (!isPending && !session) void navigate({ to: '/login' });
@@ -38,84 +85,454 @@ function AlternantOverviewPage() {
 
   useEffect(() => {
     if (!session) return;
-    api
-      .getMyAlternants()
-      .then((list) => setAlternant(list.find((a) => a.alternantProfilId === alternantId) ?? null))
-      .catch(() => setAlternant(null))
-      .finally(() => setLoaded(true));
-  }, [session, alternantId]);
+    let cancelled = false;
 
-  if (isPending) return <Centered>Chargement…</Centered>;
+    async function loadHeader() {
+      if (isAdmin) {
+        const [list, promos, schools] = await Promise.all([
+          api.adminAlternants().catch(() => [] as AdminAlternant[]),
+          api.adminPromotions().catch(() => []),
+          api.adminSchools().catch(() => ({ activeId: null, schools: [] })),
+        ]);
+        const a = list.find((x) => x.alternantProfilId === alternantId);
+        if (!a) return null;
+        const promo = promos.find((p) => p.name === a.promotionName);
+        if (!cancelled) {
+          setRncpLevel(promo?.rncpLevel ?? null);
+          setSchoolName(schools.schools.find((s) => s.id === schools.activeId)?.name ?? null);
+        }
+        return {
+          name: a.name,
+          email: a.email,
+          promotionName: a.promotionName,
+          entrepriseName: a.entrepriseName,
+          tuteurPedaName: a.tuteurPedaName,
+          tuteurEntrepriseName: a.tuteurEntrepriseName,
+          progressPct: a.progressPct,
+        };
+      }
+      const list = await api.getMyAlternants().catch(() => []);
+      const a = list.find((x) => x.alternantProfilId === alternantId);
+      if (!a) return null;
+      const pct = a.progress.total > 0 ? Math.round((a.progress.evaluated / a.progress.total) * 100) : 0;
+      return {
+        name: a.name,
+        email: a.email,
+        promotionName: a.promotionName ?? null,
+        entrepriseName: a.entrepriseName ?? null,
+        tuteurPedaName: null,
+        tuteurEntrepriseName: null,
+        progressPct: pct,
+      };
+    }
+
+    Promise.all([
+      loadHeader(),
+      api.getCompetences(alternantId).catch(() => null),
+      api.getBilans(alternantId).catch(() => null),
+      api.getJournal(alternantId).catch(() => null),
+    ])
+      .then(([h, comp, bil, jou]) => {
+        if (cancelled) return;
+        if (!h) setNotFound(true);
+        else setHeader(h);
+        setCompetences(comp);
+        setBilans(bil?.bilans ?? []);
+        setJournal(jou?.entries ?? []);
+      })
+      .finally(() => !cancelled && setLoaded(true));
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session, alternantId, isAdmin]);
+
+  const stats = useMemo(() => {
+    if (!competences) return null;
+    const blocs = competences.blocs.map((b) => {
+      const total = b.competences.length;
+      const acquired = b.competences.filter((c) => consolidated(c.evaluations) >= 2).length;
+      const avg = total
+        ? b.competences.reduce((s, c) => s + consolidated(c.evaluations), 0) / (total * 3)
+        : 0;
+      return { code: b.code, label: b.label, total, acquired, avg, validated: total > 0 && acquired === total };
+    });
+    const allComps = competences.blocs.flatMap((b) => b.competences);
+    return {
+      blocs,
+      totalComp: allComps.length,
+      acquiredComp: allComps.filter((c) => consolidated(c.evaluations) >= 2).length,
+      blocsValides: blocs.filter((b) => b.validated).length,
+      totalBlocs: blocs.length,
+    };
+  }, [competences]);
+
+  const nextBilan = useMemo(
+    () =>
+      bilans
+        .filter((b) => b.status === 'planned' && new Date(b.scheduledAt) >= new Date(Date.now() - 86400000))
+        .sort((a, b) => +new Date(a.scheduledAt) - +new Date(b.scheduledAt))[0] ?? null,
+    [bilans],
+  );
+  const lastActivity = useMemo(
+    () =>
+      [...journal].sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))[0] ?? null,
+    [journal],
+  );
+
+  if (isPending || (!loaded && session)) return <Centered>Chargement…</Centered>;
   if (!session) return null;
 
-  const pct =
-    alternant && alternant.progress.total > 0
-      ? Math.round((alternant.progress.evaluated / alternant.progress.total) * 100)
-      : 0;
+  const backTo = isAdmin ? '/app/admin/alternants' : '/app/alternants';
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-6 py-8">
-      <Link to="/app/alternants" className="text-xs text-muted-foreground hover:text-brand">
-        ← Mes alternants
+    <div data-role="alternant" className="mx-auto max-w-5xl space-y-5 px-6 py-8">
+      <Link
+        to={backTo}
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-brand-strong"
+      >
+        <ArrowLeft className="h-4 w-4" /> Retour aux alternants
       </Link>
 
-      {!loaded ? (
-        <p className="text-sm text-muted-foreground">Chargement…</p>
-      ) : !alternant ? (
-        <p className="text-sm text-muted-foreground">Alternant introuvable ou non rattaché.</p>
+      {notFound || !header ? (
+        <p className="rounded-2xl border border-hairline bg-card p-8 text-center text-sm text-muted-foreground shadow-md">
+          Alternant introuvable ou non rattaché à votre établissement.
+        </p>
       ) : (
         <>
-          <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-            <h1 className="text-xl font-bold tracking-tight">{alternant.name}</h1>
-            <div className="mt-1 text-sm text-muted-foreground">{alternant.email}</div>
-            <div className="mt-3 grid gap-3 sm:grid-cols-3">
-              <Field label="Promotion" value={alternant.promotionName ?? '—'} />
-              <Field label="Entreprise" value={alternant.entrepriseName ?? '—'} />
-              <Field
-                label="Mon rôle"
-                value={alternant.myRole === 'peda' ? 'Tuteur pédagogique' : "Tuteur d'entreprise"}
-              />
-            </div>
-            <div className="mt-4">
-              <div className="flex items-baseline justify-between text-xs text-muted-foreground">
-                <span>Progression des compétences</span>
-                <span>
-                  {alternant.progress.evaluated}/{alternant.progress.total}
-                </span>
+          {/* Header card */}
+          <div className="rounded-2xl border border-hairline bg-card p-6 shadow-md">
+            <div className="flex flex-wrap items-start justify-between gap-6">
+              <div className="flex items-start gap-4">
+                <Avatar name={header.name} role="alternant" size={64} />
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <h1 className="text-2xl font-bold tracking-tight">{header.name ?? '—'}</h1>
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-2.5 py-0.5 text-[12px] font-semibold text-brand-strong">
+                      <span className="h-1.5 w-1.5 rounded-full bg-brand" /> Alternance en cours
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {[header.promotionName, schoolName].filter(Boolean).join(' · ') || '—'}
+                  </p>
+                  <div className="flex flex-wrap gap-2 pt-0.5">
+                    {competences?.referentiel && (
+                      <Chip icon={<Award className="h-3.5 w-3.5" />}>
+                        <span className="font-mono">{competences.referentiel.code}</span>
+                        {rncpNiveauLabel(rncpLevel) && <span> · {rncpNiveauLabel(rncpLevel)}</span>}
+                      </Chip>
+                    )}
+                    {header.entrepriseName && (
+                      <Chip icon={<Briefcase className="h-3.5 w-3.5" />}>{header.entrepriseName}</Chip>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-6 pt-1.5">
+                    <Tutor label="Tuteur pédagogique" name={header.tuteurPedaName} role="tuteur_pedagogique" />
+                    <Tutor label="Tuteur entreprise" name={header.tuteurEntrepriseName} role="tuteur_entreprise" />
+                  </div>
+                </div>
               </div>
-              <div className="mt-1 h-2 overflow-hidden rounded-full bg-muted">
-                <div className="bg-brand-gradient h-full rounded-full" style={{ width: `${pct}%` }} />
-              </div>
+              <Donut pct={header.progressPct} />
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {TABS.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <Link
-                  key={tab.to}
-                  to={tab.to}
-                  params={{ alternantId }}
-                  className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-sm transition-colors hover:border-brand"
-                >
-                  <Icon className="h-5 w-5 text-brand" />
-                  <span className="font-medium">{tab.label}</span>
-                </Link>
-              );
-            })}
+          {/* Tabs */}
+          <div className="flex flex-wrap gap-1 border-b border-hairline">
+            {TABS.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={cn(
+                  'relative px-4 py-2.5 text-sm font-medium transition-colors',
+                  tab === t.key ? 'text-brand-strong' : 'text-muted-foreground hover:text-secondary-foreground',
+                )}
+              >
+                {t.label}
+                {tab === t.key && (
+                  <span className="absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-brand" />
+                )}
+              </button>
+            ))}
           </div>
+
+          {tab === 'overview' && (
+            <Overview
+              progressPct={header.progressPct}
+              stats={stats}
+              nextBilan={nextBilan}
+              lastActivity={lastActivity}
+            />
+          )}
+          {tab === 'competences' && <CompetencesPanel alternantProfilId={alternantId} />}
+          {tab === 'journal' && <JournalPanel alternantProfilId={alternantId} />}
+          {tab === 'bilans' && <BilansPanel alternantProfilId={alternantId} />}
+          {tab === 'documents' && <DocumentsPanel alternantProfilId={alternantId} />}
         </>
       )}
     </div>
   );
 }
 
-function Field({ label, value }: { label: string; value: string }) {
+function Overview({
+  progressPct,
+  stats,
+  nextBilan,
+  lastActivity,
+}: {
+  progressPct: number;
+  stats: StatsShape | null;
+  nextBilan: Bilan | null;
+  lastActivity: JournalEntry | null;
+}) {
   return (
-    <div className="rounded-lg bg-muted/50 px-3 py-2">
-      <div className="text-[11px] text-muted-foreground">{label}</div>
-      <div className="text-sm font-medium">{value}</div>
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <Stat label="Progression globale" value={`${progressPct}%`} sub="auto-évaluation" icon={<Target />} />
+        <Stat
+          label="Blocs validés"
+          value={stats ? `${stats.blocsValides}/${stats.totalBlocs}` : '—'}
+          sub="blocs de compétences"
+          icon={<Award />}
+        />
+        <Stat
+          label="Compétences acquises"
+          value={stats ? `${stats.acquiredComp}/${stats.totalComp}` : '—'}
+          sub="niveau Acquis ou +"
+          icon={<CheckCircle2 />}
+        />
+        <Stat
+          label="Prochain bilan"
+          value={nextBilan ? formatShort(nextBilan.scheduledAt) : '—'}
+          sub={nextBilan ? nextBilan.label : 'aucun planifié'}
+          icon={<CalendarCheck />}
+        />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="rounded-2xl border border-hairline bg-card p-5 shadow-md">
+          <h2 className="text-base font-bold tracking-tight">Radar de compétences</h2>
+          <p className="text-xs text-muted-foreground">Niveau moyen par bloc</p>
+          <div className="mt-4 flex justify-center">
+            <Radar points={(stats?.blocs ?? []).map((b) => ({ label: b.code, value: b.avg }))} />
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-hairline bg-card p-5 shadow-md">
+          <h2 className="text-base font-bold tracking-tight">Progression par bloc</h2>
+          <p className="text-xs text-muted-foreground">Compétences acquises par bloc</p>
+          <div className="mt-4 space-y-3.5">
+            {(stats?.blocs ?? []).map((b) => (
+              <div key={b.code}>
+                <div className="flex items-baseline justify-between text-sm">
+                  <span className="font-medium">
+                    <span className="font-mono text-brand-strong">{b.code}</span> · {b.label}
+                  </span>
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    {b.acquired}/{b.total} acquises
+                  </span>
+                </div>
+                <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="bg-brand-gradient h-full rounded-full"
+                    style={{ width: `${b.total ? (b.acquired / b.total) * 100 : 0}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+            {!stats?.blocs.length && (
+              <p className="text-sm text-muted-foreground">Aucun référentiel rattaché.</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="rounded-2xl border border-hairline bg-card p-5 shadow-md">
+          <h2 className="text-base font-bold tracking-tight">Prochain bilan</h2>
+          {nextBilan ? (
+            <div className="mt-3 flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-soft text-brand-strong">
+                <CalendarCheck className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="font-semibold">{nextBilan.label}</div>
+                <div className="text-sm text-muted-foreground">{formatLong(nextBilan.scheduledAt)}</div>
+              </div>
+            </div>
+          ) : (
+            <p className="mt-3 text-sm text-muted-foreground">Aucun bilan planifié.</p>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-hairline bg-card p-5 shadow-md">
+          <h2 className="text-base font-bold tracking-tight">Dernière activité</h2>
+          {lastActivity ? (
+            <div className="mt-3">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-brand" />
+                <span className="font-semibold">{lastActivity.title}</span>
+              </div>
+              <div className="mt-1 pl-4 text-sm text-muted-foreground">
+                {formatLong(lastActivity.createdAt)}
+              </div>
+            </div>
+          ) : (
+            <p className="mt-3 text-sm text-muted-foreground">Aucune entrée de journal.</p>
+          )}
+        </div>
+      </div>
     </div>
   );
+}
+
+// Helper type alias so Overview's prop typing reads cleanly.
+type StatsShape = {
+  blocs: Array<{ code: string; label: string; total: number; acquired: number; avg: number; validated: boolean }>;
+  totalComp: number;
+  acquiredComp: number;
+  blocsValides: number;
+  totalBlocs: number;
+};
+
+function Chip({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-lg border border-hairline bg-muted/60 px-2.5 py-1 text-xs font-medium text-secondary-foreground">
+      <span className="text-muted-foreground">{icon}</span>
+      {children}
+    </span>
+  );
+}
+
+function Tutor({ label, name, role }: { label: string; name: string | null; role: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <Avatar name={name} role={role} size={28} />
+      <div className="leading-tight">
+        <div className="text-[11px] text-muted-foreground">{label}</div>
+        <div className="text-sm font-semibold">{name ?? 'Non assigné'}</div>
+      </div>
+    </div>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  sub,
+  icon,
+}: {
+  label: string;
+  value: string;
+  sub: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-hairline bg-card p-5 shadow-md">
+      <div className="flex items-center justify-between">
+        <div className="text-sm font-medium text-muted-foreground">{label}</div>
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-soft text-brand-strong [&_svg]:h-4 [&_svg]:w-4">
+          {icon}
+        </div>
+      </div>
+      <div className="mt-2.5 text-3xl font-bold tracking-tight">{value}</div>
+      <div className="mt-1 text-xs text-muted-foreground">{sub}</div>
+    </div>
+  );
+}
+
+/** Circular progress ring. */
+function Donut({ pct }: { pct: number }) {
+  const r = 34;
+  const c = 2 * Math.PI * r;
+  const off = c * (1 - Math.min(100, Math.max(0, pct)) / 100);
+  return (
+    <div className="flex flex-col items-center">
+      <div className="relative h-[92px] w-[92px]">
+        <svg viewBox="0 0 80 80" className="h-full w-full -rotate-90">
+          <circle cx="40" cy="40" r={r} fill="none" stroke="var(--muted)" strokeWidth="8" />
+          <circle
+            cx="40"
+            cy="40"
+            r={r}
+            fill="none"
+            stroke="var(--accent)"
+            strokeWidth="8"
+            strokeLinecap="round"
+            strokeDasharray={c}
+            strokeDashoffset={off}
+          />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center text-lg font-bold">{pct}%</div>
+      </div>
+      <div className="mt-1 text-center text-[11px] leading-tight text-muted-foreground">
+        Progression
+        <br />
+        globale
+      </div>
+    </div>
+  );
+}
+
+/** Lightweight SVG radar chart (0..1 values). */
+function Radar({ points }: { points: Array<{ label: string; value: number }> }) {
+  const size = 240;
+  const cx = size / 2;
+  const cy = size / 2;
+  const radius = 86;
+  const n = points.length;
+  if (n < 3) {
+    return (
+      <div className="flex h-[240px] items-center justify-center text-sm text-muted-foreground">
+        Pas assez de blocs pour un radar.
+      </div>
+    );
+  }
+  const angle = (i: number) => (Math.PI * 2 * i) / n - Math.PI / 2;
+  const pt = (i: number, rr: number) => [cx + Math.cos(angle(i)) * rr, cy + Math.sin(angle(i)) * rr];
+  const rings = [0.25, 0.5, 0.75, 1];
+  const poly = points.map((p, i) => pt(i, radius * Math.max(0.04, p.value)).join(',')).join(' ');
+
+  return (
+    <svg viewBox={`0 0 ${size} ${size}`} className="h-[240px] w-[240px]">
+      {rings.map((rr) => (
+        <polygon
+          key={rr}
+          points={points.map((_, i) => pt(i, radius * rr).join(',')).join(' ')}
+          fill="none"
+          stroke="var(--border)"
+        />
+      ))}
+      {points.map((_, i) => {
+        const [x, y] = pt(i, radius);
+        return <line key={i} x1={cx} y1={cy} x2={x} y2={y} stroke="var(--border)" />;
+      })}
+      <polygon points={poly} fill="color-mix(in srgb, var(--accent) 22%, transparent)" stroke="var(--accent)" strokeWidth="2" />
+      {points.map((p, i) => {
+        const [x, y] = pt(i, radius * Math.max(0.04, p.value));
+        return <circle key={`d${i}`} cx={x} cy={y} r="3" fill="var(--accent)" />;
+      })}
+      {points.map((p, i) => {
+        const [x, y] = pt(i, radius + 16);
+        return (
+          <text
+            key={`t${i}`}
+            x={x}
+            y={y}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            className="fill-[var(--muted-foreground)] font-mono text-[10px] font-semibold"
+          >
+            {p.label}
+          </text>
+        );
+      })}
+    </svg>
+  );
+}
+
+function formatShort(iso: string) {
+  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+}
+function formatLong(iso: string) {
+  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 }

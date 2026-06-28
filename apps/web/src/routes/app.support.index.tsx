@@ -96,14 +96,14 @@ function SupportPage() {
       actions={
         !canTriage ? (
           <Button onClick={() => setCreating(true)}>
-            <Plus /> Nouvelle demande
+            <Plus /> Nouveau ticket
           </Button>
         ) : undefined
       }
     >
       {canTriage
         ? 'Suivez les demandes et les bugs remontés par les utilisateurs de la plateforme.'
-        : 'Une question, un bug ? Ouvrez un ticket, l’équipe support vous répond ici.'}
+        : 'Un blocage sur la plateforme ou une demande d’évolution ? Ouvrez un ticket auprès de l’équipe support de Kizuna.'}
 
       {canTriage && (
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -145,6 +145,54 @@ function SupportPage() {
         </div>
       </div>
 
+      {!canTriage ? (
+        <div className="space-y-3">
+          {filtered.map((t) => (
+            <Link
+              key={t.id}
+              to="/app/support/$ticketId"
+              params={{ ticketId: t.id }}
+              className="block rounded-2xl border border-hairline bg-card p-5 shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[11px] text-muted-foreground">{t.ref}</span>
+                    <span className="text-base font-semibold">{t.subject}</span>
+                  </div>
+                  <div className="mt-2.5 flex flex-wrap gap-2">
+                    <Badge
+                      meta={{
+                        label: TICKET_TYPE_LABELS[t.type],
+                        className:
+                          t.type === 'bug'
+                            ? 'bg-[#FBEBE3] text-[#B54F2C]'
+                            : 'bg-[#E8EEF7] text-[#3D5E8E]',
+                      }}
+                    />
+                    <Badge
+                      meta={{
+                        label: `Priorité ${TICKET_PRIORITY_META[t.priority].label.toLowerCase()}`,
+                        className: TICKET_PRIORITY_META[t.priority].className,
+                      }}
+                    />
+                  </div>
+                </div>
+                <Badge meta={TICKET_STATUS_META[t.status]} />
+              </div>
+            </Link>
+          ))}
+          {filtered.length === 0 && (
+            <div className="rounded-2xl border border-hairline bg-card px-5 py-14 text-center shadow-md">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                <LifeBuoy className="h-5 w-5" />
+              </div>
+              <div className="font-semibold">Aucun ticket</div>
+              <div className="mt-1 text-sm text-muted-foreground">Vous n’avez ouvert aucun ticket.</div>
+            </div>
+          )}
+        </div>
+      ) : (
       <Panel className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] border-collapse">
@@ -218,11 +266,12 @@ function SupportPage() {
           </div>
         )}
       </Panel>
+      )}
 
       {creating && (
         <Slideover
-          title="Nouvelle demande"
-          subtitle="Décrivez votre demande, l’équipe support la prend en charge."
+          title="Nouveau ticket"
+          subtitle="Une demande ou un bug à remonter au support."
           onClose={() => setCreating(false)}
         >
           <CreateTicketForm
@@ -272,27 +321,38 @@ function CreateTicketForm({ onClose, onCreated }: { onClose: () => void; onCreat
           placeholder="Décrivez votre demande en quelques mots"
         />
       </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <Label htmlFor="type">Type</Label>
-          <select id="type" value={type} onChange={(e) => setType(e.target.value as TicketType)} className={selectClass}>
-            <option value="demande">Demande</option>
-            <option value="bug">Bug</option>
-          </select>
+      <div className="space-y-1.5">
+        <Label>Type de demande</Label>
+        <div className="grid grid-cols-2 gap-2">
+          {(['demande', 'bug'] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setType(t)}
+              className={cn(
+                'rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors',
+                type === t
+                  ? 'border-brand bg-brand-soft text-brand-strong'
+                  : 'border-hairline hover:border-brand',
+              )}
+            >
+              {t === 'demande' ? 'Demande' : 'Signaler un bug'}
+            </button>
+          ))}
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="priority">Priorité</Label>
-          <select
-            id="priority"
-            value={priority}
-            onChange={(e) => setPriority(e.target.value as TicketPriority)}
-            className={selectClass}
-          >
-            <option value="basse">Basse</option>
-            <option value="moyenne">Moyenne</option>
-            <option value="haute">Haute</option>
-          </select>
-        </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="priority">Priorité</Label>
+        <select
+          id="priority"
+          value={priority}
+          onChange={(e) => setPriority(e.target.value as TicketPriority)}
+          className={selectClass}
+        >
+          <option value="basse">Basse</option>
+          <option value="moyenne">Moyenne</option>
+          <option value="haute">Haute</option>
+        </select>
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="description">Description</Label>
@@ -312,7 +372,7 @@ function CreateTicketForm({ onClose, onCreated }: { onClose: () => void; onCreat
           Annuler
         </Button>
         <Button type="submit" disabled={busy || !subject || !description}>
-          {busy ? 'Envoi…' : 'Ouvrir le ticket'}
+          {busy ? 'Envoi…' : 'Envoyer le ticket'}
         </Button>
       </div>
     </form>

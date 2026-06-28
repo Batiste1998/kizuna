@@ -285,8 +285,61 @@ export class AdminService {
       : [];
     const userById = new Map(users.map((u) => [u.id, u]));
 
+    // Suivi status: a bilan planned in the past = "en retard"; an incomplete trinôme = "à compléter".
+    const lateBilans = await this.db
+      .select({ alternantProfilId: schema.bilan.alternantProfilId })
+      .from(schema.bilan)
+      .where(
+        and(
+          inArray(schema.bilan.alternantProfilId, profilIds),
+          eq(schema.bilan.status, 'planned'),
+          lt(schema.bilan.scheduledAt, new Date()),
+        ),
+      );
+    const lateByProfil = new Set(lateBilans.map((b) => b.alternantProfilId));
+
+    // Self-evaluation progress per apprentice (consistent with the dashboard's promo progress).
+    const totalCompetences = (
+      await this.db.select({ id: schema.competence.id }).from(schema.competence)
+    ).length;
+    const evals = await this.db
+      .select({
+        alternantProfilId: schema.evaluation.alternantProfilId,
+        level: schema.evaluation.level,
+      })
+      .from(schema.evaluation)
+      .where(
+        and(
+          inArray(schema.evaluation.alternantProfilId, profilIds),
+          eq(schema.evaluation.evaluator, 'auto'),
+        ),
+      );
+    const evaluatedByProfil = new Map<string, number>();
+    for (const e of evals) {
+      if (e.level !== 'NA')
+        evaluatedByProfil.set(
+          e.alternantProfilId,
+          (evaluatedByProfil.get(e.alternantProfilId) ?? 0) + 1,
+        );
+    }
+
     return profils.map((p) => {
       const assoc = assocByProfil.get(p.id);
+      const complete = !!(
+        assoc &&
+        assoc.entrepriseId &&
+        assoc.tuteurPedaUserId &&
+        assoc.tuteurEntrepriseUserId
+      );
+      const suivi: 'a_jour' | 'en_retard' | 'a_completer' = !complete
+        ? 'a_completer'
+        : lateByProfil.has(p.id)
+          ? 'en_retard'
+          : 'a_jour';
+      const progressPct =
+        totalCompetences > 0
+          ? Math.round(Math.min(1, (evaluatedByProfil.get(p.id) ?? 0) / totalCompetences) * 100)
+          : 0;
       return {
         alternantProfilId: p.id,
         name: userById.get(p.userId)?.name ?? null,
@@ -301,6 +354,8 @@ export class AdminService {
         tuteurEntrepriseName: assoc?.tuteurEntrepriseUserId
           ? (userById.get(assoc.tuteurEntrepriseUserId)?.name ?? null)
           : null,
+        suivi,
+        progressPct,
       };
     });
   }
