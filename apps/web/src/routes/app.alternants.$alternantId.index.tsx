@@ -120,8 +120,8 @@ function AlternantFichePage() {
         email: a.email,
         promotionName: a.promotionName ?? null,
         entrepriseName: a.entrepriseName ?? null,
-        tuteurPedaName: null,
-        tuteurEntrepriseName: null,
+        tuteurPedaName: a.tuteurPedaName,
+        tuteurEntrepriseName: a.tuteurEntrepriseName,
         progressPct: pct,
       };
     }

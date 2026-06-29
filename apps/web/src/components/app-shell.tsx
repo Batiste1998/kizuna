@@ -37,6 +37,7 @@ import { authClient, signOut } from '#/lib/auth-client';
 import { cn } from '#/lib/utils';
 import { NotificationsBell } from './notifications-bell';
 import { AccessibilityFab } from './accessibility-fab';
+import { DemoSwitcher } from './demo-switcher';
 import { Logo } from './logo';
 
 const NAV_ICONS: Record<NavIcon, LucideIcon> = {
@@ -120,6 +121,7 @@ export function AppShell({ me, children }: { me: Me; children: ReactNode }) {
       </div>
 
       <AccessibilityFab />
+      <DemoSwitcher me={me} />
 
       {/* Mobile drawer */}
       {mobileOpen && (

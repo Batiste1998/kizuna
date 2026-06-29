@@ -14,7 +14,7 @@ export interface RoleMeta {
 }
 
 export const ROLES: RoleMeta[] = [
-  { key: 'alternant', label: 'Alternant', tagline: 'Suivi de compétences & journal' },
+  { key: 'alternant', label: 'Alternant', tagline: 'Compétences & journal de bord' },
   { key: 'tuteur_pedagogique', label: 'Tuteur pédagogique', tagline: 'Évaluation & bilans' },
   { key: 'tuteur_entreprise', label: 'Tuteur entreprise', tagline: 'Validation du journal' },
   { key: 'admin', label: 'Administrateur', tagline: 'Gestion de l’établissement' },
@@ -26,9 +26,17 @@ const ROLE_LABELS = Object.fromEntries(ROLES.map((r) => [r.key, r.label])) as Re
   RoleKey,
   string
 >;
+const ROLE_TAGLINES = Object.fromEntries(ROLES.map((r) => [r.key, r.tagline])) as Record<
+  RoleKey,
+  string
+>;
 
 export function roleLabel(key: RoleKey): string {
   return ROLE_LABELS[key];
+}
+
+export function roleTagline(key: RoleKey): string {
+  return ROLE_TAGLINES[key];
 }
 
 /** Which demonstration accounts can be entered from the /demo persona picker. */
@@ -45,23 +53,10 @@ export interface DemoPersona {
   /** One line describing what this persona does day to day. */
   persona: string;
   group: PersonaGroup;
-  /** Playful "trading card" overall rating and stats (homage, not real metrics). */
-  rating: number;
-  position: string;
-  stats: [number, number, number, number, number, number];
 }
 
-/** Labels for the six trading-card stats (shared across personas). */
-export const STAT_LABELS = ['SUI', 'COM', 'EXP', 'RÉA', 'ORG', 'ENG'] as const;
-
-/**
- * Illustrated "sticker" avatar from DiceBear (no key, returns an SVG). Seeded by
- * the persona name so each face is stable and distinct.
- */
-export function personaAvatar(seed: string): string {
-  const params = new URLSearchParams({ seed, radius: '0', backgroundColor: 'transparent' });
-  return `https://api.dicebear.com/9.x/adventurer/svg?${params.toString()}`;
-}
+/** Shared password for every seeded demo account (apps/api/src/seed-users.ts). */
+export const DEMO_PASSWORD = 'Password123!';
 
 /**
  * The six demo accounts, grouped by Kizuna's real structure: the trinôme (the
@@ -76,9 +71,6 @@ export const DEMO_PERSONAS: DemoPersona[] = [
     firstName: 'Léa',
     persona: 'Suit ses compétences et tient son journal de bord.',
     group: 'trinome',
-    rating: 87,
-    position: 'ALT',
-    stats: [88, 84, 86, 85, 89, 92],
   },
   {
     key: 'tuteur_pedagogique',
@@ -87,9 +79,6 @@ export const DEMO_PERSONAS: DemoPersona[] = [
     firstName: 'Théo',
     persona: 'Évalue les compétences et conduit les bilans.',
     group: 'trinome',
-    rating: 91,
-    position: 'TUT-P',
-    stats: [93, 90, 94, 88, 90, 89],
   },
   {
     key: 'tuteur_entreprise',
@@ -98,9 +87,6 @@ export const DEMO_PERSONAS: DemoPersona[] = [
     firstName: 'Eva',
     persona: 'Valide le journal et le suivi côté entreprise.',
     group: 'trinome',
-    rating: 89,
-    position: 'TUT-E',
-    stats: [90, 88, 92, 90, 86, 88],
   },
   {
     key: 'admin',
@@ -109,9 +95,6 @@ export const DEMO_PERSONAS: DemoPersona[] = [
     firstName: 'Nadia',
     persona: 'Gère promotions, entreprises et trinômes de l’école.',
     group: 'plateforme',
-    rating: 90,
-    position: 'ADM',
-    stats: [89, 92, 88, 91, 93, 90],
   },
   {
     key: 'super_admin',
@@ -120,9 +103,6 @@ export const DEMO_PERSONAS: DemoPersona[] = [
     firstName: 'Super',
     persona: 'Pilote la plateforme et tous les établissements.',
     group: 'plateforme',
-    rating: 94,
-    position: 'S-A',
-    stats: [95, 90, 96, 93, 94, 92],
   },
   {
     key: 'support',
@@ -131,8 +111,19 @@ export const DEMO_PERSONAS: DemoPersona[] = [
     firstName: 'Sami',
     persona: 'Traite les tickets et accompagne les écoles.',
     group: 'plateforme',
-    rating: 88,
-    position: 'SUP',
-    stats: [86, 93, 87, 92, 88, 90],
   },
 ];
+
+/** The trinôme — the three roles bound to the same apprenticeship. */
+export const TRINOME_PERSONAS = DEMO_PERSONAS.filter((p) => p.group === 'trinome');
+
+/**
+ * Platform staff that can be entered from the demo — super_admin is kept out so
+ * nobody signs in with the keys-to-everything account from a public surface.
+ */
+export const STAFF_PERSONAS = DEMO_PERSONAS.filter(
+  (p) => p.group === 'plateforme' && p.key !== 'super_admin',
+);
+
+/** The shared subject of the demo: the apprentice the trinôme follows. */
+export const SUBJECT_PERSONA = DEMO_PERSONAS.find((p) => p.key === 'alternant');
