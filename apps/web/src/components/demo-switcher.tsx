@@ -6,14 +6,13 @@ import {
   STAFF_PERSONAS,
   SUBJECT_PERSONA,
   TRINOME_PERSONAS,
+  isDemoAccount,
   roleLabel,
   type DemoPersona,
 } from '#/lib/roles';
 import { api, type Me } from '#/lib/api';
 import { cn } from '#/lib/utils';
-
-/** Demo accounts all live on the seeded @kizuna.dev domain. */
-const isDemoAccount = (email?: string) => Boolean(email && email.endsWith('@kizuna.dev'));
+import { Coachmark, useCoachmark } from './coachmark';
 
 /** Where a freshly-impersonated persona should land. */
 async function landingFor(persona: DemoPersona): Promise<string> {
@@ -39,8 +38,11 @@ async function landingFor(persona: DemoPersona): Promise<string> {
 export function DemoSwitcher({ me }: { me: Me }) {
   const [pending, setPending] = useState<string | null>(null);
   const [hidden, setHidden] = useState(false);
+  const coach = useCoachmark('demo-roles', isDemoAccount(me.email));
 
   if (!isDemoAccount(me.email) || hidden) return null;
+
+  const firstName = me.name?.split(' ')[0] ?? 'cette personne';
 
   async function switchTo(p: DemoPersona) {
     if (pending || p.email === me.email) return;
@@ -50,16 +52,24 @@ export function DemoSwitcher({ me }: { me: Me }) {
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-5 z-30 flex justify-center px-4 print:hidden">
-      <div className="flex max-w-[calc(100vw-2rem)] items-center gap-2 overflow-x-auto rounded-full border border-hairline bg-card/95 py-2 pr-2 pl-3 shadow-lg ring-1 ring-black/5 backdrop-blur-md sm:gap-3 sm:pl-4">
-        <div className="hidden shrink-0 flex-col leading-tight sm:flex">
-          <span className="text-[10px] font-bold tracking-[0.14em] text-brand-strong uppercase">
-            Démo
-          </span>
-          <span className="text-[11px] text-muted-foreground">Une alternance, 3 regards</span>
-        </div>
+    <div className="fixed inset-x-0 bottom-5 z-30 flex flex-col items-center gap-3 px-4 print:hidden">
+      {coach.open && (
+        <Coachmark
+          title="Une alternance, 3 regards"
+          onDismiss={coach.dismiss}
+          arrow="bottom"
+          className="w-72"
+        >
+          Vous explorez l’espace de <strong className="font-semibold text-white">{firstName}</strong>.
+          Changez de rôle ci-dessous : c’est la même alternance, vue par chaque membre du trinôme.
+        </Coachmark>
+      )}
+      <div className="flex max-w-[calc(100vw-2rem)] flex-wrap items-center justify-center gap-x-2 gap-y-1.5 rounded-3xl border border-hairline bg-card/95 px-3 py-2 shadow-lg ring-1 ring-black/5 backdrop-blur-md sm:gap-x-3 sm:px-4">
+        <span className="hidden shrink-0 text-[10px] font-bold tracking-[0.14em] text-brand-strong uppercase sm:inline">
+          Démo · changer de rôle
+        </span>
 
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="flex flex-wrap items-center justify-center gap-1">
           {TRINOME_PERSONAS.map((p) => (
             <PersonaPill
               key={p.email}
@@ -70,16 +80,13 @@ export function DemoSwitcher({ me }: { me: Me }) {
               onClick={() => switchTo(p)}
             />
           ))}
-        </div>
 
-        <span aria-hidden className="h-7 w-px shrink-0 bg-hairline" />
+          <span aria-hidden className="mx-0.5 h-6 w-px shrink-0 bg-hairline" />
 
-        <div className="flex shrink-0 items-center gap-1">
           {STAFF_PERSONAS.map((p) => (
             <PersonaPill
               key={p.email}
               persona={p}
-              compact
               active={p.email === me.email}
               loading={pending === p.email}
               disabled={pending !== null}
@@ -107,14 +114,12 @@ function PersonaPill({
   active,
   loading,
   disabled,
-  compact = false,
   onClick,
 }: {
   persona: DemoPersona;
   active: boolean;
   loading: boolean;
   disabled: boolean;
-  compact?: boolean;
   onClick: () => void;
 }) {
   return (
@@ -141,7 +146,7 @@ function PersonaPill({
           active ? 'bg-white/90' : 'bg-[var(--accent)]',
         )}
       />
-      <span className={cn(compact && 'hidden sm:inline')}>{persona.firstName}</span>
+      <span>{persona.firstName}</span>
     </button>
   );
 }

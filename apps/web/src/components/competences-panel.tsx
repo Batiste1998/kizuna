@@ -7,7 +7,10 @@ import {
   type EvaluatorRole,
 } from '#/lib/api';
 import { EVALUATOR_LABELS, LEVELS, LEVEL_BY_KEY } from '#/lib/levels';
+import { isDemoAccount } from '#/lib/roles';
+import { useMaybeMe } from '#/lib/me-context';
 import { cn } from '#/lib/utils';
+import { Coachmark, useCoachmark } from './coachmark';
 
 const COLUMNS: EvaluatorRole[] = ['auto', 'peda', 'entreprise'];
 
@@ -36,6 +39,8 @@ export function CompetencesPanel({ alternantProfilId }: { alternantProfilId: str
   const [data, setData] = useState<AlternantCompetences | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const me = useMaybeMe();
+  const coach = useCoachmark('demo-tri-eval', isDemoAccount(me?.email));
 
   useEffect(() => {
     setLoading(true);
@@ -67,6 +72,17 @@ export function CompetencesPanel({ alternantProfilId }: { alternantProfilId: str
 
   return (
     <div className="space-y-5">
+      {coach.open && (
+        <Coachmark
+          title="Le suivi à trois voix"
+          onDismiss={coach.dismiss}
+          className="w-full sm:max-w-md"
+        >
+          Chaque compétence est évaluée par trois regards — l’alternant (auto), le tuteur école et
+          le tuteur entreprise. Croiser ces points de vue, c’est le cœur de Kizuna.
+        </Coachmark>
+      )}
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         {data.referentiel && (
           <p className="text-xs text-muted-foreground">
