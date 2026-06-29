@@ -91,3 +91,14 @@ export const EVALUATOR_LABELS: Record<EvaluatorRole, string> = {
   peda: 'Tuteur péda.',
   entreprise: 'Tuteur entr.',
 };
+
+/**
+ * Colour identity of each voice of the trinôme — echoes the design system's
+ * per-role accents (teal alternant, blue school, orange company). `rgb` is the
+ * bare channel triplet so callers can build their own rgba() glows/fills.
+ */
+export const EVALUATOR_VOICE_COLORS: Record<EvaluatorRole, { color: string; rgb: string }> = {
+  auto: { color: '#2e9e82', rgb: '46,158,130' },
+  peda: { color: '#4f7cf0', rgb: '79,124,240' },
+  entreprise: { color: '#e06a41', rgb: '224,106,65' },
+};
