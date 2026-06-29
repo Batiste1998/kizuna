@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { toast } from 'sonner';
-import { signIn } from '#/lib/auth-client';
+import { signInThenGo } from '#/lib/auth-client';
 import {
-  DEMO_PERSONAS,
-  STAT_LABELS,
-  personaAvatar,
+  DEMO_PASSWORD,
+  STAFF_PERSONAS,
+  TRINOME_PERSONAS,
   roleLabel,
+  roleTagline,
   type DemoPersona,
 } from '#/lib/roles';
+import { initials } from '#/lib/super';
 import { Logo } from '#/components/logo';
 import { StageAuras } from '#/components/stage-auras';
 import { cn } from '#/lib/utils';
@@ -17,16 +19,6 @@ export const Route = createFileRoute('/demo')({
   component: DemoPage,
 });
 
-// Shared password for every seeded demo account (apps/api/src/seed-users.ts).
-const DEMO_PASSWORD = 'Password123!';
-
-const TRINOME = DEMO_PERSONAS.filter((p) => p.group === 'trinome');
-// Platform staff, minus super_admin — kept out of the demo so nobody can sign in
-// with the keys-to-everything account from here.
-const PLATEFORME = DEMO_PERSONAS.filter(
-  (p) => p.group === 'plateforme' && p.key !== 'super_admin',
-);
-
 function DemoPage() {
   // Track which persona is mid-sign-in so we disable just that card.
   const [pending, setPending] = useState<string | null>(null);
@@ -34,15 +26,11 @@ function DemoPage() {
   async function handlePick(p: DemoPersona) {
     if (pending) return;
     setPending(p.email);
-    const { error } = await signIn.email({ email: p.email, password: DEMO_PASSWORD });
+    const error = await signInThenGo(p.email, DEMO_PASSWORD, '/app');
     if (error) {
       setPending(null);
       toast.error(error.message ?? 'Connexion à la démo impossible');
-      return;
     }
-    // Full navigation so the session store initialises from the fresh cookie —
-    // an SPA transition can race the refresh and bounce back to /login.
-    window.location.href = '/app';
   }
 
   return (
@@ -57,7 +45,7 @@ function DemoPage() {
         絆
       </span>
 
-      <div className="relative mx-auto max-w-5xl px-6 py-16 sm:py-20">
+      <div className="relative mx-auto max-w-4xl px-6 py-16 sm:py-20">
         {/* Hero */}
         <header className="animate-in fade-in slide-in-from-bottom-2 fill-mode-both flex flex-col items-center text-center duration-700">
           <Logo className="animate-float h-12 w-12" chip={false} />
@@ -65,20 +53,27 @@ function DemoPage() {
             絆 · Espace de démonstration
           </p>
           <h1 className="mt-6 font-display text-[2.6rem] leading-[1.02] font-bold tracking-tight text-balance sm:text-6xl">
-            Choisissez votre carte.
+            Entrez dans le lien.
           </h1>
-          <p className="mt-5 max-w-lg text-[15px] leading-relaxed text-secondary-foreground">
-            Chaque carte ouvre l’espace Kizuna vu depuis son rôle. Cliquez sur celle que vous voulez
-            incarner — un seul clic, sans inscription.
+          <p className="mt-5 max-w-md text-[15px] leading-relaxed text-secondary-foreground">
+            Chaque profil ouvre Kizuna vu depuis son rôle. Choisissez celui que vous voulez
+            incarner — un clic, sans inscription.
           </p>
         </header>
 
-        {/* Le trinôme — the hero trading cards */}
+        {/* Le trinôme — the three roles bound around one apprenticeship */}
         <section className="mt-14">
-          <GroupLabel title="Le trinôme" note="le lien au cœur de Kizuna" />
-          <div className="mt-7 grid gap-5 sm:grid-cols-3">
-            {TRINOME.map((p, i) => (
-              <FutCard
+          <GroupLabel title="Le trinôme" note="les trois liés autour d’une même alternance" />
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-secondary-foreground">
+            L’alternant, son tuteur école et son tuteur entreprise partagent{' '}
+            <strong className="font-semibold text-foreground">le même dossier</strong> — fini le
+            suivi éclaté entre mails et tableurs. Entrez par le profil que vous voulez : une fois
+            dedans, vous basculez d’un rôle à l’autre en un clic.
+          </p>
+          <TrinomeThread />
+          <div className="grid gap-5 sm:grid-cols-3">
+            {TRINOME_PERSONAS.map((p, i) => (
+              <PersonaCard
                 key={p.email}
                 persona={p}
                 index={i}
@@ -90,12 +85,12 @@ function DemoPage() {
           </div>
         </section>
 
-        {/* Les coulisses — platform staff */}
+        {/* Les coulisses — platform staff, deliberately quieter than the trinôme */}
         <section className="mt-12">
           <GroupLabel title="Les coulisses" note="l’équipe qui fait tourner la plateforme" />
-          <div className="mx-auto mt-7 grid max-w-[33rem] gap-5 sm:grid-cols-2">
-            {PLATEFORME.map((p, i) => (
-              <FutCard
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            {STAFF_PERSONAS.map((p, i) => (
+              <StaffRow
                 key={p.email}
                 persona={p}
                 index={i}
@@ -110,7 +105,7 @@ function DemoPage() {
         {/* Footer */}
         <footer className="mt-14 flex flex-col items-center gap-4 text-center">
           <p className="text-xs text-muted-foreground">
-            Comptes de démonstration · données fictives · notes pour le fun
+            Comptes de démonstration · données fictives
           </p>
           <div className="flex items-center gap-4 text-xs">
             <Link to="/" className="text-muted-foreground transition-colors hover:text-brand-strong">
@@ -135,7 +130,7 @@ function DemoPage() {
 function GroupLabel({ title, note }: { title: string; note: string }) {
   return (
     <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
-      <h2 className="text-[11px] font-bold tracking-[0.16em] text-secondary-foreground uppercase">
+      <h2 className="font-mono text-[11px] font-semibold tracking-[0.16em] text-secondary-foreground uppercase">
         {title}
       </h2>
       <span className="text-xs text-muted-foreground">{note}</span>
@@ -143,22 +138,84 @@ function GroupLabel({ title, note }: { title: string; note: string }) {
   );
 }
 
+// The three trinôme members, in grid order, at the column centres below (⅙, ½, ⅚).
+// Each node is themed by data-role so its colour tracks the same --accent token as
+// the cards (no hard-coded hex). y=24 in the 36-tall viewBox is where they meet.
+const THREAD_NODES: Array<{ role: DemoPersona['key']; left: string }> = [
+  { role: 'alternant', left: '16.666%' },
+  { role: 'tuteur_pedagogique', left: '50%' },
+  { role: 'tuteur_entreprise', left: '83.333%' },
+];
+const THREAD_NODE_TOP = `${(24 / 36) * 100}%`;
+
 /**
- * A premium "trading card" (FUT homage), themed by the persona's role colour.
- * The entire card is the button; a full-width footer makes the action obvious.
+ * The woven thread that binds the trinôme (絆) — Kizuna's one signature flourish,
+ * drawing itself on load. The three nodes read as "these three are tied together".
+ * Decorative and desktop-only; honours prefers-reduced-motion via .thread-path.
  */
-function FutCard({
-  persona,
-  index,
-  pending,
-  disabled,
-  onPick,
-}: {
+function TrinomeThread() {
+  return (
+    <div aria-hidden className="relative mt-5 mb-1 hidden h-9 sm:block">
+      <svg viewBox="0 0 1000 36" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
+        <defs>
+          {/* Decorative blend of the trinôme's two role accents (teal → orange).
+              A single gradient can't read three different per-role tokens, so the
+              stops mirror styles.css --accent values; the nodes use the live token. */}
+          <linearGradient id="trinome-thread" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#2e9e82" />
+            <stop offset="55%" stopColor="#2e9e82" />
+            <stop offset="100%" stopColor="#e06a41" />
+          </linearGradient>
+        </defs>
+        {/* Weaves up between the nodes then down, all three meeting at y=24. */}
+        <path
+          className="thread-path"
+          pathLength={1}
+          d="M166 24 C 280 6, 386 6, 500 24 C 614 42, 720 42, 833 24"
+          fill="none"
+          stroke="url(#trinome-thread)"
+          strokeWidth={2}
+          strokeLinecap="round"
+          vectorEffect="non-scaling-stroke"
+        />
+      </svg>
+      {THREAD_NODES.map((n) => (
+        <span
+          key={n.role}
+          data-role={n.role}
+          className="absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--accent)] ring-4 ring-background"
+          style={{ left: n.left, top: THREAD_NODE_TOP }}
+        />
+      ))}
+    </div>
+  );
+}
+
+interface PersonaPickProps {
   persona: DemoPersona;
   index: number;
   pending: boolean;
   disabled: boolean;
   onPick: (p: DemoPersona) => void;
+}
+
+/**
+ * Shared button shell for both persona affordances: owns the role theming
+ * (data-role), the click/disabled/aria wiring and the focus ring, so the card
+ * and the row only describe their own layout. `delay` staggers the entrance.
+ */
+function PersonaButton({
+  persona,
+  disabled,
+  pending,
+  onPick,
+  delay,
+  className,
+  children,
+}: Omit<PersonaPickProps, 'index'> & {
+  delay: number;
+  className?: string;
+  children: React.ReactNode;
 }) {
   return (
     <button
@@ -168,87 +225,97 @@ function FutCard({
       disabled={disabled}
       aria-busy={pending}
       aria-label={`Entrer dans l’espace de ${persona.name} — ${roleLabel(persona.key)}`}
-      style={{ animationDelay: `${0.15 + index * 0.1}s` }}
+      style={{ animationDelay: `${delay}s` }}
       className={cn(
-        'group bg-brand-gradient animate-in fade-in zoom-in-95 fill-mode-both relative aspect-[3/4] cursor-pointer overflow-hidden rounded-[1.6rem] text-left text-white shadow-[0_26px_60px_-26px_color-mix(in_srgb,var(--accent)_70%,black)] ring-1 ring-black/5 duration-500',
-        'transition-[transform,box-shadow] duration-300 hover:-translate-y-2 hover:shadow-[0_36px_72px_-26px_color-mix(in_srgb,var(--accent)_75%,black)]',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-4 focus-visible:ring-offset-background',
+        'group animate-in fade-in fill-mode-both cursor-pointer bg-card text-left ring-1 ring-hairline duration-500 transition-[transform,box-shadow]',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         'disabled:pointer-events-none motion-reduce:transition-none motion-reduce:hover:translate-y-0',
         !pending && disabled && 'opacity-50',
+        className,
       )}
     >
-      {/* Top sheen + holographic sweep on hover */}
-      <span
-        aria-hidden
-        className="absolute inset-0 bg-[radial-gradient(120%_70%_at_50%_-10%,rgba(255,255,255,0.4),transparent_55%)]"
-      />
-      <span
-        aria-hidden
-        className="absolute -inset-y-12 -left-1/2 w-1/2 rotate-12 bg-white/25 blur-md transition-transform duration-700 ease-out group-hover:translate-x-[420%] motion-reduce:hidden"
-      />
-      {/* Inner frame */}
-      <span aria-hidden className="absolute inset-2 rounded-[1.2rem] ring-1 ring-white/30" />
+      {children}
+    </button>
+  );
+}
 
-      {/* Rating + position */}
-      <div className="absolute top-5 left-6 z-10">
-        <div className="font-display text-[2.75rem] leading-none font-bold drop-shadow-sm">
-          {persona.rating}
+/**
+ * A trinôme persona — a calm, light card themed by the role's accent. The accent
+ * lives in a left spine, the monogram chip and the action, not in a flooded
+ * surface, so the card sits naturally on Kizuna's light canvas.
+ */
+function PersonaCard({ persona, index, pending, disabled, onPick }: PersonaPickProps) {
+  return (
+    <PersonaButton
+      persona={persona}
+      pending={pending}
+      disabled={disabled}
+      onPick={onPick}
+      delay={0.15 + index * 0.1}
+      className="relative flex flex-col overflow-hidden rounded-2xl p-6 pl-7 shadow-md slide-in-from-bottom-3 hover:-translate-y-1 hover:shadow-lg"
+    >
+      {/* Role accent spine. */}
+      <span aria-hidden className="bg-brand-gradient absolute inset-y-0 left-0 w-1.5" />
+
+      <span className="bg-brand-soft text-brand-strong ring-brand/15 grid h-14 w-14 place-items-center rounded-2xl font-display text-xl font-bold ring-1 ring-inset">
+        {initials(persona.name)}
+      </span>
+
+      <div className="mt-5">
+        <div className="font-display text-lg font-bold tracking-tight">{persona.name}</div>
+        <div className="text-brand-strong mt-0.5 text-[13px] font-semibold">
+          {roleLabel(persona.key)}
         </div>
-        <div className="mt-1 text-xs font-bold tracking-[0.18em] text-white/85">
-          {persona.position}
-        </div>
-        <div className="mt-2 h-px w-7 bg-white/45" />
       </div>
 
-      {/* Avatar — illustrated sticker over the holo background */}
-      <div className="absolute inset-x-0 top-7 flex justify-center">
-        <span aria-hidden className="absolute top-4 h-28 w-28 rounded-full bg-white/25 blur-2xl" />
-        <span className="relative grid h-36 w-36 place-items-center">
-          <span aria-hidden className="absolute font-display text-6xl font-bold text-white/25">
-            {persona.firstName.charAt(0)}
-          </span>
-          <img
-            src={personaAvatar(persona.name)}
-            alt=""
-            className="relative h-36 w-36 object-contain drop-shadow-[0_10px_16px_rgba(0,0,0,0.3)]"
-          />
+      <p className="mt-3 text-sm leading-relaxed text-secondary-foreground">{persona.persona}</p>
+
+      <div className="mt-5 flex items-center justify-between border-t border-hairline pt-4">
+        <span className="text-sm font-semibold text-foreground">
+          {pending ? 'Connexion…' : 'Entrer dans cet espace'}
+        </span>
+        <span
+          aria-hidden
+          className="bg-brand-soft text-brand-strong grid h-8 w-8 place-items-center rounded-full transition-colors duration-200 group-hover:bg-[var(--accent)] group-hover:text-white"
+        >
+          <span className="transition-transform duration-300 group-hover:translate-x-0.5">→</span>
         </span>
       </div>
+    </PersonaButton>
+  );
+}
 
-      {/* Name, stats and the full-width action footer */}
-      <div className="absolute inset-x-0 bottom-0 z-10">
-        <div className="bg-gradient-to-t from-black/45 via-black/15 to-transparent px-5 pt-16 pb-4">
-          <div className="text-center font-display text-lg font-bold tracking-tight">
-            {persona.name}
-          </div>
-          <div className="mt-0.5 text-center text-[11px] font-medium text-white/75">
-            {roleLabel(persona.key)}
-          </div>
-          <div className="mt-3 grid grid-cols-3 gap-x-2 gap-y-1.5 border-t border-white/20 pt-3">
-            {persona.stats.map((value, i) => (
-              <div key={STAT_LABELS[i]} className="flex items-baseline justify-center gap-1">
-                <span className="text-sm font-bold tabular-nums">{value}</span>
-                <span className="text-[10px] font-semibold text-white/60">{STAT_LABELS[i]}</span>
-              </div>
-            ))}
-          </div>
+/**
+ * Platform staff — a compact horizontal row. Quieter than the trinôme cards on
+ * purpose: these people work behind the scenes, not inside the bond.
+ */
+function StaffRow({ persona, index, pending, disabled, onPick }: PersonaPickProps) {
+  return (
+    <PersonaButton
+      persona={persona}
+      pending={pending}
+      disabled={disabled}
+      onPick={onPick}
+      delay={0.2 + index * 0.08}
+      className="flex items-center gap-4 rounded-xl p-4 shadow-sm slide-in-from-bottom-2 hover:-translate-y-0.5 hover:shadow-md"
+    >
+      <span className="bg-brand-soft text-brand-strong grid h-11 w-11 shrink-0 place-items-center rounded-xl font-display text-base font-bold">
+        {initials(persona.name)}
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="truncate font-display text-[15px] font-bold tracking-tight">
+          {persona.name}
         </div>
-        <div className="flex items-center justify-center gap-1.5 border-t border-white/15 bg-black/25 py-3 text-sm font-semibold backdrop-blur-sm transition-colors duration-200 group-hover:bg-black/40">
-          {pending ? (
-            'Connexion…'
-          ) : (
-            <>
-              Entrer dans cet espace
-              <span
-                aria-hidden
-                className="transition-transform duration-300 group-hover:translate-x-1"
-              >
-                →
-              </span>
-            </>
-          )}
+        <div className="text-[13px] text-muted-foreground">
+          {roleLabel(persona.key)} · {roleTagline(persona.key)}
         </div>
       </div>
-    </button>
+      <span
+        aria-hidden
+        className="text-brand-strong shrink-0 text-sm font-semibold transition-transform duration-300 group-hover:translate-x-0.5"
+      >
+        {pending ? '…' : '→'}
+      </span>
+    </PersonaButton>
   );
 }

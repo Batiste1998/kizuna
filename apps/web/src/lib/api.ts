@@ -309,6 +309,8 @@ export interface TutorAlternant {
   email: string;
   promotionName: string | null;
   entrepriseName: string | null;
+  tuteurPedaName: string | null;
+  tuteurEntrepriseName: string | null;
   myRole: 'peda' | 'entreprise';
   progress: { evaluated: number; total: number };
 }

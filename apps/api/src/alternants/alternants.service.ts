@@ -10,6 +10,8 @@ export interface TutorAlternant {
   email: string;
   promotionName: string | null;
   entrepriseName: string | null;
+  tuteurPedaName: string | null;
+  tuteurEntrepriseName: string | null;
   myRole: Extract<EvaluatorRole, 'peda' | 'entreprise'>;
   progress: { evaluated: number; total: number };
 }
@@ -43,6 +45,7 @@ export class AlternantsService {
         referentielId: schema.promotion.referentielId,
         entrepriseName: schema.entreprise.name,
         tuteurPedaUserId: schema.association.tuteurPedaUserId,
+        tuteurEntrepriseUserId: schema.association.tuteurEntrepriseUserId,
       })
       .from(schema.association)
       .innerJoin(
@@ -59,6 +62,22 @@ export class AlternantsService {
         ),
       );
 
+    // Resolve both tutors' display names in one round-trip, so the apprentice's
+    // file shows the full trinôme whoever is looking at it.
+    const tutorIds = [
+      ...new Set(
+        rows.flatMap((r) => [r.tuteurPedaUserId, r.tuteurEntrepriseUserId]).filter(Boolean),
+      ),
+    ] as string[];
+    const tutorNames = new Map<string, string>();
+    if (tutorIds.length) {
+      const users = await this.db
+        .select({ id: schema.user.id, name: schema.user.name })
+        .from(schema.user)
+        .where(inArray(schema.user.id, tutorIds));
+      for (const u of users) tutorNames.set(u.id, u.name);
+    }
+
     const result: TutorAlternant[] = [];
     for (const row of rows) {
       const myRole: 'peda' | 'entreprise' =
@@ -70,6 +89,8 @@ export class AlternantsService {
         email: row.email,
         promotionName: row.promotionName,
         entrepriseName: row.entrepriseName,
+        tuteurPedaName: tutorNames.get(row.tuteurPedaUserId ?? '') ?? null,
+        tuteurEntrepriseName: tutorNames.get(row.tuteurEntrepriseUserId ?? '') ?? null,
         myRole,
         progress,
       });
