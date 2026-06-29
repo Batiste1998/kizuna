@@ -37,8 +37,9 @@ test('un alternant se connecte et auto-évalue une compétence', async ({ page }
   // Le référentiel et ses blocs sont chargés depuis l'API (hydratation + fetch).
   await expect(page.getByText('BC01')).toBeVisible();
 
-  // Édite le premier niveau éditable (colonne "auto") → toast de confirmation.
-  await page.getByRole('button', { name: 'M', exact: true }).first().click();
+  // Auto-évalue la première compétence : clic sur la zone « Maîtrisé » du fil
+  // (radiogroup du tuteur "auto") → toast de confirmation.
+  await page.getByTitle('Maîtrisé', { exact: true }).first().click();
   await expect(page.getByText('Évaluation enregistrée')).toBeVisible();
 });
 
