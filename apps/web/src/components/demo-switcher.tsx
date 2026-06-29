@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import { toast } from 'sonner';
 import { signInThenGo } from '#/lib/auth-client';
 import {
   DEMO_PASSWORD,
@@ -19,7 +20,12 @@ async function landingFor(persona: DemoPersona): Promise<string> {
   // Tutors open the apprentice's file directly — the connection made tangible.
   if (persona.group === 'trinome' && persona.key !== 'alternant') {
     try {
-      const mine = await api.getMyAlternants();
+      // Cap the lookup so a slow request can never stall the role switch; on
+      // timeout (or any error) we just fall back to the role's default home.
+      const mine = await Promise.race([
+        api.getMyAlternants(),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 4000)),
+      ]);
       const lea = mine.find((a) => a.email === SUBJECT_PERSONA?.email);
       if (lea) return `/app/alternants/${lea.alternantProfilId}`;
     } catch {
@@ -47,12 +53,23 @@ export function DemoSwitcher({ me }: { me: Me }) {
   async function switchTo(p: DemoPersona) {
     if (pending || p.email === me.email) return;
     setPending(p.email);
-    const error = await signInThenGo(p.email, DEMO_PASSWORD, () => landingFor(p));
-    if (error) setPending(null);
+    // On success the page hard-navigates away, so we only ever land back here on
+    // failure — always release the lock so the bar can never freeze and the user
+    // can retry. (A stuck lock used to block every later switch.)
+    try {
+      const error = await signInThenGo(p.email, DEMO_PASSWORD, () => landingFor(p));
+      if (error) {
+        toast.error('Bascule impossible. Réessayez.');
+        setPending(null);
+      }
+    } catch {
+      toast.error('Bascule impossible. Réessayez.');
+      setPending(null);
+    }
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-5 z-30 flex flex-col items-center gap-3 px-4 print:hidden">
+    <div className="pointer-events-none fixed inset-x-0 bottom-5 z-50 flex flex-col items-center gap-3 px-4 print:hidden [&>*]:pointer-events-auto">
       {coach.open && (
         <Coachmark
           title="Une alternance, 3 regards"
