@@ -58,6 +58,10 @@ export interface DemoPersona {
 /** Shared password for every seeded demo account (apps/api/src/seed-users.ts). */
 export const DEMO_PASSWORD = 'Password123!';
 
+/** Demo accounts all live on the seeded @kizuna.dev domain. */
+export const isDemoAccount = (email?: string | null): boolean =>
+  Boolean(email && email.endsWith('@kizuna.dev'));
+
 /**
  * The six demo accounts, grouped by Kizuna's real structure: the trinôme (the
  * bond — 絆) and the platform staff behind it. Names mirror the seed so the
