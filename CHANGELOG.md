@@ -12,6 +12,41 @@ ci-dessous.
 
 ## [Non publié]
 
+### Ajouté
+
+**Intelligence artificielle (OpenAI, optionnelle)**
+
+- Module `ai/` côté API : passerelle OpenAI unique (`OPENAI_API_KEY`,
+  `OPENAI_MODEL`, `gpt-5-mini` par défaut) ; sans clé, les fonctions IA sont
+  masquées dans l'interface et l'API répond 503
+- Import de référentiel RNCP assisté par IA : l'admin colle le texte de la
+  fiche France Compétences, l'IA en extrait blocs et compétences (sorties
+  structurées validées par zod), aperçu de relecture puis enregistrement
+  transactionnel lié à la promotion — remplace l'écran « bientôt disponible »
+- Assistant d'aide en bulle flottante (tous les espaces `/app`) : réponses en
+  streaming fondées sur le manuel d'utilisation et adaptées au rôle, limite de
+  30 messages/heure, passerelle « créer un ticket support » pré-rempli avec la
+  conversation
+- Brouillon de synthèse de bilan proposé par l'IA à partir des évaluations
+  trois voix et du journal validé (relecture et édition avant enregistrement)
+
+**Bilans**
+
+- Visioconférence : lien Jitsi Meet généré en un clic (`visio_url` en base,
+  salle non devinable), bouton « Rejoindre la visio » pour le trinôme, URL
+  personnalisée acceptée (Teams/Zoom…), lien repris dans la notification et
+  l'email envoyés à l'alternant
+- Édition de la synthèse du bilan directement dans le panneau (tuteurs/admin),
+  affichage en lecture pour l'alternant
+
+**Portail public**
+
+- Indicateur de défilement animé sous le héro de la page d'accueil (perle
+  glissant le long d'un fil, libellé « Découvrir ») : signale le contenu sous
+  la ligne de flottaison, s'estompe au premier défilement, défilement doux au
+  clic ; immobile mais visible sous `prefers-reduced-motion` et via le
+  commutateur d'accessibilité
+
 ## [0.3.0] — 2026-07-03
 
 Documentation complète du projet et refonte du portail public.
