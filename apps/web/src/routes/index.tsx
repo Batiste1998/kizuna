@@ -1,8 +1,10 @@
+import { useEffect, useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { buttonVariants } from '#/components/ui/button';
 import { Logo } from '#/components/logo';
 import { StageAuras } from '#/components/stage-auras';
 import { LandingSections } from '#/components/landing';
+import { cn } from '#/lib/utils';
 
 export const Route = createFileRoute('/')({
   component: HomePage,
@@ -22,7 +24,7 @@ function HomePage() {
       data-role="alternant"
       className="demo-stage relative overflow-hidden outline-none"
     >
-      <section className="relative flex min-h-screen items-center justify-center px-6 py-16">
+      <section className="relative flex min-h-screen items-center justify-center px-6 pt-16 pb-32">
         <StageAuras />
 
         {/* Oversized 絆 watermark, the bond made backdrop. */}
@@ -95,10 +97,56 @@ function HomePage() {
             </p>
           </div>
         </div>
+
+        <ScrollCue />
       </section>
 
       <LandingSections />
     </main>
+  );
+}
+
+/* --- Scroll cue: a bead slipping down the thread, below the hero -------------- */
+
+function ScrollCue() {
+  const [hidden, setHidden] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setHidden(window.scrollY > 48);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  function scrollToStory() {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document
+      .getElementById('decouvrir')
+      ?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={scrollToStory}
+      aria-label="Faire défiler vers la présentation de la plateforme"
+      className={cn(
+        'scroll-cue animate-in fade-in fill-mode-both fixed bottom-3 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1 rounded-2xl border border-hairline bg-white/70 px-3.5 pt-1.5 pb-2 shadow-sm backdrop-blur-sm duration-700',
+        hidden && 'is-hidden',
+      )}
+      style={{ animationDelay: '1.2s' }}
+    >
+      <span className="text-[10px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+        Découvrir
+      </span>
+      {/* The thread, and the bead that slips down it. */}
+      <span aria-hidden className="relative block h-8 w-px bg-foreground/15">
+        <span
+          className="scroll-cue-bead absolute -top-[4px] left-1/2 h-[9px] w-[9px] -translate-x-1/2 rounded-full bg-brand"
+          style={{ boxShadow: '0 0 0 2.5px var(--background)' }}
+        />
+      </span>
+    </button>
   );
 }
 

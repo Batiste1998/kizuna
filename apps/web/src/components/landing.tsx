@@ -97,7 +97,7 @@ const VOICES = [
 
 function TrinomeSection() {
   return (
-    <section className="relative px-6 py-24">
+    <section id="decouvrir" className="relative scroll-mt-6 px-6 py-24">
       <Reveal>
         <SectionHeader
           eyebrow="Le trinôme"

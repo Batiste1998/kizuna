@@ -448,6 +448,33 @@
     scroll-snap-align: center;
   }
 
+  /* Scroll cue at the base of the hero — a bead slipping down its thread,
+     inviting the eye below the fold. JS toggles .is-hidden once scrolling starts. */
+  .scroll-cue {
+    transition: opacity var(--dur-orchestrate) var(--ease-out);
+  }
+  .scroll-cue.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .scroll-cue-bead {
+    animation: cue-slide 2.4s var(--ease-out) 1.8s infinite;
+  }
+  @keyframes cue-slide {
+    0% {
+      transform: translateY(0);
+      opacity: 0;
+    }
+    30%,
+    65% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(19px);
+      opacity: 0;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .animate-rise,
     .stagger-children > *,
@@ -457,6 +484,12 @@
     .radar-shape,
     .bar-fill {
       animation: none;
+    }
+    /* Keep the cue visible but still: bead resting mid-thread. */
+    .scroll-cue-bead {
+      animation: none;
+      transform: translateY(11px);
+      opacity: 1;
     }
     .skeleton::after {
       animation: none;
@@ -474,6 +507,11 @@
   opacity: 1 !important;
   transform: none !important;
   transition: none !important;
+}
+.a11y-reduce-motion .scroll-cue-bead {
+  animation: none !important;
+  transform: translateY(11px) !important;
+  opacity: 1 !important;
 }
 
 /* --- Page transitions (View Transitions API — progressive enhancement) ------- */
