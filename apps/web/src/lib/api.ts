@@ -413,6 +413,8 @@ export const api = {
   ) => request<Bilan>(`/bilans/${bilanId}`, { method: 'PATCH', body: JSON.stringify(input) }),
   generateBilanVisio: (bilanId: string) =>
     request<Bilan>(`/bilans/${bilanId}/visio`, { method: 'POST' }),
+  draftBilanSummary: (bilanId: string) =>
+    request<{ draft: string }>(`/bilans/${bilanId}/draft-summary`, { method: 'POST' }),
   getEcheances: (alternantProfilId: string) =>
     request<EcheancierView>(`/alternants/${alternantProfilId}/echeances`),
   createEcheance: (

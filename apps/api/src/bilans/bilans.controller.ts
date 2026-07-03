@@ -50,6 +50,11 @@ export class BilansController {
     return this.service.generateVisio(user, bilanId);
   }
 
+  @Post('bilans/:bilanId/draft-summary')
+  draftSummary(@CurrentUser() user: AuthUser, @Param('bilanId') bilanId: string) {
+    return this.service.draftSummary(user, bilanId);
+  }
+
   @Patch('bilans/:bilanId')
   update(
     @CurrentUser() user: AuthUser,

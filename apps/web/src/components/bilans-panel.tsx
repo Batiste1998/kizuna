@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
-import { FileDown, Video } from 'lucide-react';
-import { api, type BilansView, type BilanStatus } from '#/lib/api';
+import { FileDown, Sparkles, Video } from 'lucide-react';
+import { api, type Bilan, type BilansView, type BilanStatus } from '#/lib/api';
 import { BILAN_STATUS_META } from '#/lib/levels';
 import { Button } from '#/components/ui/button';
 import { Input } from '#/components/ui/input';
@@ -77,6 +77,7 @@ export function BilansPanel({ alternantProfilId }: { alternantProfilId: string }
   const [label, setLabel] = useState('');
   const [scheduledAt, setScheduledAt] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [aiConfigured, setAiConfigured] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -87,6 +88,13 @@ export function BilansPanel({ alternantProfilId }: { alternantProfilId: string }
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
   }, [alternantProfilId]);
+
+  useEffect(() => {
+    api
+      .aiStatus()
+      .then((s) => setAiConfigured(s.configured))
+      .catch(() => setAiConfigured(false));
+  }, []);
 
   async function handleCreate(e: FormEvent) {
     e.preventDefault();
@@ -273,9 +281,135 @@ export function BilansPanel({ alternantProfilId }: { alternantProfilId: string }
                 </div>
               )}
 
+              {(bilan.summary || view.canManage) && (
+                <BilanSummary
+                  bilan={bilan}
+                  canManage={view.canManage}
+                  aiConfigured={aiConfigured}
+                  onSaved={(updated) =>
+                    setView({
+                      ...view,
+                      bilans: view.bilans.map((b) => (b.id === updated.id ? updated : b)),
+                    })
+                  }
+                />
+              )}
             </article>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The bilan's written summary: read-only paragraph for the alternant, editable
+ * by tutors/admin — with an AI-drafted proposal built from the semester's
+ * evaluations and journal when the server has an OpenAI key.
+ */
+function BilanSummary({
+  bilan,
+  canManage,
+  aiConfigured,
+  onSaved,
+}: {
+  bilan: Bilan;
+  canManage: boolean;
+  aiConfigured: boolean;
+  onSaved: (bilan: Bilan) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [drafting, setDrafting] = useState(false);
+
+  async function save() {
+    setSaving(true);
+    try {
+      const updated = await api.updateBilan(bilan.id, { summary: text });
+      onSaved(updated);
+      setEditing(false);
+      toast.success('Synthèse enregistrée');
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function proposeDraft() {
+    setDrafting(true);
+    try {
+      const { draft } = await api.draftBilanSummary(bilan.id);
+      setText(draft);
+      toast.success('Brouillon proposé — relisez et ajustez avant d’enregistrer');
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setDrafting(false);
+    }
+  }
+
+  if (!editing) {
+    return (
+      <div className="mt-4 border-t border-hairline pt-3">
+        {bilan.summary ? (
+          <p className="text-[13px] leading-relaxed whitespace-pre-wrap text-secondary-foreground">
+            {bilan.summary}
+          </p>
+        ) : (
+          <p className="text-xs text-muted-foreground italic">Pas encore de synthèse.</p>
+        )}
+        {canManage && (
+          <button
+            type="button"
+            onClick={() => {
+              setText(bilan.summary ?? '');
+              setEditing(true);
+            }}
+            className="mt-2 text-xs font-semibold text-brand-strong hover:underline"
+          >
+            {bilan.summary ? 'Modifier la synthèse' : 'Rédiger la synthèse'}
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4 space-y-2.5 border-t border-hairline pt-3">
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={7}
+        maxLength={5000}
+        placeholder="Points forts, axes de progression, objectifs de la prochaine période…"
+        aria-label="Synthèse du bilan"
+        className="w-full resize-y rounded-md border border-border bg-card px-3 py-2 text-[13px] leading-relaxed shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      />
+      <div className="flex flex-wrap items-center gap-2">
+        <Button size="sm" onClick={() => void save()} disabled={saving || drafting}>
+          {saving ? 'Enregistrement…' : 'Enregistrer'}
+        </Button>
+        {aiConfigured && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => void proposeDraft()}
+            disabled={drafting || saving}
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            {drafting ? 'Rédaction en cours…' : 'Proposer une synthèse (IA)'}
+          </Button>
+        )}
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => setEditing(false)}
+          disabled={saving || drafting}
+        >
+          Annuler
+        </Button>
       </div>
     </div>
   );

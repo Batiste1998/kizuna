@@ -4,6 +4,7 @@ import { renderBilanPdf } from './bilan-pdf';
 import type { DatabaseService } from '../database/database.service';
 import type { AccessService, AlternantAccess } from '../access/access.service';
 import type { NotificationsService } from '../notifications/notifications.service';
+import type { AiService } from '../ai/ai.service';
 import type { AuthUser } from '../auth/auth.types';
 
 vi.mock('./bilan-pdf', () => ({
@@ -110,6 +111,7 @@ describe('BilansService', () => {
       db.database,
       access as unknown as AccessService,
       notifications as unknown as NotificationsService,
+      { isConfigured: false } as unknown as AiService,
     );
   });
 
