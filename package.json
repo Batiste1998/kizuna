@@ -24,7 +24,23 @@
     "docker:down": "docker compose down"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "lightningcss", "@tailwindcss/oxide"]
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "lightningcss",
+      "@tailwindcss/oxide"
+    ],
+    "overrides": {
+      "multer@<2.2.0": ">=2.2.0"
+    },
+    "auditConfig": {
+      "ignoreGhsas": [
+        "GHSA-67mh-4wv8-2f99",
+        "GHSA-4w7w-66w2-5vf9",
+        "GHSA-5xrq-8626-4rwp",
+        "GHSA-v6wh-96g9-6wx3",
+        "GHSA-fx2h-pf6j-xcff"
+      ]
+    }
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

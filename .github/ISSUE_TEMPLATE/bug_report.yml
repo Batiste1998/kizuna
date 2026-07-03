@@ -1,0 +1,88 @@
+name: 🐛 Fiche d'anomalie
+description: Consigner un bogue avec les informations nécessaires pour le reproduire et le corriger.
+title: '[Bug] '
+labels: ['bug', 'à trier']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci de remplir cette fiche le plus précisément possible : elle sert de
+        fiche de consignation de l'anomalie (processus décrit dans `docs/MAINTENANCE.md`).
+
+  - type: input
+    id: environnement
+    attributes:
+      label: Environnement
+      description: Où le bogue a-t-il été constaté ?
+      placeholder: 'ex. Production (kizuna.example.com), local (main @ 539874f), navigateur Chrome 126'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: role
+    attributes:
+      label: Rôle utilisateur concerné
+      options:
+        - Alternant
+        - Tuteur pédagogique
+        - Tuteur d'entreprise
+        - Administrateur (établissement)
+        - Support
+        - Super admin
+        - Visiteur non connecté
+        - Plusieurs rôles / non applicable
+    validations:
+      required: true
+
+  - type: dropdown
+    id: gravite
+    attributes:
+      label: Gravité
+      description: Impact du bogue sur l'utilisation de la plateforme.
+      options:
+        - 'Critique — blocage total ou perte de données'
+        - 'Majeure — fonctionnalité inutilisable, pas de contournement'
+        - 'Mineure — gêne avec contournement possible'
+        - 'Cosmétique — visuel ou libellé'
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Étapes pour reproduire
+      description: Liste numérotée des actions exactes menant au bogue.
+      placeholder: |
+        1. Se connecter en tant qu'alternant (alternant@kizuna.dev)
+        2. Ouvrir « Mes compétences »
+        3. Cliquer sur…
+    validations:
+      required: true
+
+  - type: textarea
+    id: attendu
+    attributes:
+      label: Comportement attendu
+    validations:
+      required: true
+
+  - type: textarea
+    id: observe
+    attributes:
+      label: Comportement observé
+      description: Ce qui se passe réellement, avec le message d'erreur exact le cas échéant.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / captures d'écran
+      description: Sortie console, logs API (`docker compose logs api`), captures d'écran.
+      render: shell
+
+  - type: textarea
+    id: pistes
+    attributes:
+      label: Analyse et pistes de correction (optionnel)
+      description: Cause probable, fichiers suspectés, préconisations de correctif.

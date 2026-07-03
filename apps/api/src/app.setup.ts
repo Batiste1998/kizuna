@@ -2,6 +2,7 @@ import { ValidationPipe, type INestApplication } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { toNodeHandler } from 'better-auth/node';
 import express from 'express';
+import helmet from 'helmet';
 import { AUTH } from './auth/auth.constants';
 import type { Auth } from './auth/auth';
 
@@ -14,6 +15,11 @@ import type { Auth } from './auth/auth';
 export function configureApp(app: INestApplication): void {
   const config = app.get(ConfigService);
   const auth = app.get<Auth>(AUTH);
+
+  // Security headers (OWASP): CSP, HSTS, X-Content-Type-Options, frameguard…
+  // crossOriginResourcePolicy is relaxed so the web app (other origin) can
+  // embed files served by the API (uploads, PDF).
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 
   // CORS must run BEFORE the Better Auth handler so cross-origin preflights
   // (OPTIONS) and credentialed responses get the right headers.
