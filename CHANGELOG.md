@@ -12,6 +12,45 @@ ci-dessous.
 
 ## [Non publié]
 
+## [0.2.0] — 2026-07-03
+
+Qualité et maintien en condition opérationnelle : harnais de tests unitaires
+avec couverture bloquante, supervision complète de la stack de production.
+
+### Ajouté
+
+**Tests unitaires (couverture bloquante en CI)**
+
+- Harnais de 275 tests unitaires : 16 fichiers de specs API (services access,
+  admin, alternants, competences, bilans, superadmin, support, journal,
+  messagerie, notifications, documents, échéancier + rappels, mail, guards) et
+  7 fichiers web (nav, levels, roles, utils, super, cœur fetch et contrats des
+  endpoints de `api.ts`)
+- Helper partagé de mock des chaînes Drizzle (`apps/api/src/testing/db-mock.ts`)
+- Rapports de couverture V8 (`@vitest/coverage-v8`) avec seuils bloquants :
+  API ≥ 65 % statements/branches, web ≥ 80 %
+
+**Supervision (C4.1.2)**
+
+- Healthchecks Docker sur les conteneurs `api` et `web` (sonde `fetch` toutes
+  les 30 s, 3 échecs → unhealthy) ; `web` attend que `api` soit sain
+- Uptime Kuma dans la stack de production (sondes continues + alertes email
+  Brevo), interface accessible par tunnel SSH uniquement
+- Logs structurés JSON en production via nestjs-pino (requêtes HTTP tracées
+  avec statut, durée et identifiant ; secrets caviardés ; sondes /health
+  exclues) — pretty print en développement
+- Documentation du système de supervision (périmètre, sondes, seuils,
+  signalement) dans docs/MAINTENANCE.md
+
+### Modifié
+
+- Mises à jour de dépendances : groupe minor/patch Dependabot + majeures en lot
+  (dotenv 17, vitest 4, sonner 2, tailwind-merge 3, jsdom 29,
+  @types/supertest 7, eslint-config-prettier 10) et actions GitHub (checkout 7,
+  setup-node 6, pnpm/action-setup 6, buildx 4, build-push 7)
+- @types/node 26 et TypeScript 6 écartés (règles `ignore` Dependabot
+  documentées)
+
 ## [0.1.0] — 2026-07-03
 
 Première version complète de la plateforme : socle technique, modules métier,
@@ -86,5 +125,6 @@ espaces par rôle, CI/CD et outillage de maintenance.
 - Mise à jour automatisée des dépendances via Dependabot (npm hebdomadaire,
   Actions GitHub mensuelle)
 
-[Non publié]: https://github.com/Batiste1998/kizuna/compare/v0.1.0...HEAD
+[Non publié]: https://github.com/Batiste1998/kizuna/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Batiste1998/kizuna/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Batiste1998/kizuna/releases/tag/v0.1.0

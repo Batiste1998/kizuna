@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { LoggerModule } from 'nestjs-pino';
 import { validateEnv } from './config/env.validation';
 import { DatabaseModule } from './database/database.module';
 import { MailModule } from './mail/mail.module';
@@ -28,6 +29,25 @@ import { HealthModule } from './health/health.module';
       // Single source of truth: the monorepo root .env
       envFilePath: ['../../.env'],
       validate: validateEnv,
+    }),
+    // Structured request logging: JSON in production (supervision/diagnostics),
+    // pretty-printed in dev, silent in tests. Health probes are not logged.
+    LoggerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        const env = config.get<string>('NODE_ENV');
+        return {
+          pinoHttp: {
+            level: env === 'test' ? 'silent' : 'info',
+            transport:
+              env === 'production' || env === 'test'
+                ? undefined
+                : { target: 'pino-pretty', options: { singleLine: true } },
+            autoLogging: { ignore: (req) => req.url === '/health' },
+            redact: ['req.headers.authorization', 'req.headers.cookie'],
+          },
+        };
+      },
     }),
     // Global rate limiting (per IP). Relaxed in tests to keep the e2e suite green.
     ThrottlerModule.forRootAsync({

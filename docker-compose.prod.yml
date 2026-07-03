@@ -43,6 +43,19 @@ services:
       - kizuna-uploads:/data/uploads
     ports:
       - '${API_PORT:-3001}:3001'
+    healthcheck:
+      # L'image node:22-slim n'a ni curl ni wget : on sonde /health avec fetch.
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3001/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   web:
     build:
@@ -52,10 +65,35 @@ services:
         VITE_API_URL: ${API_PUBLIC_URL:-http://localhost:3001}
     restart: unless-stopped
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     ports:
       - '${WEB_PORT:-3000}:3000'
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3000/').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # Supervision : sondes HTTP + alertes (email/webhook) configurées dans l'UI.
+  # Accessible uniquement en local sur le serveur (tunnel SSH) :
+  #   ssh -L 3002:127.0.0.1:3002 kizuna  →  http://localhost:3002
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    restart: unless-stopped
+    volumes:
+      - kizuna-uptime-kuma:/app/data
+    ports:
+      - '127.0.0.1:3002:3001'
 
 volumes:
   kizuna-pgdata:
   kizuna-uploads:
+  kizuna-uptime-kuma:

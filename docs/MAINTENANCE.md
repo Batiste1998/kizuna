@@ -1,8 +1,57 @@
 # Maintenance en condition opérationnelle
 
 Ce document décrit les processus de maintenance de Kizuna : mise à jour des
-dépendances, audit de sécurité et consignation des anomalies
-(RNCP39583 — compétences C4.1.1 et C4.2.1).
+dépendances, audit de sécurité, supervision et consignation des anomalies
+(RNCP39583 — compétences C4.1.1, C4.1.2 et C4.2.1).
+
+## Supervision et alertes (C4.1.2)
+
+### Périmètre supervisé
+
+| Composant       | Sonde         | Ce qu'elle vérifie                                        |
+| --------------- | ------------- | --------------------------------------------------------- |
+| API NestJS      | `GET /health` | Processus vivant **et** connexion PostgreSQL (`select 1`) |
+| Web (Nitro SSR) | `GET /`       | Rendu de la page d'accueil                                |
+| PostgreSQL      | `pg_isready`  | Acceptation des connexions                                |
+
+### Trois niveaux de surveillance
+
+1. **Healthchecks Docker** (auto-réparation) — chaque conteneur de
+   [`docker-compose.prod.yml`](../docker-compose.prod.yml) porte un healthcheck
+   (intervalle 30 s, timeout 5 s, 3 échecs → conteneur `unhealthy` ;
+   `restart: unless-stopped` relance les processus morts). Le démarrage de
+   `web` attend que `api` soit sain (`condition: service_healthy`).
+2. **Validation post-déploiement** — [`scripts/deploy.sh`](../scripts/deploy.sh)
+   sonde `/health` (30 tentatives, 2 s d'intervalle) et fait échouer le
+   déploiement si l'API ne répond pas 200.
+3. **Supervision continue avec alertes — Uptime Kuma** — conteneur
+   `uptime-kuma` de la stack prod, données persistées dans le volume
+   `kizuna-uptime-kuma`. L'interface n'est joignable qu'en local sur le
+   serveur : `ssh -L 3002:127.0.0.1:3002 kizuna` puis http://localhost:3002.
+
+### Sondes et seuils configurés dans Uptime Kuma
+
+| Moniteur    | Cible (réseau Docker interne)                | Fréquence | Seuil d'alerte       |
+| ----------- | -------------------------------------------- | --------- | -------------------- |
+| API /health | `http://api:3001/health` (mot-clé `ok`)      | 60 s      | 2 échecs consécutifs |
+| Web /       | `http://web:3000/`                           | 60 s      | 2 échecs consécutifs |
+| Site public | URL publique (HTTPS + expiration certificat) | 60 s      | 2 échecs consécutifs |
+
+### Modalité de signalement
+
+Les alertes (panne détectée et rétablissement) sont envoyées par **email via le
+SMTP Brevo** déjà utilisé par l'application (notification type « SMTP » dans
+Uptime Kuma, mêmes identifiants que l'API). Chaque incident est ensuite
+consigné comme anomalie (voir C4.2.1 ci-dessous) s'il révèle un défaut du
+logiciel.
+
+### Journalisation
+
+L'API émet des **logs structurés JSON** en production (nestjs-pino) : chaque
+requête HTTP est tracée avec méthode, URL, statut, durée et identifiant de
+requête, ce qui permet le diagnostic a posteriori des incidents signalés par
+les sondes (`docker compose -f docker-compose.prod.yml logs api`). En
+développement, les logs restent lisibles (pretty print).
 
 ## Mise à jour des dépendances (C4.1.1)
 
