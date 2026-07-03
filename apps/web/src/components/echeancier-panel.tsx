@@ -4,6 +4,14 @@ import { api, type EcheancierView } from '#/lib/api';
 import { Button } from '#/components/ui/button';
 import { Input } from '#/components/ui/input';
 import { Label } from '#/components/ui/label';
+import { Eyebrow } from '#/components/super-ui';
+import { EmptyThread } from '#/components/ui/empty-thread';
+import { ThreadSkeleton } from '#/components/ui/skeleton';
+import {
+  ThreadBead,
+  ThreadTimeline,
+  ThreadTimelineItem,
+} from '#/components/ui/thread-timeline';
 import { cn } from '#/lib/utils';
 
 /** Promotion deadlines; tutors/admin add them, the whole cohort sees them. */
@@ -48,11 +56,13 @@ export function EcheancierPanel({ alternantProfilId }: { alternantProfilId: stri
     }
   }
 
-  if (loading) return <p className="text-sm text-muted-foreground">Chargement…</p>;
+  if (loading) return <ThreadSkeleton rows={4} />;
   if (error) return <p className="text-sm text-destructive">{error}</p>;
   if (!view) return null;
 
   const now = Date.now();
+  // The first future milestone is "next" — it breathes on the thread.
+  const nextId = view.echeances.find((e) => new Date(e.dueDate).getTime() >= now)?.id;
 
   return (
     <div className="space-y-6">
@@ -88,54 +98,79 @@ export function EcheancierPanel({ alternantProfilId }: { alternantProfilId: stri
         </form>
       )}
 
-      <ol className="relative space-y-3 border-l border-border pl-5">
-        {view.echeances.length === 0 && (
-          <p className="text-sm text-muted-foreground">Aucune échéance pour cette promotion.</p>
-        )}
-        {view.echeances.map((e) => {
-          const due = new Date(e.dueDate).getTime();
-          const past = due < now;
-          const days = Math.round((due - now) / 86400000);
-          return (
-            <li key={e.id} className="relative">
-              <span
-                className={cn(
-                  'absolute top-1.5 -left-[1.4rem] h-2.5 w-2.5 rounded-full ring-2 ring-card',
-                  past ? 'bg-muted-foreground/40' : 'bg-brand',
-                )}
-              />
-              <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h2 className={cn('font-semibold', past && 'text-muted-foreground')}>
-                      {e.title}
-                    </h2>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      {new Date(e.dueDate).toLocaleString('fr-FR', {
-                        dateStyle: 'long',
-                        timeStyle: 'short',
-                      })}
-                    </p>
-                  </div>
-                  <span
+      {view.echeances.length === 0 ? (
+        <EmptyThread>
+          Aucune échéance pour cette promotion. Les jalons ajoutés par l’école apparaîtront ici,
+          enfilés sur le fil du parcours.
+        </EmptyThread>
+      ) : (
+        <ThreadTimeline>
+          {view.echeances.map((e) => {
+            const due = new Date(e.dueDate).getTime();
+            const past = due < now;
+            const next = e.id === nextId;
+            const days = Math.round((due - now) / 86400000);
+            return (
+              <ThreadTimelineItem
+                key={e.id}
+                // the bead: filled once passed, breathing when next, hollow ahead
+                bead={
+                  <ThreadBead
+                    pulse={next}
+                    className={
+                      next
+                        ? 'bg-brand ring-2 ring-card'
+                        : past
+                          ? 'bg-brand/45 ring-2 ring-card'
+                          : 'border-2 border-border bg-card'
+                    }
+                  />
+                }
+              >
+                  <div
                     className={cn(
-                      'shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold',
-                      past ? 'bg-[#EDEDE9] text-[#76766F]' : 'bg-brand-soft text-brand-strong',
+                      'rounded-xl border bg-card p-4 transition-shadow',
+                      next
+                        ? 'border-brand/25 shadow-md ring-1 ring-brand/10'
+                        : 'border-border shadow-sm',
+                      past && 'opacity-75',
                     )}
                   >
-                    {past ? 'Passé' : days === 0 ? 'Aujourd’hui' : `J-${days}`}
-                  </span>
-                </div>
-                {e.description && (
-                  <p className="mt-2 text-sm whitespace-pre-wrap text-secondary-foreground">
-                    {e.description}
-                  </p>
-                )}
-              </div>
-            </li>
-          );
-        })}
-      </ol>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        {next && <Eyebrow className="mb-1">Prochain jalon</Eyebrow>}
+                        <h2 className={cn('font-semibold', past && 'text-muted-foreground')}>
+                          {e.title}
+                        </h2>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {new Date(e.dueDate).toLocaleString('fr-FR', {
+                            dateStyle: 'long',
+                            timeStyle: 'short',
+                          })}
+                        </p>
+                      </div>
+                      <span
+                        className={cn(
+                          'shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold tabular-nums',
+                          past
+                            ? 'bg-status-neutral text-status-neutral-fg'
+                            : 'bg-brand-soft text-brand-strong',
+                        )}
+                      >
+                        {past ? 'Passé' : days === 0 ? 'Aujourd’hui' : `J-${days}`}
+                      </span>
+                    </div>
+                    {e.description && (
+                      <p className="mt-2 text-sm whitespace-pre-wrap text-secondary-foreground">
+                        {e.description}
+                      </p>
+                    )}
+                  </div>
+              </ThreadTimelineItem>
+            );
+          })}
+        </ThreadTimeline>
+      )}
     </div>
   );
 }

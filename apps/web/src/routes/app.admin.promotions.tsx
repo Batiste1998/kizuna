@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { ArrowRight, GraduationCap, Plus } from 'lucide-react';
 import type { AdminPromotion } from '#/lib/api';
 import { Button } from '#/components/ui/button';
+import { ProgressBar } from '#/components/ui/progress-bar';
 import { PageHead } from '#/components/super-ui';
 import { PromotionForm, useAdminData } from '#/components/admin-forms';
 import { Slideover } from './app.admin.alternants';
@@ -86,9 +87,7 @@ function AdminPromotionsPage() {
                     {s.count} alternant{s.count > 1 ? 's' : ''} · Progression {s.progress}%
                   </span>
                 </div>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
-                  <div className="bg-brand-gradient h-full rounded-full" style={{ width: `${s.progress}%` }} />
-                </div>
+                <ProgressBar pct={s.progress} className="mt-2" />
 
                 <button
                   onClick={() =>

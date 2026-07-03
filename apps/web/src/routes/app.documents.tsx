@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useSession } from '#/lib/auth-client';
 import { api } from '#/lib/api';
 import { DocumentsPanel } from '#/components/documents-panel';
-import { Centered } from '#/components/shell';
+import { Centered, CenteredLoading } from '#/components/shell';
 import { PageShell } from '#/components/super-ui';
 
 export const Route = createFileRoute('/app/documents')({
@@ -28,7 +28,7 @@ function MyDocumentsPage() {
       .catch((e: Error) => setError(e.message));
   }, [session]);
 
-  if (isPending) return <Centered>Chargement…</Centered>;
+  if (isPending) return <CenteredLoading />;
   if (!session) return null;
   if (error) {
     return (
@@ -42,7 +42,7 @@ function MyDocumentsPage() {
       </Centered>
     );
   }
-  if (!profilId) return <Centered>Chargement…</Centered>;
+  if (!profilId) return <CenteredLoading />;
 
   return (
     <PageShell title="Mes documents" maxWidth="max-w-3xl">

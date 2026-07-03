@@ -1,9 +1,21 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type DragEvent } from 'react';
 import { toast } from 'sonner';
+import {
+  Download,
+  File,
+  FileArchive,
+  FileImage,
+  FileSpreadsheet,
+  FileText,
+  Trash2,
+  UploadCloud,
+} from 'lucide-react';
 import { api, type DocumentCategory, type DocumentsView } from '#/lib/api';
 import { DOCUMENT_CATEGORY_LABELS } from '#/lib/levels';
-import { Button } from '#/components/ui/button';
-import { Label } from '#/components/ui/label';
+import { EmptyThread } from '#/components/ui/empty-thread';
+import { IconAction } from '#/components/ui/icon-action';
+import { ThreadSkeleton } from '#/components/ui/skeleton';
+import { cn } from '#/lib/utils';
 
 const CATEGORIES: DocumentCategory[] = [
   'convention',
@@ -19,13 +31,40 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
 }
 
-/** Documents of one apprentice: upload (trinôme/admin), download, delete. */
+const EXTENSION_ICONS: Record<string, typeof File> = {
+  pdf: FileText,
+  doc: FileText,
+  docx: FileText,
+  xls: FileSpreadsheet,
+  xlsx: FileSpreadsheet,
+  csv: FileSpreadsheet,
+  png: FileImage,
+  jpg: FileImage,
+  jpeg: FileImage,
+  gif: FileImage,
+  webp: FileImage,
+  zip: FileArchive,
+  rar: FileArchive,
+};
+
+/** Icon keyed on the file extension, so the list reads at a glance. */
+function FileIcon({ name }: { name: string }) {
+  const Icon = EXTENSION_ICONS[name.split('.').pop()?.toLowerCase() ?? ''] ?? File;
+  return (
+    <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-brand-soft text-brand-strong">
+      <Icon className="h-[18px] w-[18px]" />
+    </span>
+  );
+}
+
+/** Documents of one apprentice: drag-and-drop upload (trinôme/admin), download, delete. */
 export function DocumentsPanel({ alternantProfilId }: { alternantProfilId: string }) {
   const [view, setView] = useState<DocumentsView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState<DocumentCategory>('autre');
   const [uploading, setUploading] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -38,22 +77,26 @@ export function DocumentsPanel({ alternantProfilId }: { alternantProfilId: strin
       .finally(() => setLoading(false));
   }, [alternantProfilId]);
 
-  async function handleUpload(e: FormEvent) {
-    e.preventDefault();
-    const file = fileRef.current?.files?.[0];
-    if (!view || !file) return;
+  async function upload(file: File) {
+    if (!view || uploading) return;
     setUploading(true);
     try {
       const doc = await api.uploadDocument(alternantProfilId, file, category);
-      setView({ ...view, documents: [...view.documents, doc] });
-      if (fileRef.current) fileRef.current.value = '';
-      setCategory('autre');
+      setView((v) => (v ? { ...v, documents: [...v.documents, doc] } : v));
       toast.success('Document déposé');
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
       setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
     }
+  }
+
+  function handleDrop(e: DragEvent) {
+    e.preventDefault();
+    setDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) void upload(file);
   }
 
   async function handleDelete(id: string) {
@@ -77,56 +120,91 @@ export function DocumentsPanel({ alternantProfilId }: { alternantProfilId: strin
     }
   }
 
-  if (loading) return <p className="text-sm text-muted-foreground">Chargement…</p>;
+  if (loading) return <ThreadSkeleton rows={3} />;
   if (error) return <p className="text-sm text-destructive">{error}</p>;
   if (!view) return null;
 
   return (
     <div className="space-y-6">
       {view.canUpload && (
-        <form
-          onSubmit={handleUpload}
-          className="grid gap-3 rounded-xl border border-border bg-card p-5 shadow-sm sm:grid-cols-[auto_1fr_auto] sm:items-end"
-        >
-          <div className="space-y-1.5">
-            <Label htmlFor="category">Catégorie</Label>
-            <select
-              id="category"
-              value={category}
-              onChange={(e) => setCategory(e.target.value as DocumentCategory)}
-              className="h-10 rounded-md border border-input bg-card px-3 text-sm shadow-sm focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none"
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {DOCUMENT_CATEGORY_LABELS[c]}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="file">Fichier</Label>
-            <input
-              id="file"
-              ref={fileRef}
-              type="file"
-              required
-              className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border file:border-border file:bg-card file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:border-brand"
+        <div className="space-y-3">
+          {/* Dropzone — click or drop a file; it uploads in the selected category. */}
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragging(true);
+            }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={handleDrop}
+            disabled={uploading}
+            className={cn(
+              'grid w-full place-items-center gap-1 rounded-2xl border-2 border-dashed px-6 py-8 text-center transition-colors',
+              dragging
+                ? 'border-brand bg-brand-soft/60'
+                : 'border-border bg-card/60 hover:border-brand/50 hover:bg-brand-soft/30',
+              uploading && 'pointer-events-none opacity-60',
+            )}
+          >
+            <UploadCloud
+              className={cn('h-7 w-7', dragging ? 'text-brand-strong' : 'text-muted-foreground')}
             />
+            <span className="text-sm font-semibold">
+              {uploading ? 'Envoi en cours…' : 'Glissez un fichier ici, ou cliquez pour parcourir'}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              Il sera classé dans « {DOCUMENT_CATEGORY_LABELS[category]} »
+            </span>
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            className="sr-only"
+            aria-label="Choisir un fichier"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void upload(f);
+            }}
+          />
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="mr-1 text-xs font-semibold text-muted-foreground">Catégorie :</span>
+            {CATEGORIES.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setCategory(c)}
+                aria-pressed={category === c}
+                className={cn(
+                  'rounded-full px-3 py-1 text-xs font-semibold transition-colors',
+                  category === c
+                    ? 'bg-brand text-white shadow-sm'
+                    : 'bg-muted text-muted-foreground hover:bg-brand-soft hover:text-brand-strong',
+                )}
+              >
+                {DOCUMENT_CATEGORY_LABELS[c]}
+              </button>
+            ))}
           </div>
-          <Button type="submit" disabled={uploading}>
-            {uploading ? '…' : 'Déposer'}
-          </Button>
-        </form>
+        </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-        {view.documents.length === 0 ? (
-          <p className="p-8 text-center text-sm text-muted-foreground">Aucun document.</p>
-        ) : (
-          <ul className="divide-y divide-border">
+      {view.documents.length === 0 ? (
+        <EmptyThread title="Aucun document">
+          Conventions, livrets, comptes-rendus : les pièces du dossier d’alternance se rangent ici,
+          accessibles au trinôme entier.
+        </EmptyThread>
+      ) : (
+        <div className="overflow-hidden rounded-2xl border border-hairline bg-card shadow-sm">
+          <ul className="stagger-children divide-y divide-hairline">
             {view.documents.map((doc) => (
-              <li key={doc.id} className="flex items-center justify-between gap-3 px-5 py-3">
-                <div className="min-w-0">
+              <li
+                key={doc.id}
+                className="group flex items-center gap-3.5 px-5 py-3 transition-colors hover:bg-muted/40"
+              >
+                <FileIcon name={doc.originalName} />
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className="truncate font-medium">{doc.originalName}</span>
                     <span className="shrink-0 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-semibold text-brand-strong">
@@ -138,25 +216,28 @@ export function DocumentsPanel({ alternantProfilId }: { alternantProfilId: strin
                     {new Date(doc.createdAt).toLocaleDateString('fr-FR')}
                   </p>
                 </div>
-                <div className="flex shrink-0 gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
+                <div className="flex shrink-0 gap-1 opacity-70 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 sm:opacity-0">
+                  <IconAction
+                    title={`Télécharger ${doc.originalName}`}
+                    icon={<Download className="h-4 w-4" />}
                     onClick={() => handleDownload(doc.id, doc.originalName)}
-                  >
-                    Télécharger
-                  </Button>
+                    className="h-9 w-9"
+                  />
                   {view.canUpload && (
-                    <Button size="sm" variant="ghost" onClick={() => handleDelete(doc.id)}>
-                      Supprimer
-                    </Button>
+                    <IconAction
+                      title={`Supprimer ${doc.originalName}`}
+                      icon={<Trash2 className="h-4 w-4" />}
+                      onClick={() => handleDelete(doc.id)}
+                      danger
+                      className="h-9 w-9"
+                    />
                   )}
                 </div>
               </li>
             ))}
           </ul>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

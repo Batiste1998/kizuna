@@ -182,7 +182,7 @@ export function AccessibilityFab() {
         onClick={() => setOpen((o) => !o)}
         aria-label="Options d'accessibilité"
         aria-expanded={open}
-        className="flex items-center justify-center rounded-full bg-[#14161c] text-white shadow-lg ring-2 ring-brand/60 transition-transform hover:scale-105"
+        className="flex items-center justify-center rounded-full bg-sidebar text-white shadow-lg ring-2 ring-brand/60 transition-transform hover:scale-105"
         style={{ height: 52, width: 52 }}
       >
         <Accessibility className="h-6 w-6" />

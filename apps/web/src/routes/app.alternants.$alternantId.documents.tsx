@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { PageShell } from '#/components/super-ui';
 import { useSession } from '#/lib/auth-client';
 import { DocumentsPanel } from '#/components/documents-panel';
-import { Centered } from '#/components/shell';
+import { CenteredLoading } from '#/components/shell';
 
 export const Route = createFileRoute('/app/alternants/$alternantId/documents')({
   component: AlternantDocumentsPage,
@@ -18,7 +18,7 @@ function AlternantDocumentsPage() {
     if (!isPending && !session) void navigate({ to: '/login' });
   }, [isPending, session, navigate]);
 
-  if (isPending) return <Centered>Chargement…</Centered>;
+  if (isPending) return <CenteredLoading />;
   if (!session) return null;
 
   return (

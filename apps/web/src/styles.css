@@ -11,6 +11,12 @@
 :root {
   --radius: 0.875rem; /* 14px — softer corners throughout */
 
+  /* Motion — one vocabulary for the whole app (hovers/presses stay on
+     Tailwind's duration-150; orchestrated entrances share this token). */
+  --dur-orchestrate: 450ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
   /* Cool neutral ramp */
   --background: #f5f6f8; /* app canvas */
   --foreground: #14161b; /* ink */
@@ -41,6 +47,40 @@
   --primary: var(--accent);
   --primary-foreground: #ffffff;
   --ring: var(--accent);
+
+  /* The three voices of the trinôme — mirrored in EVALUATOR_VOICE_COLORS (lib/levels). */
+  --voice-auto: #2e9e82;
+  --voice-peda: #4f7cf0;
+  --voice-entreprise: #e06a41;
+}
+
+/* Registered so a role switch can interpolate instead of snapping. */
+@property --accent {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #4f7cf0;
+}
+@property --accent-strong {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #3b63cc;
+}
+@property --accent-soft {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #eef2fd;
+}
+@property --sidebar {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #14161c;
+}
+[data-role] {
+  transition:
+    --accent var(--dur-orchestrate) var(--ease-out),
+    --accent-strong var(--dur-orchestrate) var(--ease-out),
+    --accent-soft var(--dur-orchestrate) var(--ease-out),
+    --sidebar var(--dur-orchestrate) var(--ease-out);
 }
 
 /* Per-role accent identity (set data-role on a container or <html>). */
@@ -101,6 +141,27 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-destructive: var(--destructive);
+
+  /* Status scale — the single palette for every badge/chip in the app (see lib/levels). */
+  --color-status-neutral: #edede9;
+  --color-status-neutral-fg: #76766f;
+  --color-status-amber: #f7efda;
+  --color-status-amber-fg: #9a6b12;
+  --color-status-blue: #e8eef7;
+  --color-status-blue-fg: #3d5e8e;
+  --color-status-green: #e4f2ec;
+  --color-status-green-fg: #2c7a63;
+  --color-status-teal: #d4eae0;
+  --color-status-teal-fg: #1f7a63;
+  --color-status-orange: #fbebe3;
+  --color-status-orange-fg: #b54f2c;
+  --color-status-violet-fg: #4f40b0;
+  --color-status-mint: #e8f4ef;
+  --color-status-mint-fg: #1f7a63;
+
+  --color-voice-auto: var(--voice-auto);
+  --color-voice-peda: var(--voice-peda);
+  --color-voice-entreprise: var(--voice-entreprise);
 
   --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
@@ -221,6 +282,184 @@
       stroke-dashoffset: 0;
     }
   }
+
+  /* --- Motion vocabulary ----------------------------------------------------- */
+
+  /* Element entrance: fade + rise. Pair with .stagger-children on the parent. */
+  .animate-rise {
+    animation: rise var(--dur-orchestrate) var(--ease-out) both;
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Cascade the .animate-rise children of a container, 45ms apart. */
+  .stagger-children > * {
+    animation: rise var(--dur-orchestrate) var(--ease-out) both;
+  }
+  .stagger-children > *:nth-child(1) {
+    animation-delay: 0ms;
+  }
+  .stagger-children > *:nth-child(2) {
+    animation-delay: 45ms;
+  }
+  .stagger-children > *:nth-child(3) {
+    animation-delay: 90ms;
+  }
+  .stagger-children > *:nth-child(4) {
+    animation-delay: 135ms;
+  }
+  .stagger-children > *:nth-child(5) {
+    animation-delay: 180ms;
+  }
+  .stagger-children > *:nth-child(6) {
+    animation-delay: 225ms;
+  }
+  .stagger-children > *:nth-child(7) {
+    animation-delay: 270ms;
+  }
+  .stagger-children > *:nth-child(8) {
+    animation-delay: 315ms;
+  }
+  .stagger-children > *:nth-child(n + 9) {
+    animation-delay: 360ms;
+  }
+
+  /* Something snapping into place — beads (spring) and the radar (soft) share it. */
+  .bead-pop {
+    animation: pop-in var(--dur-orchestrate) var(--ease-spring) backwards;
+  }
+  @keyframes pop-in {
+    0% {
+      scale: 0.45;
+      opacity: 0;
+    }
+    100% {
+      scale: 1;
+      opacity: 1;
+    }
+  }
+
+  /* The next milestone breathing on the échéancier thread — an expanding ring
+     on a pseudo-element (transform/opacity only, so it never repaints). */
+  .bead-pulse::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 9999px;
+    border: 2px solid var(--accent);
+    animation: bead-ping 2.6s ease-in-out infinite;
+  }
+  @keyframes bead-ping {
+    0% {
+      transform: scale(0.8);
+      opacity: 0.7;
+    }
+    55%,
+    100% {
+      transform: scale(1.9);
+      opacity: 0;
+    }
+  }
+
+  /* Vertical timeline thread weaving itself in (échéancier, journal). */
+  .timeline-thread {
+    transform-origin: top;
+    animation: timeline-grow 0.9s var(--ease-out) both;
+  }
+  @keyframes timeline-grow {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  /* Progress bars filling from zero to their inline width (scaleX stays on the
+     compositor — no layout work, unlike animating width). */
+  .bar-fill {
+    transform-origin: left;
+    animation: grow-x 0.9s var(--ease-out) both;
+  }
+  @keyframes grow-x {
+    from {
+      transform: scaleX(0);
+    }
+  }
+
+  /* Radar chart unfolding from its centre. */
+  .radar-shape {
+    transform-box: view-box;
+    transform-origin: center;
+    animation: pop-in 0.8s var(--ease-out) both;
+  }
+
+  /* Skeleton shimmer — quiet, on-brand loading texture. */
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background: var(--muted);
+  }
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+    animation: shimmer 1.6s var(--ease-out) infinite;
+  }
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-rise,
+    .stagger-children > *,
+    .bead-pop,
+    .bead-pulse::after,
+    .timeline-thread,
+    .radar-shape,
+    .bar-fill {
+      animation: none;
+    }
+    .skeleton::after {
+      animation: none;
+    }
+  }
+}
+
+/* --- Page transitions (View Transitions API — progressive enhancement) ------- */
+::view-transition-old(root) {
+  animation: page-out 140ms var(--ease-out) both;
+}
+::view-transition-new(root) {
+  animation: rise 260ms var(--ease-out) both;
+}
+@keyframes page-out {
+  to {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+.a11y-reduce-motion::view-transition-old(root),
+.a11y-reduce-motion::view-transition-new(root) {
+  animation: none;
 }
 
 .font-mono {

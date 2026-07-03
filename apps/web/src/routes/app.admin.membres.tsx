@@ -193,7 +193,7 @@ function AdminMembresPage() {
                         <button
                           onClick={() => confirmDelete(m)}
                           title="Retirer de l’établissement"
-                          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-[#FBEBE3] hover:text-[#B54F2C]"
+                          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-status-orange hover:text-status-orange-fg"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>

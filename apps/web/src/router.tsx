@@ -7,6 +7,8 @@ export function getRouter() {
     scrollRestoration: true,
     defaultPreload: 'intent',
     defaultPreloadStaleTime: 0,
+    // Soft fade+rise between pages (styles.css ::view-transition-*); no-op where unsupported.
+    defaultViewTransition: true,
   });
 
   return router;

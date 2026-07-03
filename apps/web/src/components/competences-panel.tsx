@@ -8,11 +8,12 @@ import {
   type CompetenceView,
   type EvaluatorRole,
 } from '#/lib/api';
-import { EVALUATOR_VOICE_COLORS, LEVELS } from '#/lib/levels';
+import { EVALUATOR_VOICE_COLORS, EVALUATOR_VOICE_LABELS, LEVELS } from '#/lib/levels';
 import { isDemoAccount } from '#/lib/roles';
 import { useMaybeMe } from '#/lib/me-context';
 import { cn } from '#/lib/utils';
 import { Coachmark, useCoachmark } from './coachmark';
+import { ThreadSkeleton } from './ui/skeleton';
 
 /* -------------------------------------------------------------------------- *
  * Le fil à trois voix (絆)
@@ -33,23 +34,18 @@ const LEVEL_LABEL = Object.fromEntries(LEVELS.map((l) => [l.key, l.label])) as R
   string
 >;
 
-const VOICE_LABELS: Record<EvaluatorRole, string> = {
-  auto: 'Auto-évaluation',
-  peda: 'Tuteur école',
-  entreprise: 'Tuteur entreprise',
-};
-
 /** Glow ring under the editable bead, tinted with the voice's own colour. */
-const editableGlow = (rgb: string) => `0 0 0 3px var(--card), 0 4px 11px -2px rgba(${rgb},0.6)`;
+const editableGlow = (color: string) =>
+  `0 0 0 3px var(--card), 0 4px 11px -2px color-mix(in srgb, ${color} 60%, transparent)`;
 
 type VoiceMeta = { role: EvaluatorRole; label: string; color: string; glow: string };
 
-/** The trinôme, in display order — colour identity lives in lib/levels. */
+/** The trinôme, in display order — colour identity and labels live in lib/levels. */
 const VOICES: VoiceMeta[] = EVALUATOR_ROLES.map((role) => ({
   role,
-  label: VOICE_LABELS[role],
+  label: EVALUATOR_VOICE_LABELS[role],
   color: EVALUATOR_VOICE_COLORS[role].color,
-  glow: editableGlow(EVALUATOR_VOICE_COLORS[role].rgb),
+  glow: editableGlow(EVALUATOR_VOICE_COLORS[role].color),
 }));
 const VOICE_BY_ROLE = Object.fromEntries(VOICES.map((v) => [v.role, v])) as Record<
   EvaluatorRole,
@@ -62,7 +58,7 @@ const WAITING_GAP = 11; // px between beads waiting in the antechamber
 const CLUSTER_OFFSET = 5.5; // % spread when several beads land on the same level
 const BEAD_SHADOW =
   '0 0 0 2.5px var(--card), 0 1px 2px rgba(20,23,33,0.04), 0 2px 6px rgba(20,23,33,0.05)';
-const TRACK_FILL = `linear-gradient(90deg, rgba(${EVALUATOR_VOICE_COLORS.auto.rgb},0.10), rgba(${EVALUATOR_VOICE_COLORS.auto.rgb},0.26))`;
+const TRACK_FILL = `linear-gradient(90deg, color-mix(in srgb, var(--voice-auto) 10%, transparent), color-mix(in srgb, var(--voice-auto) 26%, transparent))`;
 
 /** Centre of a level's zone, as a percentage of the track width. */
 const levelCenter = (lvl: CompetenceLevel) => LEVEL_INDEX[lvl] * 25 + 12.5;
@@ -129,7 +125,7 @@ export function CompetencesPanel({ alternantProfilId }: { alternantProfilId: str
     }
   }
 
-  if (loading) return <p className="text-sm text-muted-foreground">Chargement…</p>;
+  if (loading) return <ThreadSkeleton rows={4} />;
   if (error) return <p className="text-sm text-destructive">{error}</p>;
   if (!data) return null;
 
@@ -264,7 +260,7 @@ function BlocCard({
       {bloc.competences.map((comp, i) => (
         <div
           key={comp.id}
-          className="grid grid-cols-1 items-center gap-x-6 gap-y-2.5 border-t border-hairline px-5 py-2.5 transition-colors hover:bg-[#fafbfc] sm:grid-cols-[1fr_320px]"
+          className="grid grid-cols-1 items-center gap-x-6 gap-y-2.5 border-t border-hairline px-5 py-2.5 transition-colors hover:bg-muted/40 sm:grid-cols-[1fr_320px]"
         >
           <span className="flex items-center gap-2.5 text-sm">
             <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-border" />
@@ -343,7 +339,7 @@ function Thread({
 
   return (
     <div
-      className="relative h-[30px] rounded-full bg-[#f1f3f5] shadow-[inset_0_0_0_1px_var(--hairline)]"
+      className="relative h-[30px] rounded-full bg-muted shadow-[inset_0_0_0_1px_var(--hairline)]"
       style={{ paddingLeft: ANTECHAMBER }}
     >
       <span className="sr-only">{srSummary}</span>
@@ -400,7 +396,7 @@ function Thread({
               <label
                 key={lvl}
                 title={LEVEL_LABEL[lvl]}
-                className="absolute inset-y-0 cursor-pointer rounded-full transition-colors hover:bg-[rgba(46,158,130,0.07)] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[#2e9e82]"
+                className="absolute inset-y-0 cursor-pointer rounded-full transition-colors hover:bg-[color-mix(in_srgb,var(--voice-auto)_7%,transparent)] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[var(--voice-auto)]"
                 style={{ left: `${LEVEL_INDEX[lvl] * 25}%`, width: '25%' }}
               >
                 <input
@@ -416,7 +412,7 @@ function Thread({
           </div>
         )}
 
-        {/* beads on the track */}
+        {/* beads on the track — they pop on arrival and glide when re-evaluated */}
         {onTrack.map(({ role, left }) => {
           const v = VOICE_BY_ROLE[role];
           const isEditable = role === editable;
@@ -426,18 +422,25 @@ function Thread({
               key={role}
               title={`${v.label} · ${LEVEL_LABEL[lvl]}`}
               className={cn(
-                'pointer-events-none absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full',
+                'pointer-events-none absolute top-1/2 -translate-x-1/2 -translate-y-1/2 transition-[left] duration-[450ms] ease-[var(--ease-spring)]',
                 isEditable ? 'z-30 h-[19px] w-[19px]' : 'z-20 h-[15px] w-[15px]',
               )}
-              style={{
-                left: `${left}%`,
-                backgroundColor: v.color,
-                boxShadow: isEditable ? v.glow : BEAD_SHADOW,
-              }}
+              style={{ left: `${left}%` }}
             >
-              {isEditable && (
-                <span className="absolute inset-0 m-auto h-[6px] w-[6px] rounded-full bg-white/95" />
-              )}
+              {/* keyed on the level so a fresh evaluation re-triggers the pop */}
+              <span
+                key={lvl}
+                className="bead-pop absolute inset-0 rounded-full"
+                style={{
+                  backgroundColor: v.color,
+                  boxShadow: isEditable ? v.glow : BEAD_SHADOW,
+                }}
+                aria-hidden
+              >
+                {isEditable && (
+                  <span className="absolute inset-0 m-auto h-[6px] w-[6px] rounded-full bg-white/95" />
+                )}
+              </span>
             </span>
           );
         })}

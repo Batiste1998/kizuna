@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { toast } from 'sonner';
 import { signInThenGo } from '#/lib/auth-client';
@@ -45,8 +45,19 @@ export function DemoSwitcher({ me }: { me: Me }) {
   const [pending, setPending] = useState<string | null>(null);
   const [hidden, setHidden] = useState(false);
   const coach = useCoachmark('demo-roles', isDemoAccount(me.email));
+  const visible = isDemoAccount(me.email) && !hidden;
 
-  if (!isDemoAccount(me.email) || hidden) return null;
+  // The bar owns its own clearance: page content (see AppShell) pads its bottom
+  // by this much so the floating bar never covers anything.
+  useEffect(() => {
+    if (!visible) return;
+    document.documentElement.style.setProperty('--demo-bar-clearance', '6rem');
+    return () => {
+      document.documentElement.style.removeProperty('--demo-bar-clearance');
+    };
+  }, [visible]);
+
+  if (!visible) return null;
 
   const firstName = me.name?.split(' ')[0] ?? 'cette personne';
 

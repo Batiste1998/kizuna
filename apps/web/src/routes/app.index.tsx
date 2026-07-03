@@ -13,6 +13,7 @@ import {
 import { api, type AlternantDashboard as AltDash, type TutorDashboard } from '#/lib/api';
 import { useMe } from '#/lib/me-context';
 import { Avatar, PageHead, Panel, StatCard } from '#/components/super-ui';
+import { ProgressBar } from '#/components/ui/progress-bar';
 import { cn } from '#/lib/utils';
 
 export const Route = createFileRoute('/app/')({
@@ -67,7 +68,7 @@ function AlternantHome() {
         )}
       </PageHead>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="stagger-children grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
           label="Progression"
           value={d ? `${d.progressionPct}%` : '—'}
@@ -98,7 +99,7 @@ function AlternantHome() {
         />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="stagger-children grid gap-4 lg:grid-cols-2">
         <Panel className="p-6">
           <div className="mb-4 text-[15px] font-semibold">Mon trinôme de suivi</div>
           <div className="flex flex-col gap-3">
@@ -227,7 +228,7 @@ function TutorHome() {
         en tant que {roleLabel}.
       </PageHead>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="stagger-children grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Mes alternants" value={list.length} sub="en suivi" icon={<Users />} to="/app/alternants" />
         <StatCard label="À évaluer" value={toEvaluate} sub="compétences" icon={<Target />} />
         <StatCard label="Bilans à venir" value={data?.upcomingBilans ?? '—'} sub="à planifier" icon={<CalendarClock />} />
@@ -261,18 +262,13 @@ function TutorHome() {
                       </div>
                     </div>
                     {a.toEvaluate > 0 && (
-                      <span className="flex-none rounded-full bg-[#FBEBE3] px-2.5 py-0.5 text-[11.5px] font-semibold text-[#B54F2C]">
+                      <span className="flex-none rounded-full bg-status-orange px-2.5 py-0.5 text-[11.5px] font-semibold text-status-orange-fg">
                         {a.toEvaluate} à évaluer
                       </span>
                     )}
                   </div>
                   <div className="mt-3.5 flex items-center gap-3">
-                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
-                      <div
-                        className="bg-brand-gradient h-full rounded-full transition-all"
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
+                    <ProgressBar pct={pct} className="flex-1" />
                     <span className="w-9 text-right text-[13px] font-semibold text-secondary-foreground">
                       {pct}%
                     </span>

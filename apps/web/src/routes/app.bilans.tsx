@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useSession } from '#/lib/auth-client';
 import { api } from '#/lib/api';
 import { BilansPanel } from '#/components/bilans-panel';
-import { Centered } from '#/components/shell';
+import { Centered, CenteredLoading } from '#/components/shell';
 import { PageShell } from '#/components/super-ui';
 
 export const Route = createFileRoute('/app/bilans')({
@@ -28,7 +28,7 @@ function MyBilansPage() {
       .catch((e: Error) => setError(e.message));
   }, [session]);
 
-  if (isPending) return <Centered>Chargement…</Centered>;
+  if (isPending) return <CenteredLoading />;
   if (!session) return null;
   if (error) {
     return (
@@ -45,7 +45,7 @@ function MyBilansPage() {
       </Centered>
     );
   }
-  if (!profilId) return <Centered>Chargement…</Centered>;
+  if (!profilId) return <CenteredLoading />;
 
   return (
     <PageShell title="Mes bilans" maxWidth="max-w-3xl">

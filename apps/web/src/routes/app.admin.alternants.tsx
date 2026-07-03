@@ -4,6 +4,7 @@ import { Mail, Pencil, Search, Trash2, UserPlus, X } from 'lucide-react';
 import { api, type AdminAlternant, type AlternantSuivi } from '#/lib/api';
 import { Button } from '#/components/ui/button';
 import { Input } from '#/components/ui/input';
+import { IconAction } from '#/components/ui/icon-action';
 import { Avatar, PageHead, Panel } from '#/components/super-ui';
 import { cn } from '#/lib/utils';
 import { AssociationEditor, MemberForm, useAdminData } from '#/components/admin-forms';
@@ -233,43 +234,6 @@ function AdminAlternantsPage() {
         </Slideover>
       )}
     </div>
-  );
-}
-
-function IconAction({
-  title,
-  icon,
-  onClick,
-  href,
-  danger,
-  disabled,
-}: {
-  title: string;
-  icon: React.ReactNode;
-  onClick?: () => void;
-  href?: string;
-  danger?: boolean;
-  disabled?: boolean;
-}) {
-  const className = cn(
-    'flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors',
-    disabled
-      ? 'cursor-not-allowed opacity-40'
-      : danger
-        ? 'hover:bg-[#FBEBE3] hover:text-[#B54F2C]'
-        : 'hover:bg-muted hover:text-secondary-foreground',
-  );
-  if (href && !disabled) {
-    return (
-      <a href={href} title={title} aria-label={title} className={className}>
-        {icon}
-      </a>
-    );
-  }
-  return (
-    <button type="button" title={title} aria-label={title} onClick={onClick} disabled={disabled} className={className}>
-      {icon}
-    </button>
   );
 }
 

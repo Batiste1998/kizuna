@@ -117,7 +117,8 @@ export function AppShell({ me, children }: { me: Me; children: ReactNode }) {
           </div>
         </header>
 
-        <div className="flex-1">{children}</div>
+        {/* The floating demo bar sets --demo-bar-clearance while visible. */}
+        <div className="flex-1 pb-[var(--demo-bar-clearance,0px)]">{children}</div>
       </div>
 
       <AccessibilityFab />

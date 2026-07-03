@@ -5,6 +5,7 @@ import { api, type AdminDashboard } from '#/lib/api';
 import { useMe } from '#/lib/me-context';
 import { Avatar, PageHead, Panel, StatCard } from '#/components/super-ui';
 import { Button } from '#/components/ui/button';
+import { ProgressBar } from '#/components/ui/progress-bar';
 
 export const Route = createFileRoute('/app/admin/')({
   component: AdminDashboardPage,
@@ -39,7 +40,7 @@ function AdminDashboardPage() {
         .
       </PageHead>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="stagger-children grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
           label="Alternants"
           value={data?.counts.alternants ?? '—'}
@@ -69,7 +70,7 @@ function AdminDashboardPage() {
         />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+      <div className="stagger-children grid gap-4 lg:grid-cols-[1.4fr_1fr]">
         {/* Suivi à traiter */}
         <Panel className="p-6">
           <div className="flex items-center justify-between">
@@ -124,12 +125,7 @@ function AdminDashboardPage() {
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
-                      <div
-                        className="bg-brand-gradient h-full rounded-full transition-all"
-                        style={{ width: `${p.progressPct}%` }}
-                      />
-                    </div>
+                    <ProgressBar pct={p.progressPct} className="flex-1" />
                     <span className="w-9 text-right text-[13px] font-semibold text-secondary-foreground">
                       {p.progressPct}%
                     </span>

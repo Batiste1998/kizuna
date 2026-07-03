@@ -106,7 +106,7 @@ function SupportPage() {
         : 'Un blocage sur la plateforme ou une demande d’évolution ? Ouvrez un ticket auprès de l’équipe support de Kizuna.'}
 
       {canTriage && (
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="stagger-children grid grid-cols-2 gap-4 lg:grid-cols-4">
           <StatCard label="Ouverts" value={counts.open} sub="à traiter" icon={<Inbox />} />
           <StatCard label="En cours" value={counts.in_progress} sub="en traitement" icon={<Clock />} />
           <StatCard label="Résolus" value={counts.resolved} sub="clôturés" icon={<CheckCircle2 />} />
@@ -166,8 +166,8 @@ function SupportPage() {
                         label: TICKET_TYPE_LABELS[t.type],
                         className:
                           t.type === 'bug'
-                            ? 'bg-[#FBEBE3] text-[#B54F2C]'
-                            : 'bg-[#E8EEF7] text-[#3D5E8E]',
+                            ? 'bg-status-orange text-status-orange-fg'
+                            : 'bg-status-blue text-status-blue-fg',
                       }}
                     />
                     <Badge
@@ -235,8 +235,8 @@ function SupportPage() {
                         label: TICKET_TYPE_LABELS[t.type],
                         className:
                           t.type === 'bug'
-                            ? 'bg-[#FBEBE3] text-[#B54F2C]'
-                            : 'bg-[#E8EEF7] text-[#3D5E8E]',
+                            ? 'bg-status-orange text-status-orange-fg'
+                            : 'bg-status-blue text-status-blue-fg',
                       }}
                     />
                   </td>

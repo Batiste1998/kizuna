@@ -3,8 +3,9 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useSession } from '#/lib/auth-client';
 import { api, type TutorAlternant } from '#/lib/api';
 import { EVALUATOR_LABELS } from '#/lib/levels';
-import { Centered } from '#/components/shell';
+import { CenteredLoading } from '#/components/shell';
 import { PageShell } from '#/components/super-ui';
+import { ProgressBar } from '#/components/ui/progress-bar';
 
 export const Route = createFileRoute('/app/alternants/')({
   component: AlternantsPage,
@@ -27,7 +28,7 @@ function AlternantsPage() {
       .catch(() => setList([]));
   }, [session]);
 
-  if (isPending || (!list && session)) return <Centered>Chargement…</Centered>;
+  if (isPending || (!list && session)) return <CenteredLoading />;
   if (!session) return null;
 
   return (
@@ -78,9 +79,7 @@ function AlternantsPage() {
                         {a.progress.evaluated}/{a.progress.total}
                       </span>
                     </div>
-                    <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                      <div className="bg-brand-gradient h-full rounded-full" style={{ width: `${pct}%` }} />
-                    </div>
+                    <ProgressBar pct={pct} className="mt-1 h-1.5 w-full" />
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-2">

@@ -114,7 +114,7 @@ function EcolesPage() {
                   <button
                     onClick={() => confirmDelete(o)}
                     title="Supprimer"
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-[#FBEBE3] hover:text-[#B54F2C]"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-status-orange hover:text-status-orange-fg"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -285,7 +285,7 @@ function OrgPanel({
                       onClick={() => removeType(t)}
                       title="Supprimer ce type"
                       aria-label={`Supprimer ${t.label}`}
-                      className="absolute top-1/2 right-1.5 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground opacity-0 transition hover:bg-[#FBEBE3] hover:text-[#B54F2C] group-hover:opacity-100"
+                      className="absolute top-1/2 right-1.5 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground opacity-0 transition hover:bg-status-orange hover:text-status-orange-fg group-hover:opacity-100"
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>

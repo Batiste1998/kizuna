@@ -16,10 +16,13 @@ import {
   type AlternantCompetences,
   type Bilan,
   type CompetenceLevel,
+  type EvaluatorRole,
   type JournalEntry,
 } from '#/lib/api';
-import { Centered } from '#/components/shell';
+import { EVALUATOR_VOICE_COLORS, EVALUATOR_VOICE_LABELS } from '#/lib/levels';
+import { CenteredLoading } from '#/components/shell';
 import { Avatar } from '#/components/super-ui';
+import { ProgressBar } from '#/components/ui/progress-bar';
 import { cn } from '#/lib/utils';
 import { CompetencesPanel } from '#/components/competences-panel';
 import { JournalPanel } from '#/components/journal-panel';
@@ -155,7 +158,29 @@ function AlternantFichePage() {
       const avg = total
         ? b.competences.reduce((s, c) => s + consolidated(c.evaluations), 0) / (total * 3)
         : 0;
-      return { code: b.code, label: b.label, total, acquired, avg, validated: total > 0 && acquired === total };
+      // Average level per evaluator (0..1) — one radar trace per voice of the trinôme.
+      const voiceAvg = (role: EvaluatorRole) =>
+        total
+          ? b.competences.reduce(
+              (s, c) => s + (c.evaluations[role] ? LEVEL_VALUE[c.evaluations[role]!] : 0),
+              0,
+            ) /
+            (total * 3)
+          : 0;
+      const voices: Record<EvaluatorRole, number> = {
+        auto: voiceAvg('auto'),
+        peda: voiceAvg('peda'),
+        entreprise: voiceAvg('entreprise'),
+      };
+      return {
+        code: b.code,
+        label: b.label,
+        total,
+        acquired,
+        avg,
+        voices,
+        validated: total > 0 && acquired === total,
+      };
     });
     const allComps = competences.blocs.flatMap((b) => b.competences);
     return {
@@ -180,7 +205,7 @@ function AlternantFichePage() {
     [journal],
   );
 
-  if (isPending || (!loaded && session)) return <Centered>Chargement…</Centered>;
+  if (isPending || (!loaded && session)) return <CenteredLoading />;
   if (!session) return null;
 
   const backTo = isAdmin ? '/app/admin/alternants' : '/app/alternants';
@@ -286,7 +311,7 @@ function Overview({
 }) {
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="stagger-children grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Stat label="Progression globale" value={`${progressPct}%`} sub="auto-évaluation" icon={<Target />} />
         <Stat
           label="Blocs validés"
@@ -311,9 +336,28 @@ function Overview({
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="rounded-2xl border border-hairline bg-card p-5 shadow-md">
           <h2 className="text-base font-bold tracking-tight">Radar de compétences</h2>
-          <p className="text-xs text-muted-foreground">Niveau moyen par bloc</p>
+          <p className="text-xs text-muted-foreground">
+            Niveau moyen par bloc, une trace par voix — les écarts se discutent en bilan.
+          </p>
           <div className="mt-4 flex justify-center">
-            <Radar points={(stats?.blocs ?? []).map((b) => ({ label: b.code, value: b.avg }))} />
+            <Radar
+              labels={(stats?.blocs ?? []).map((b) => b.code)}
+              series={RADAR_VOICES.map((v) => ({
+                ...v,
+                values: (stats?.blocs ?? []).map((b) => b.voices[v.role]),
+              }))}
+            />
+          </div>
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
+            {RADAR_VOICES.map((v) => (
+              <span
+                key={v.role}
+                className="inline-flex items-center gap-1.5 text-[11.5px] font-medium text-muted-foreground"
+              >
+                <span className="h-2.5 w-2.5 rounded-full" style={{ background: v.color }} />
+                {v.label}
+              </span>
+            ))}
           </div>
         </div>
 
@@ -331,12 +375,7 @@ function Overview({
                     {b.acquired}/{b.total} acquises
                   </span>
                 </div>
-                <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted">
-                  <div
-                    className="bg-brand-gradient h-full rounded-full"
-                    style={{ width: `${b.total ? (b.acquired / b.total) * 100 : 0}%` }}
-                  />
-                </div>
+                <ProgressBar pct={b.total ? (b.acquired / b.total) * 100 : 0} className="mt-1.5" />
               </div>
             ))}
             {!stats?.blocs.length && (
@@ -387,7 +426,15 @@ function Overview({
 
 // Helper type alias so Overview's prop typing reads cleanly.
 type StatsShape = {
-  blocs: Array<{ code: string; label: string; total: number; acquired: number; avg: number; validated: boolean }>;
+  blocs: Array<{
+    code: string;
+    label: string;
+    total: number;
+    acquired: number;
+    avg: number;
+    voices: Record<EvaluatorRole, number>;
+    validated: boolean;
+  }>;
   totalComp: number;
   acquiredComp: number;
   blocsValides: number;
@@ -473,13 +520,29 @@ function Donut({ pct }: { pct: number }) {
   );
 }
 
-/** Lightweight SVG radar chart (0..1 values). */
-function Radar({ points }: { points: Array<{ label: string; value: number }> }) {
+/** The three traces of the radar, in the trinôme's colours. Dash patterns keep
+ * the voices tellable apart without relying on colour alone. */
+const RADAR_DASHES: Record<EvaluatorRole, string | undefined> = {
+  auto: undefined,
+  peda: '6 4',
+  entreprise: '2 4',
+};
+const RADAR_VOICES = (['auto', 'peda', 'entreprise'] as const).map((role) => ({
+  role,
+  label: EVALUATOR_VOICE_LABELS[role],
+  color: EVALUATOR_VOICE_COLORS[role].color,
+  dash: RADAR_DASHES[role],
+}));
+
+type RadarSeries = { role: EvaluatorRole; label: string; color: string; dash?: string; values: number[] };
+
+/** Lightweight SVG radar chart — one overlaid polygon per voice (0..1 values). */
+function Radar({ labels, series }: { labels: string[]; series: RadarSeries[] }) {
   const size = 240;
   const cx = size / 2;
   const cy = size / 2;
   const radius = 86;
-  const n = points.length;
+  const n = labels.length;
   if (n < 3) {
     return (
       <div className="flex h-[240px] items-center justify-center text-sm text-muted-foreground">
@@ -490,28 +553,43 @@ function Radar({ points }: { points: Array<{ label: string; value: number }> }) 
   const angle = (i: number) => (Math.PI * 2 * i) / n - Math.PI / 2;
   const pt = (i: number, rr: number) => [cx + Math.cos(angle(i)) * rr, cy + Math.sin(angle(i)) * rr];
   const rings = [0.25, 0.5, 0.75, 1];
-  const poly = points.map((p, i) => pt(i, radius * Math.max(0.04, p.value)).join(',')).join(' ');
+  // A voice with no evaluation at all would collapse to a dot — leave it out.
+  const drawn = series.filter((s) => s.values.some((v) => v > 0.011));
 
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} className="h-[240px] w-[240px]">
+    <svg viewBox={`0 0 ${size} ${size}`} className="h-[240px] w-[240px]" role="img" aria-label="Radar des niveaux moyens par bloc, une trace par évaluateur">
       {rings.map((rr) => (
         <polygon
           key={rr}
-          points={points.map((_, i) => pt(i, radius * rr).join(',')).join(' ')}
+          points={labels.map((_, i) => pt(i, radius * rr).join(',')).join(' ')}
           fill="none"
           stroke="var(--border)"
         />
       ))}
-      {points.map((_, i) => {
+      {labels.map((_, i) => {
         const [x, y] = pt(i, radius);
         return <line key={i} x1={cx} y1={cy} x2={x} y2={y} stroke="var(--border)" />;
       })}
-      <polygon points={poly} fill="color-mix(in srgb, var(--accent) 22%, transparent)" stroke="var(--accent)" strokeWidth="2" />
-      {points.map((p, i) => {
-        const [x, y] = pt(i, radius * Math.max(0.04, p.value));
-        return <circle key={`d${i}`} cx={x} cy={y} r="3" fill="var(--accent)" />;
+      {drawn.map((s, si) => {
+        const poly = s.values.map((v, i) => pt(i, radius * Math.max(0.04, v)).join(',')).join(' ');
+        return (
+          <g key={s.role} className="radar-shape" style={{ animationDelay: `${si * 180}ms` }}>
+            <polygon
+              points={poly}
+              fill={`color-mix(in srgb, ${s.color} 13%, transparent)`}
+              stroke={s.color}
+              strokeWidth="2"
+              strokeLinejoin="round"
+              strokeDasharray={s.dash}
+            />
+            {s.values.map((v, i) => {
+              const [x, y] = pt(i, radius * Math.max(0.04, v));
+              return <circle key={`d${i}`} cx={x} cy={y} r="2.5" fill={s.color} />;
+            })}
+          </g>
+        );
       })}
-      {points.map((p, i) => {
+      {labels.map((label, i) => {
         const [x, y] = pt(i, radius + 16);
         return (
           <text
@@ -522,7 +600,7 @@ function Radar({ points }: { points: Array<{ label: string; value: number }> }) 
             dominantBaseline="middle"
             className="fill-[var(--muted-foreground)] font-mono text-[10px] font-semibold"
           >
-            {p.label}
+            {label}
           </text>
         );
       })}

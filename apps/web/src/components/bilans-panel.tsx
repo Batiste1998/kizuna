@@ -6,9 +6,68 @@ import { BILAN_STATUS_META } from '#/lib/levels';
 import { Button } from '#/components/ui/button';
 import { Input } from '#/components/ui/input';
 import { Label } from '#/components/ui/label';
+import { Eyebrow } from '#/components/super-ui';
+import { EmptyThread } from '#/components/ui/empty-thread';
+import { ThreadSkeleton } from '#/components/ui/skeleton';
 import { cn } from '#/lib/utils';
 
 const STATUSES: BilanStatus[] = ['planned', 'done', 'signed'];
+
+/**
+ * The apprenticeship's reviews strung on one horizontal thread: signed beads are
+ * filled, the realised one is amber, planned ones still hollow. Clicking a bead
+ * scrolls to its card below.
+ */
+function BilanStepper({ bilans }: { bilans: BilansView['bilans'] }) {
+  // Below 2 there is no thread to draw; above 12 the beads would collide.
+  if (bilans.length < 2 || bilans.length > 12) return null;
+  const lastDone = bilans.reduce(
+    (acc, b, i) => (b.status !== 'planned' ? i : acc),
+    -1,
+  );
+  const progressPct = lastDone <= 0 ? 0 : (lastDone / (bilans.length - 1)) * 100;
+
+  return (
+    <div className="animate-rise rounded-2xl border border-hairline bg-card px-7 pt-5 pb-4 shadow-sm">
+      <Eyebrow className="mb-5 text-muted-foreground">Le fil des bilans</Eyebrow>
+      <div className="relative mx-1.5">
+        <span aria-hidden className="absolute top-[7px] right-0 left-0 h-0.5 rounded bg-border" />
+        <span
+          aria-hidden
+          className="bg-brand-gradient absolute top-[7px] left-0 h-0.5 rounded transition-[width] duration-700 ease-[var(--ease-out)]"
+          style={{ width: `${progressPct}%` }}
+        />
+        <ol className="relative flex justify-between">
+          {bilans.map((b) => (
+            <li key={b.id} className="flex max-w-24 flex-col items-center gap-2">
+              <button
+                type="button"
+                title={`${b.label} · ${BILAN_STATUS_META[b.status].label}`}
+                onClick={() =>
+                  document
+                    .getElementById(`bilan-${b.id}`)
+                    ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                }
+                className={cn(
+                  'h-[15px] w-[15px] rounded-full ring-2 ring-card transition-transform hover:scale-125',
+                  b.status === 'signed' && 'bg-brand',
+                  b.status === 'done' && 'bg-status-amber-fg/80',
+                  b.status === 'planned' && 'border-2 border-border bg-card',
+                )}
+              />
+              <span className="truncate text-[10.5px] font-medium text-muted-foreground tabular-nums">
+                {new Date(b.scheduledAt).toLocaleDateString('fr-FR', {
+                  day: 'numeric',
+                  month: 'short',
+                })}
+              </span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  );
+}
 
 /** Tripartite reviews for one apprentice; tutors/admin schedule and update status. */
 export function BilansPanel({ alternantProfilId }: { alternantProfilId: string }) {
@@ -77,12 +136,13 @@ export function BilansPanel({ alternantProfilId }: { alternantProfilId: string }
     }
   }
 
-  if (loading) return <p className="text-sm text-muted-foreground">Chargement…</p>;
+  if (loading) return <ThreadSkeleton rows={3} />;
   if (error) return <p className="text-sm text-destructive">{error}</p>;
   if (!view) return null;
 
   return (
     <div className="space-y-6">
+      <BilanStepper bilans={view.bilans} />
       {view.canManage && (
         <form
           onSubmit={handleCreate}
@@ -115,18 +175,20 @@ export function BilansPanel({ alternantProfilId }: { alternantProfilId: string }
         </form>
       )}
 
-      <div className="space-y-3">
+      <div className="stagger-children space-y-3">
         {view.bilans.length === 0 && (
-          <p className="rounded-xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
-            Aucun bilan planifié.
-          </p>
+          <EmptyThread title="Aucun bilan planifié">
+            Les bilans tripartites — alternant, école, entreprise — viendront s’enfiler ici au fil
+            de l’année.
+          </EmptyThread>
         )}
         {view.bilans.map((bilan) => {
           const meta = BILAN_STATUS_META[bilan.status];
           return (
             <article
               key={bilan.id}
-              className="rounded-xl border border-border bg-card p-5 shadow-sm"
+              id={`bilan-${bilan.id}`}
+              className="scroll-mt-24 rounded-xl border border-border bg-card p-5 shadow-sm"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>

@@ -4,7 +4,7 @@ import { useSession } from '#/lib/auth-client';
 import { api, type Me } from '#/lib/api';
 import { AppShell } from '#/components/app-shell';
 import { MeProvider } from '#/lib/me-context';
-import { Centered } from '#/components/shell';
+import { Centered, CenteredLoading } from '#/components/shell';
 
 /** Layout for the /app/* space — authenticated shell with role-aware navigation. */
 export const Route = createFileRoute('/app')({
@@ -29,10 +29,10 @@ function AppLayout() {
       .catch(() => setMeError(true));
   }, [session]);
 
-  if (isPending) return <Centered>Chargement…</Centered>;
+  if (isPending) return <CenteredLoading />;
   if (!session) return null;
   if (meError) return <Centered>Session expirée. Reconnectez-vous.</Centered>;
-  if (!me) return <Centered>Chargement…</Centered>;
+  if (!me) return <CenteredLoading />;
 
   return (
     <MeProvider value={me}>

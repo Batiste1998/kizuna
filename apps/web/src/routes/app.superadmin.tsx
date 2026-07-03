@@ -15,6 +15,7 @@ import { api, type PlatformOverview, type SuperOrganization, type SuperUser } fr
 import { useMe } from '#/lib/me-context';
 import { primaryRole, roleMeta, timeAgo } from '#/lib/super';
 import { Button } from '#/components/ui/button';
+import { ProgressBar } from '#/components/ui/progress-bar';
 import { Avatar, ForbiddenSuper, PageHead, Panel, RoleBadge, StatCard } from '#/components/super-ui';
 
 export const Route = createFileRoute('/app/superadmin')({
@@ -111,7 +112,7 @@ function SuperDashboard() {
         Pilotez les écoles, les comptes et le support de la plateforme Kizuna.
       </PageHead>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="stagger-children grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Utilisateurs" value={overview?.counts.users ?? '—'} sub="comptes créés" icon={<Users />} to="/app/users" />
         <StatCard label="Écoles partenaires" value={overview?.counts.organizations ?? '—'} sub="établissements" icon={<Building2 />} to="/app/ecoles" />
         <StatCard label="Administrateurs" value={overview?.counts.admins ?? '—'} sub="côté écoles" icon={<ShieldCheck />} />
@@ -124,7 +125,7 @@ function SuperDashboard() {
           <div className="flex items-center gap-2.5 text-[15px] font-semibold">
             Accès à valider
             {pending.length > 0 && (
-              <span className="rounded-full bg-[#F7EFDA] px-2.5 py-0.5 text-[11.5px] font-bold text-[#9A6B12]">
+              <span className="rounded-full bg-status-amber px-2.5 py-0.5 text-[11.5px] font-bold text-status-amber-fg">
                 {pending.length}
               </span>
             )}
@@ -141,7 +142,7 @@ function SuperDashboard() {
         </p>
 
         {pending.length === 0 ? (
-          <div className="flex items-center justify-center gap-2.5 py-8 text-sm font-medium text-[#1F7A63]">
+          <div className="flex items-center justify-center gap-2.5 py-8 text-sm font-medium text-status-teal-fg">
             <Check className="h-4 w-4" /> Tous les comptes ont accès à la plateforme.
           </div>
         ) : (
@@ -224,12 +225,7 @@ function SuperDashboard() {
                     <span className="text-[13px] font-medium text-secondary-foreground">{meta.label}</span>
                     <span className="text-[13px] font-semibold text-muted-foreground">{d.count}</span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{ width: `${d.pct}%`, background: meta.swatch.text }}
-                    />
-                  </div>
+                  <ProgressBar pct={d.pct} color={meta.swatch.text} />
                 </div>
               );
             })}
