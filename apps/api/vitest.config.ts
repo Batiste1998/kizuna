@@ -7,6 +7,7 @@ export default defineConfig({
     environment: 'node',
     include: ['**/*.spec.ts', '**/*.e2e-spec.ts'],
     root: './',
+    setupFiles: ['./test/setup-env.ts'],
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],
