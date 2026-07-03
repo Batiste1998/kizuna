@@ -464,7 +464,7 @@ function FinalSection() {
         </div>
       </Reveal>
       <p className="relative mt-16 text-center text-[11px] font-medium text-muted-foreground">
-        © 2026 Kizuna · 絆 · le lien du trinôme
+        © 2026 Kizuna · Tous droits réservés
       </p>
     </section>
   );
