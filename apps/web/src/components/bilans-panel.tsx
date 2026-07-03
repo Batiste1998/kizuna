@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
+import { FileDown } from 'lucide-react';
 import { api, type BilansView, type BilanStatus } from '#/lib/api';
 import { BILAN_STATUS_META } from '#/lib/levels';
 import { Button } from '#/components/ui/button';
@@ -45,6 +46,18 @@ export function BilansPanel({ alternantProfilId }: { alternantProfilId: string }
       toast.error((err as Error).message);
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function exportPdf(bilanId: string, label: string) {
+    try {
+      const slug = label
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/gi, '-')
+        .replace(/^-|-$/g, '');
+      await api.downloadBilanPdf(bilanId, `bilan-${slug || 'export'}.pdf`);
+    } catch (err) {
+      toast.error((err as Error).message);
     }
   }
 
@@ -125,14 +138,21 @@ export function BilansPanel({ alternantProfilId }: { alternantProfilId: string }
                     })}
                   </p>
                 </div>
-                <span
-                  className={cn(
-                    'shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold',
-                    meta.className,
-                  )}
-                >
-                  {meta.label}
-                </span>
+                <div className="flex shrink-0 items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void exportPdf(bilan.id, bilan.label)}
+                    title="Exporter en PDF"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  >
+                    <FileDown className="h-4 w-4" />
+                  </button>
+                  <span
+                    className={cn('rounded-full px-2.5 py-1 text-xs font-semibold', meta.className)}
+                  >
+                    {meta.label}
+                  </span>
+                </div>
               </div>
 
               {view.canManage && (

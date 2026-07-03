@@ -49,6 +49,40 @@ export class CreatePromotionDto {
   periodEnd?: string;
 }
 
+export class UpdateEntrepriseDto {
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(200)
+  name?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  sector?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  city?: string;
+}
+
+/** Only tutors are editable from the Membres page (admins & alternants have their own flows). */
+export const EDITABLE_MEMBER_ROLES = ['tuteur_pedagogique', 'tuteur_entreprise'] as const;
+export type EditableMemberRole = (typeof EDITABLE_MEMBER_ROLES)[number];
+
+export class UpdateMemberDto {
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(200)
+  name?: string;
+
+  @IsOptional()
+  @IsIn(EDITABLE_MEMBER_ROLES)
+  role?: EditableMemberRole;
+}
+
 export class CreateMemberDto {
   @IsString()
   @MinLength(1)

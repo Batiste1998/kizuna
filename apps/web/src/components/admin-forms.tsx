@@ -94,7 +94,11 @@ export function MemberForm({
       setEmail('');
       setPromotionId('');
       onCreated();
-      if (created.temporaryPassword) {
+      if (created.invitationSent) {
+        toast.success('Compte créé', {
+          description: `Invitation envoyée par email à ${email}.`,
+        });
+      } else if (created.temporaryPassword) {
         toast.success('Compte créé', {
           description: `Mot de passe temporaire : ${created.temporaryPassword}`,
           duration: 15000,
@@ -144,8 +148,8 @@ export function MemberForm({
         )}
       </div>
       <p className="text-xs text-muted-foreground">
-        Le compte est créé avec un mot de passe temporaire à transmettre (l’envoi d’invitation par email
-        arrive prochainement).
+        Le nouveau membre reçoit un email d’invitation avec un lien pour définir son mot de passe
+        (sans SMTP configuré, un mot de passe temporaire à transmettre s’affiche à la place).
       </p>
       <div className="flex justify-end gap-2.5">
         {onClose && (
@@ -161,22 +165,103 @@ export function MemberForm({
   );
 }
 
-export function EntrepriseForm({ onCreated, onClose }: { onCreated: () => void; onClose?: () => void }) {
-  const [name, setName] = useState('');
-  const [sector, setSector] = useState('');
-  const [city, setCity] = useState('');
+const TUTOR_ROLE_OPTIONS = MEMBER_ROLE_OPTIONS.filter(
+  (o) => o.value === 'tuteur_pedagogique' || o.value === 'tuteur_entreprise',
+);
+
+/** Edits a tutor's name and role (email stays read-only: it is the login identifier). */
+export function MemberEditForm({
+  member,
+  onSaved,
+  onClose,
+}: {
+  member: AdminMember;
+  onSaved: () => void;
+  onClose?: () => void;
+}) {
+  const [name, setName] = useState(member.name ?? '');
+  const [role, setRole] = useState(member.role);
   const [busy, setBusy] = useState(false);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
     try {
-      await api.createAdminEntreprise({ name, sector: sector || undefined, city: city || undefined });
-      setName('');
-      setSector('');
-      setCity('');
+      await api.updateAdminMember(member.id, {
+        name,
+        role: role !== member.role ? (role as 'tuteur_pedagogique') : undefined,
+      });
+      toast.success('Membre mis à jour');
+      onSaved();
+      onClose?.();
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <Field label="Nom complet">
+        <Input required maxLength={200} value={name} onChange={(e) => setName(e.target.value)} />
+      </Field>
+      <Field label="Adresse email">
+        <Input value={member.email ?? ''} disabled />
+      </Field>
+      <Field label="Rôle">
+        <select className={selectClass} value={role} onChange={(e) => setRole(e.target.value)}>
+          {TUTOR_ROLE_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <div className="flex justify-end gap-2.5">
+        {onClose && (
+          <Button type="button" variant="outline" onClick={onClose}>
+            Annuler
+          </Button>
+        )}
+        <Button type="submit" disabled={busy || !name}>
+          {busy ? 'Enregistrement…' : 'Enregistrer'}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+export function EntrepriseForm({
+  entreprise,
+  onCreated,
+  onClose,
+}: {
+  /** When provided, the form edits this entreprise instead of creating one. */
+  entreprise?: AdminEntreprise;
+  onCreated: () => void;
+  onClose?: () => void;
+}) {
+  const [name, setName] = useState(entreprise?.name ?? '');
+  const [sector, setSector] = useState(entreprise?.sector ?? '');
+  const [city, setCity] = useState(entreprise?.city ?? '');
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      if (entreprise) {
+        await api.updateAdminEntreprise(entreprise.id, { name, sector, city });
+        toast.success('Entreprise mise à jour');
+      } else {
+        await api.createAdminEntreprise({ name, sector: sector || undefined, city: city || undefined });
+        setName('');
+        setSector('');
+        setCity('');
+        toast.success('Entreprise ajoutée');
+      }
       onCreated();
-      toast.success('Entreprise ajoutée');
       onClose?.();
     } catch (err) {
       toast.error((err as Error).message);
@@ -205,7 +290,7 @@ export function EntrepriseForm({ onCreated, onClose }: { onCreated: () => void; 
           </Button>
         )}
         <Button type="submit" disabled={busy || !name}>
-          Ajouter l’entreprise
+          {entreprise ? 'Enregistrer' : 'Ajouter l’entreprise'}
         </Button>
       </div>
     </form>

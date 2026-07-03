@@ -55,6 +55,21 @@ describe('Bilans tripartites (e2e)', () => {
     expect(view.bilans.some((b: { id: string }) => b.id === bilanId)).toBe(true);
   });
 
+  it('exports a bilan as PDF for any trinôme member', async () => {
+    const profilId = await alternantProfileId();
+    const peda = await agentFor('peda@kizuna.dev');
+    const { body: created } = await peda
+      .post(`/alternants/${profilId}/bilans`)
+      .send({ label: 'Bilan à exporter', scheduledAt: '2026-11-02T10:00:00.000Z' })
+      .expect(201);
+
+    const alternant = await agentFor('alternant@kizuna.dev');
+    const res = await alternant.get(`/bilans/${created.id}/pdf`).expect(200);
+    expect(res.headers['content-type']).toContain('application/pdf');
+    expect(res.headers['content-disposition']).toContain('attachment');
+    expect(res.body.length).toBeGreaterThan(500);
+  });
+
   it('forbids the alternant from scheduling a bilan (403)', async () => {
     const profilId = await alternantProfileId();
     const alternant = await agentFor('alternant@kizuna.dev');

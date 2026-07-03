@@ -39,6 +39,11 @@ export class MailService {
     }
   }
 
+  /** True when a real SMTP transport is configured (emails actually leave the server). */
+  get isConfigured(): boolean {
+    return this.smtpConfigured;
+  }
+
   async sendMail(message: MailMessage): Promise<void> {
     try {
       const info = await this.transporter.sendMail({ from: this.from, ...message });

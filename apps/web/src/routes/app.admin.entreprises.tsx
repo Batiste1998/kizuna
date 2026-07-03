@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { Building2, MapPin, Pencil, Plus, Search, Trash2 } from 'lucide-react';
-import { api } from '#/lib/api';
+import { api, type AdminEntreprise } from '#/lib/api';
 import { Button } from '#/components/ui/button';
 import { Input } from '#/components/ui/input';
 import { PageHead } from '#/components/super-ui';
@@ -39,6 +39,7 @@ function initials(name: string) {
 function AdminEntreprisesPage() {
   const { entreprises, alternants, reload } = useAdminData();
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<AdminEntreprise | null>(null);
   const [search, setSearch] = useState('');
 
   const filtered = useMemo(() => {
@@ -122,9 +123,9 @@ function AdminEntreprisesPage() {
                   </div>
                   <div className="flex items-center gap-1">
                     <button
-                      title="Modifier (bientôt)"
-                      disabled
-                      className="flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-lg text-muted-foreground opacity-40"
+                      onClick={() => setEditing(e)}
+                      title="Modifier"
+                      className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
@@ -161,6 +162,16 @@ function AdminEntreprisesPage() {
           onClose={() => setCreating(false)}
         >
           <EntrepriseForm onCreated={reload} onClose={() => setCreating(false)} />
+        </Slideover>
+      )}
+
+      {editing && (
+        <Slideover
+          title="Modifier l’entreprise"
+          subtitle={editing.name}
+          onClose={() => setEditing(null)}
+        >
+          <EntrepriseForm entreprise={editing} onCreated={reload} onClose={() => setEditing(null)} />
         </Slideover>
       )}
     </div>

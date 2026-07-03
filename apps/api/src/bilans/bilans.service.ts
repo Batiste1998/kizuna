@@ -1,10 +1,11 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { schema, type BilanStatus } from '@kizuna/db';
 import { DatabaseService } from '../database/database.service';
 import { AccessService } from '../access/access.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import type { AuthUser } from '../auth/auth.types';
+import { renderBilanPdf } from './bilan-pdf';
 
 type Bilan = typeof schema.bilan.$inferSelect;
 
@@ -96,5 +97,63 @@ export class BilansService {
       .where(eq(schema.bilan.id, bilanId))
       .returning();
     return updated;
+  }
+
+  /** Assembles the trinôme context of a bilan and renders it as a PDF stream. */
+  async exportPdf(user: AuthUser, bilanId: string) {
+    const [bilan] = await this.db.select().from(schema.bilan).where(eq(schema.bilan.id, bilanId));
+    if (!bilan) throw new NotFoundException('Bilan introuvable');
+
+    const { profil, association } = await this.access.resolveAlternantAccess(
+      user,
+      bilan.alternantProfilId,
+    );
+
+    const userIds = [
+      profil.userId,
+      association?.tuteurPedaUserId,
+      association?.tuteurEntrepriseUserId,
+    ].filter(Boolean) as string[];
+    const users = await this.db
+      .select({ id: schema.user.id, name: schema.user.name })
+      .from(schema.user)
+      .where(inArray(schema.user.id, userIds));
+    const nameById = new Map(users.map((u) => [u.id, u.name]));
+
+    const [org] = await this.db
+      .select({ name: schema.organization.name })
+      .from(schema.organization)
+      .where(eq(schema.organization.id, profil.organizationId));
+    const [promotion] = profil.promotionId
+      ? await this.db
+          .select({ name: schema.promotion.name })
+          .from(schema.promotion)
+          .where(eq(schema.promotion.id, profil.promotionId))
+      : [];
+    const [entreprise] = association?.entrepriseId
+      ? await this.db
+          .select({ name: schema.entreprise.name })
+          .from(schema.entreprise)
+          .where(eq(schema.entreprise.id, association.entrepriseId))
+      : [];
+
+    const pdf = renderBilanPdf({
+      organizationName: org?.name ?? '',
+      bilanLabel: bilan.label,
+      scheduledAt: bilan.scheduledAt,
+      status: bilan.status,
+      summary: bilan.summary,
+      alternantName: nameById.get(profil.userId) ?? '—',
+      promotionName: promotion?.name ?? null,
+      entrepriseName: entreprise?.name ?? null,
+      tuteurPedaName: association?.tuteurPedaUserId
+        ? (nameById.get(association.tuteurPedaUserId) ?? null)
+        : null,
+      tuteurEntrepriseName: association?.tuteurEntrepriseUserId
+        ? (nameById.get(association.tuteurEntrepriseUserId) ?? null)
+        : null,
+      generatedAt: new Date(),
+    });
+    return { pdf, label: bilan.label };
   }
 }

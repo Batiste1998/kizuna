@@ -19,9 +19,11 @@ function ForgotPasswordPage() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
+    // Absolute URL: a relative redirectTo would be resolved against the API
+    // origin (BETTER_AUTH_URL), not the web app, and the emailed link would 404.
     const { error } = await authClient.requestPasswordReset({
       email,
-      redirectTo: '/reset-password',
+      redirectTo: `${window.location.origin}/reset-password`,
     });
     setLoading(false);
     if (error) {

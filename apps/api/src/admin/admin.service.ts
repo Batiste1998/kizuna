@@ -1,8 +1,16 @@
-import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { randomBytes, randomUUID } from 'node:crypto';
-import { and, asc, eq, inArray, lt } from 'drizzle-orm';
+import { and, asc, eq, inArray, lt, or } from 'drizzle-orm';
 import { schema } from '@kizuna/db';
 import { DatabaseService } from '../database/database.service';
+import { MailService } from '../mail/mail.service';
 import { AUTH } from '../auth/auth.constants';
 import type { Auth } from '../auth/auth';
 import type { AuthUser } from '../auth/auth.types';
@@ -34,6 +42,8 @@ export interface AdminDashboard {
 export class AdminService {
   constructor(
     private readonly database: DatabaseService,
+    private readonly config: ConfigService,
+    private readonly mail: MailService,
     @Inject(AUTH) private readonly auth: Auth,
   ) {}
 
@@ -376,6 +386,98 @@ export class AdminService {
       .orderBy(asc(schema.member.role));
   }
 
+  /** The tutor member, or 404/403 — Membres actions are limited to tutors. */
+  private async resolveTutorMember(orgId: string, memberId: string) {
+    const [member] = await this.db
+      .select()
+      .from(schema.member)
+      .where(and(eq(schema.member.id, memberId), eq(schema.member.organizationId, orgId)));
+    if (!member) throw new NotFoundException('Membre introuvable');
+    if (member.role !== 'tuteur_pedagogique' && member.role !== 'tuteur_entreprise') {
+      throw new ForbiddenException('Seuls les tuteurs sont gérés depuis cette page');
+    }
+    return member;
+  }
+
+  /** True when the user still appears as a tutor in a trinôme of this school. */
+  private async tutorHasAssociations(orgId: string, userId: string): Promise<boolean> {
+    const profils = await this.db
+      .select({ id: schema.alternantProfil.id })
+      .from(schema.alternantProfil)
+      .where(eq(schema.alternantProfil.organizationId, orgId));
+    if (profils.length === 0) return false;
+    const [assoc] = await this.db
+      .select({ id: schema.association.id })
+      .from(schema.association)
+      .where(
+        and(
+          inArray(
+            schema.association.alternantProfilId,
+            profils.map((p) => p.id),
+          ),
+          or(
+            eq(schema.association.tuteurPedaUserId, userId),
+            eq(schema.association.tuteurEntrepriseUserId, userId),
+          ),
+        ),
+      )
+      .limit(1);
+    return !!assoc;
+  }
+
+  async updateMember(
+    user: AuthUser,
+    memberId: string,
+    input: { name?: string; role?: 'tuteur_pedagogique' | 'tuteur_entreprise' },
+  ) {
+    const orgId = await this.resolveOrg(user);
+    const member = await this.resolveTutorMember(orgId, memberId);
+
+    if (input.role && input.role !== member.role) {
+      if (await this.tutorHasAssociations(orgId, member.userId)) {
+        throw new ConflictException(
+          'Ce tuteur encadre encore des alternants — réassignez ses trinômes avant de changer son rôle.',
+        );
+      }
+      await this.db
+        .update(schema.member)
+        .set({ role: input.role })
+        .where(eq(schema.member.id, memberId));
+    }
+    if (input.name) {
+      await this.db
+        .update(schema.user)
+        .set({ name: input.name, updatedAt: new Date() })
+        .where(eq(schema.user.id, member.userId));
+    }
+
+    const [row] = await this.db
+      .select({
+        id: schema.member.id,
+        userId: schema.member.userId,
+        role: schema.member.role,
+        name: schema.user.name,
+        email: schema.user.email,
+      })
+      .from(schema.member)
+      .leftJoin(schema.user, eq(schema.user.id, schema.member.userId))
+      .where(eq(schema.member.id, memberId));
+    return row;
+  }
+
+  /** Detaches a tutor from the establishment (the user account itself is kept). */
+  async removeMember(user: AuthUser, memberId: string) {
+    const orgId = await this.resolveOrg(user);
+    const member = await this.resolveTutorMember(orgId, memberId);
+    if (await this.tutorHasAssociations(orgId, member.userId)) {
+      throw new ConflictException(
+        'Ce tuteur encadre encore des alternants — réassignez ses trinômes avant de le retirer.',
+      );
+    }
+    await this.db.delete(schema.member).where(eq(schema.member.id, memberId));
+    return { id: memberId };
+  }
+
   async listEntreprises(user: AuthUser) {
     const orgId = await this.resolveOrg(user);
     return this.db
@@ -397,6 +499,32 @@ export class AdminService {
       })
       .returning();
     return created;
+  }
+
+  async updateEntreprise(
+    user: AuthUser,
+    entrepriseId: string,
+    input: { name?: string; sector?: string; city?: string },
+  ) {
+    const orgId = await this.resolveOrg(user);
+    const [existing] = await this.db
+      .select()
+      .from(schema.entreprise)
+      .where(
+        and(eq(schema.entreprise.id, entrepriseId), eq(schema.entreprise.organizationId, orgId)),
+      );
+    if (!existing) throw new NotFoundException('Entreprise introuvable');
+    const [updated] = await this.db
+      .update(schema.entreprise)
+      .set({
+        name: input.name ?? existing.name,
+        // Empty strings clear the optional fields.
+        sector: input.sector !== undefined ? input.sector || null : existing.sector,
+        city: input.city !== undefined ? input.city || null : existing.city,
+      })
+      .where(eq(schema.entreprise.id, entrepriseId))
+      .returning();
+    return updated;
   }
 
   async deleteEntreprise(user: AuthUser, entrepriseId: string) {
@@ -441,8 +569,9 @@ export class AdminService {
 
   /**
    * Onboards a member into the admin's establishment. Creates the user account
-   * if the email is unknown (returning a temporary password until email-based
-   * invitations are wired), ensures a member row with the requested role, and
+   * if the email is unknown and emails them an invitation link to set their own
+   * password (falling back to a returned temporary password when no SMTP
+   * transport is configured), ensures a member row with the requested role, and
    * provisions the apprentice profile when role === 'alternant'.
    */
   async createMember(
@@ -458,12 +587,26 @@ export class AdminService {
 
     let userId = existingUser?.id;
     let temporaryPassword: string | null = null;
+    let invitationSent = false;
     if (!userId) {
       temporaryPassword = `Kz-${randomBytes(12).toString('base64url')}`;
       const res = await this.auth.api.signUpEmail({
         body: { name: input.name, email: input.email, password: temporaryPassword },
       });
       userId = res.user.id;
+
+      // The invitation reuses the reset-password flow: the marker query param
+      // switches the email template to a welcome message (see auth.ts).
+      const webUrl = this.config.getOrThrow<string>('WEB_PUBLIC_URL');
+      await this.auth.api
+        .requestPasswordReset({
+          body: { email: input.email, redirectTo: `${webUrl}/reset-password?invitation=1` },
+        })
+        .catch(() => undefined);
+      // Without SMTP the email only lands in the logs: keep handing the admin
+      // the temporary password so onboarding still works in development.
+      invitationSent = this.mail.isConfigured;
+      if (invitationSent) temporaryPassword = null;
     }
 
     const [existingMember] = await this.db
@@ -510,7 +653,7 @@ export class AdminService {
       }
     }
 
-    return { userId, role: input.role, alternantProfilId, temporaryPassword };
+    return { userId, role: input.role, alternantProfilId, temporaryPassword, invitationSent };
   }
 
   /** Creates or updates the trinôme (tuteurs + entreprise) of an apprentice. */

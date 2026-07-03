@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { validateEnv } from './config/env.validation';
 import { DatabaseModule } from './database/database.module';
@@ -36,6 +37,8 @@ import { HealthModule } from './health/health.module';
         return { throttlers: [{ ttl: 60_000, limit: isTest ? 100_000 : 300 }] };
       },
     }),
+    // Cron jobs (échéance reminders).
+    ScheduleModule.forRoot(),
     DatabaseModule,
     MailModule,
     AccessModule,

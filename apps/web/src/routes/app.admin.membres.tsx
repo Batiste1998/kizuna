@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { Pencil, Search, Trash2, UserPlus } from 'lucide-react';
-import { api } from '#/lib/api';
+import { toast } from 'sonner';
+import { api, type AdminMember } from '#/lib/api';
 import { Button } from '#/components/ui/button';
 import { Input } from '#/components/ui/input';
 import { Avatar, PageHead, Panel } from '#/components/super-ui';
-import { MemberForm, useAdminData } from '#/components/admin-forms';
+import { MemberEditForm, MemberForm, useAdminData } from '#/components/admin-forms';
 import { Slideover } from './app.admin.alternants';
 import { cn } from '#/lib/utils';
 
@@ -30,6 +31,24 @@ function AdminMembresPage() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'tuteur_pedagogique' | 'tuteur_entreprise'>('all');
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<AdminMember | null>(null);
+
+  function confirmDelete(m: AdminMember) {
+    toast(`Retirer « ${m.name ?? m.email} » de l’établissement ?`, {
+      action: {
+        label: 'Retirer',
+        onClick: async () => {
+          try {
+            await api.deleteAdminMember(m.id);
+            toast.success('Membre retiré de l’établissement');
+            reload();
+          } catch (err) {
+            toast.error((err as Error).message);
+          }
+        },
+      },
+    });
+  }
 
   useEffect(() => {
     void api
@@ -165,16 +184,16 @@ function AdminMembresPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
                         <button
-                          title="Modifier (bientôt)"
-                          disabled
-                          className="flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-lg text-muted-foreground opacity-40"
+                          onClick={() => setEditing(m)}
+                          title="Modifier"
+                          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                         >
                           <Pencil className="h-4 w-4" />
                         </button>
                         <button
-                          title="Supprimer (bientôt)"
-                          disabled
-                          className="flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-lg text-muted-foreground opacity-40"
+                          onClick={() => confirmDelete(m)}
+                          title="Retirer de l’établissement"
+                          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-[#FBEBE3] hover:text-[#B54F2C]"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -203,6 +222,16 @@ function AdminMembresPage() {
             onCreated={reload}
             onClose={() => setCreating(false)}
           />
+        </Slideover>
+      )}
+
+      {editing && (
+        <Slideover
+          title="Modifier le membre"
+          subtitle={editing.name ?? editing.email ?? ''}
+          onClose={() => setEditing(null)}
+        >
+          <MemberEditForm member={editing} onSaved={reload} onClose={() => setEditing(null)} />
         </Slideover>
       )}
     </div>

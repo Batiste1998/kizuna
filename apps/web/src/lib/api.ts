@@ -179,8 +179,10 @@ export interface CreatedMember {
   userId: string;
   role: string;
   alternantProfilId: string | null;
-  /** Present only when the account was just created (until email invites land). */
+  /** Dev fallback: set only when the account was just created and no SMTP is configured. */
   temporaryPassword: string | null;
+  /** True when the invitation email (password setup link) was actually sent. */
+  invitationSent: boolean;
 }
 
 export interface Association {
@@ -451,6 +453,16 @@ export const api = {
     ),
   adminAlternants: () => request<AdminAlternant[]>('/admin/alternants'),
   adminMembers: () => request<AdminMember[]>('/admin/members'),
+  updateAdminMember: (
+    memberId: string,
+    input: { name?: string; role?: 'tuteur_pedagogique' | 'tuteur_entreprise' },
+  ) =>
+    request<AdminMember>(`/admin/members/${memberId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    }),
+  deleteAdminMember: (memberId: string) =>
+    request<{ id: string }>(`/admin/members/${memberId}`, { method: 'DELETE' }),
   createAdminMember: (input: {
     name: string;
     email: string;
@@ -469,6 +481,11 @@ export const api = {
   createAdminEntreprise: (input: { name: string; sector?: string; city?: string }) =>
     request<AdminEntreprise>('/admin/entreprises', {
       method: 'POST',
+      body: JSON.stringify(input),
+    }),
+  updateAdminEntreprise: (id: string, input: { name?: string; sector?: string; city?: string }) =>
+    request<AdminEntreprise>(`/admin/entreprises/${id}`, {
+      method: 'PATCH',
       body: JSON.stringify(input),
     }),
   deleteAdminEntreprise: (id: string) =>
@@ -509,6 +526,17 @@ export const api = {
       credentials: 'include',
     });
     if (!res.ok) throw new Error('Téléchargement impossible');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+  downloadBilanPdf: async (bilanId: string, fileName: string) => {
+    const res = await fetch(`${apiURL}/bilans/${bilanId}/pdf`, { credentials: 'include' });
+    if (!res.ok) throw new Error('Export PDF impossible');
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

@@ -221,6 +221,8 @@ export const echeance = pgTable('echeance', {
   title: text('title').notNull(),
   description: text('description'),
   dueDate: timestamp('due_date', { withTimezone: true }).notNull(),
+  /** Set once the "échéance proche" reminder has been emitted (guards against duplicates). */
+  reminderSentAt: timestamp('reminder_sent_at', { withTimezone: true }),
   createdByUserId: text('created_by_user_id').references(() => user.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

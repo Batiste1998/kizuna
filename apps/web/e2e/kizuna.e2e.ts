@@ -17,7 +17,8 @@ async function login(page: Page, email: string) {
     await emailBox.fill(email);
     await pwdBox.fill(PWD);
     await submit.click();
-    await expect(page).toHaveURL(/\/app$/, { timeout: 3000 });
+    // Admins are redirected from /app to /app/admin right after landing.
+    await expect(page).toHaveURL(/\/app(\/|$)/, { timeout: 3000 });
   }).toPass({ timeout: 30_000 });
 }
 
@@ -37,10 +38,13 @@ test('un alternant se connecte et auto-évalue une compétence', async ({ page }
   // Le référentiel et ses blocs sont chargés depuis l'API (hydratation + fetch).
   await expect(page.getByText('BC01')).toBeVisible();
 
-  // Auto-évalue la première compétence : clic sur la zone « Maîtrisé » du fil
-  // (radiogroup du tuteur "auto") → toast de confirmation.
+  // Auto-évalue la première compétence via le fil (radiogroup de la voix "auto").
+  // Deux zones différentes sont cliquées : quel que soit le niveau déjà enregistré
+  // (les runs précédents laissent leur état en base), au moins un clic change la
+  // valeur et déclenche le toast — le radio ne réagit pas si le niveau est identique.
+  await page.getByTitle('Acquis', { exact: true }).first().click();
   await page.getByTitle('Maîtrisé', { exact: true }).first().click();
-  await expect(page.getByText('Évaluation enregistrée')).toBeVisible();
+  await expect(page.getByText('Évaluation enregistrée').first()).toBeVisible();
 });
 
 test('un administrateur voit le tableau de bord de son établissement', async ({ page }) => {

@@ -58,6 +58,79 @@ describe('Espace Admin (e2e)', () => {
     expect(after.some((e: { id: string }) => e.id === created.id)).toBe(false);
   });
 
+  it('updates an entreprise (PATCH)', async () => {
+    const admin = await agentFor('admin@kizuna.dev');
+    const { body: created } = await admin
+      .post('/admin/entreprises')
+      .send({ name: 'Entreprise À Renommer', sector: 'Tech' })
+      .expect(201);
+
+    const { body: updated } = await admin
+      .patch(`/admin/entreprises/${created.id}`)
+      .send({ name: 'Entreprise Renommée', city: 'Lyon', sector: '' })
+      .expect(200);
+    expect(updated.name).toBe('Entreprise Renommée');
+    expect(updated.city).toBe('Lyon');
+    expect(updated.sector).toBeNull();
+
+    await admin.delete(`/admin/entreprises/${created.id}`).expect(200);
+  });
+
+  it('updates then removes a tutor member; blocks removal while associated', async () => {
+    const admin = await agentFor('admin@kizuna.dev');
+
+    // Unique emails per run: user accounts survive removeMember (only the
+    // membership is deleted), and a reused email would skip account creation.
+    const suffix = Date.now();
+    const { body: created } = await admin
+      .post('/admin/members')
+      .send({
+        name: 'Tuteur Éphémère',
+        email: `e2e.ephemere-${suffix}@kizuna.dev`,
+        role: 'tuteur_pedagogique',
+      })
+      .expect(201);
+    // Without SMTP in tests, the temporary password is handed back to the admin.
+    expect(created.invitationSent).toBe(false);
+    expect(created.temporaryPassword).toBeTruthy();
+
+    const { body: members } = await admin.get('/admin/members').expect(200);
+    const member = members.find((m: { userId: string }) => m.userId === created.userId);
+    expect(member).toBeTruthy();
+
+    const { body: updated } = await admin
+      .patch(`/admin/members/${member.id}`)
+      .send({ name: 'Tuteur Renommé', role: 'tuteur_entreprise' })
+      .expect(200);
+    expect(updated.name).toBe('Tuteur Renommé');
+    expect(updated.role).toBe('tuteur_entreprise');
+
+    // Attach him to a dedicated trinôme: removal must now be blocked (409).
+    const { body: target } = await admin
+      .post('/admin/members')
+      .send({
+        name: 'Alternant Cible',
+        email: `e2e.assoc-cible-${suffix}@kizuna.dev`,
+        role: 'alternant',
+      })
+      .expect(201);
+    const profilId = target.alternantProfilId as string;
+    await admin
+      .put(`/admin/alternants/${profilId}/association`)
+      .send({ tuteurEntrepriseUserId: created.userId })
+      .expect(200);
+    await admin.delete(`/admin/members/${member.id}`).expect(409);
+
+    // Detach (empty string clears the slot), then removal succeeds.
+    await admin
+      .put(`/admin/alternants/${profilId}/association`)
+      .send({ tuteurEntrepriseUserId: '' })
+      .expect(200);
+    await admin.delete(`/admin/members/${member.id}`).expect(200);
+    const { body: after } = await admin.get('/admin/members').expect(200);
+    expect(after.some((m: { id: string }) => m.id === member.id)).toBe(false);
+  });
+
   it('creates a promotion', async () => {
     const admin = await agentFor('admin@kizuna.dev');
     const { body } = await admin

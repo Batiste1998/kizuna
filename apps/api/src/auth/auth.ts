@@ -2,6 +2,7 @@ import { betterAuth, type BetterAuthPlugin } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { admin, organization, twoFactor } from 'better-auth/plugins';
 import { schema, type Database } from '@kizuna/db';
+import { mailLayout as layout } from '../mail/mail-layout';
 
 export interface Mailer {
   sendMail(message: {
@@ -19,20 +20,6 @@ export interface CreateAuthOptions {
   trustedOrigins: string[];
   /** Optional email sender — wires password reset & email verification. */
   mailer?: Mailer;
-}
-
-function layout(title: string, body: string, cta?: { url: string; label: string }) {
-  return `<div style="font-family:system-ui,sans-serif;max-width:480px;margin:auto">
-    <h2 style="color:#1b1b19">${title}</h2>
-    <p style="color:#44443f;line-height:1.5">${body}</p>
-    ${
-      cta
-        ? `<p><a href="${cta.url}" style="display:inline-block;background:#2e9e82;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600">${cta.label}</a></p>
-    <p style="color:#76766f;font-size:12px">Ou copiez ce lien : ${cta.url}</p>`
-        : ''
-    }
-    <p style="color:#76766f;font-size:12px;margin-top:24px">Kizuna — suivi d'alternance</p>
-  </div>`;
 }
 
 /**
@@ -69,7 +56,25 @@ export function createAuth(opts: CreateAuthOptions) {
       requireEmailVerification: false,
       autoSignIn: true,
       minPasswordLength: 8,
+      // 24h so that invitation links (below) survive until the invitee opens their inbox.
+      resetPasswordTokenExpiresIn: 60 * 60 * 24,
       sendResetPassword: async ({ user, url }) => {
+        // Admin-created accounts reuse the reset flow as an invitation: the
+        // redirectTo carries an `invitation=1` marker (URL-encoded inside callbackURL).
+        const isInvitation = url.includes('invitation%3D1') || url.includes('invitation=1');
+        if (isInvitation) {
+          await opts.mailer?.sendMail({
+            to: user.email,
+            subject: 'Bienvenue sur Kizuna — activez votre compte',
+            html: layout(
+              'Bienvenue sur Kizuna',
+              `Bonjour ${user.name || ''}, un compte vient d'être créé pour vous sur Kizuna, la plateforme de suivi d'alternance. Choisissez votre mot de passe pour vous connecter (lien valable 24 h).`,
+              { url, label: 'Définir mon mot de passe' },
+            ),
+            text: `Votre compte Kizuna est prêt. Définissez votre mot de passe : ${url}`,
+          });
+          return;
+        }
         await opts.mailer?.sendMail({
           to: user.email,
           subject: 'Réinitialisation de votre mot de passe Kizuna',
