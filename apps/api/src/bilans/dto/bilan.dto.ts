@@ -1,4 +1,13 @@
-import { IsDateString, IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsDateString,
+  IsIn,
+  IsOptional,
+  IsString,
+  IsUrl,
+  MaxLength,
+  MinLength,
+  ValidateIf,
+} from 'class-validator';
 import { BILAN_STATUSES, type BilanStatus } from '@kizuna/db';
 
 export class CreateBilanDto {
@@ -29,4 +38,11 @@ export class UpdateBilanDto {
   @IsString()
   @MaxLength(5000)
   summary?: string;
+
+  /** URL de visio (https) — `null` pour retirer le lien. */
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @IsUrl({ protocols: ['https'], require_protocol: true })
+  @MaxLength(500)
+  visioUrl?: string | null;
 }

@@ -78,6 +78,13 @@
       "when": 1783064760932,
       "tag": "0010_living_trish_tilby",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1783087462165,
+      "tag": "0011_chilly_doomsday",
+      "breakpoints": true
     }
   ]
 }

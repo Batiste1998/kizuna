@@ -204,6 +204,8 @@ export const bilan = pgTable('bilan', {
   scheduledAt: timestamp('scheduled_at', { withTimezone: true }).notNull(),
   status: bilanStatus('status').notNull().default('planned'),
   summary: text('summary'),
+  /** Lien de visioconférence (généré via Jitsi Meet ou collé par un tuteur). */
+  visioUrl: text('visio_url'),
   createdByUserId: text('created_by_user_id').references(() => user.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

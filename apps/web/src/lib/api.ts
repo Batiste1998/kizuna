@@ -75,6 +75,7 @@ export interface Bilan {
   scheduledAt: string;
   status: BilanStatus;
   summary: string | null;
+  visioUrl: string | null;
 }
 
 export interface BilansView {
@@ -369,8 +370,16 @@ export const api = {
     }),
   updateBilan: (
     bilanId: string,
-    input: { status?: BilanStatus; label?: string; scheduledAt?: string; summary?: string },
+    input: {
+      status?: BilanStatus;
+      label?: string;
+      scheduledAt?: string;
+      summary?: string;
+      visioUrl?: string | null;
+    },
   ) => request<Bilan>(`/bilans/${bilanId}`, { method: 'PATCH', body: JSON.stringify(input) }),
+  generateBilanVisio: (bilanId: string) =>
+    request<Bilan>(`/bilans/${bilanId}/visio`, { method: 'POST' }),
   getEcheances: (alternantProfilId: string) =>
     request<EcheancierView>(`/alternants/${alternantProfilId}/echeances`),
   createEcheance: (

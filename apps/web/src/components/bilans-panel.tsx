@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
-import { FileDown } from 'lucide-react';
+import { FileDown, Video } from 'lucide-react';
 import { api, type BilansView, type BilanStatus } from '#/lib/api';
 import { BILAN_STATUS_META } from '#/lib/levels';
 import { Button } from '#/components/ui/button';
@@ -120,6 +120,17 @@ export function BilansPanel({ alternantProfilId }: { alternantProfilId: string }
     }
   }
 
+  async function generateVisio(bilanId: string) {
+    if (!view) return;
+    try {
+      const bilan = await api.generateBilanVisio(bilanId);
+      setView({ ...view, bilans: view.bilans.map((b) => (b.id === bilanId ? bilan : b)) });
+      toast.success('Lien visio généré');
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  }
+
   async function setStatus(bilanId: string, status: BilanStatus) {
     if (!view) return;
     const previous = view;
@@ -217,6 +228,31 @@ export function BilansPanel({ alternantProfilId }: { alternantProfilId: string }
                 </div>
               </div>
 
+              {(bilan.visioUrl || view.canManage) && bilan.status === 'planned' && (
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  {bilan.visioUrl ? (
+                    <a
+                      href={bilan.visioUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90"
+                    >
+                      <Video className="h-3.5 w-3.5" />
+                      Rejoindre la visio
+                    </a>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => void generateVisio(bilan.id)}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-secondary-foreground transition-colors hover:bg-accent"
+                    >
+                      <Video className="h-3.5 w-3.5" />
+                      Générer un lien visio
+                    </button>
+                  )}
+                </div>
+              )}
+
               {view.canManage && (
                 <div className="mt-4 inline-flex overflow-hidden rounded-md border border-border">
                   {STATUSES.map((s) => (
@@ -236,6 +272,7 @@ export function BilansPanel({ alternantProfilId }: { alternantProfilId: string }
                   ))}
                 </div>
               )}
+
             </article>
           );
         })}

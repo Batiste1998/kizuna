@@ -45,6 +45,11 @@ export class BilansController {
     });
   }
 
+  @Post('bilans/:bilanId/visio')
+  generateVisio(@CurrentUser() user: AuthUser, @Param('bilanId') bilanId: string) {
+    return this.service.generateVisio(user, bilanId);
+  }
+
   @Patch('bilans/:bilanId')
   update(
     @CurrentUser() user: AuthUser,

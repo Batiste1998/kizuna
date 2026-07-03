@@ -1,0 +1,1 @@
+ALTER TABLE "bilan" ADD COLUMN "visio_url" text;

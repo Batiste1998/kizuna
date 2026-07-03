@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { eq, inArray } from 'drizzle-orm';
 import { schema, type BilanStatus } from '@kizuna/db';
@@ -71,7 +72,13 @@ export class BilansService {
   async update(
     user: AuthUser,
     bilanId: string,
-    input: { status?: BilanStatus; label?: string; scheduledAt?: string; summary?: string },
+    input: {
+      status?: BilanStatus;
+      label?: string;
+      scheduledAt?: string;
+      summary?: string;
+      visioUrl?: string | null;
+    },
   ): Promise<Bilan> {
     const [existing] = await this.db
       .select()
@@ -92,10 +99,49 @@ export class BilansService {
         ...(input.label !== undefined ? { label: input.label } : {}),
         ...(input.scheduledAt !== undefined ? { scheduledAt: new Date(input.scheduledAt) } : {}),
         ...(input.summary !== undefined ? { summary: input.summary } : {}),
+        ...(input.visioUrl !== undefined ? { visioUrl: input.visioUrl } : {}),
         updatedAt: new Date(),
       })
       .where(eq(schema.bilan.id, bilanId))
       .returning();
+    return updated;
+  }
+
+  /**
+   * Attaches a video-conference link to the bilan (idempotent: an existing link
+   * is returned as-is). Jitsi Meet rooms exist by URL alone — no API key needed;
+   * the random slug keeps the room unguessable.
+   */
+  async generateVisio(user: AuthUser, bilanId: string): Promise<Bilan> {
+    const [existing] = await this.db
+      .select()
+      .from(schema.bilan)
+      .where(eq(schema.bilan.id, bilanId));
+    if (!existing) throw new NotFoundException('Bilan introuvable');
+
+    const { profil, canManage } = await this.access.resolveAlternantAccess(
+      user,
+      existing.alternantProfilId,
+    );
+    if (!canManage) throw new ForbiddenException('Génération réservée aux tuteurs / admin');
+    if (existing.visioUrl) return existing;
+
+    const visioUrl = `https://meet.jit.si/kizuna-bilan-${randomUUID()}`;
+    const [updated] = await this.db
+      .update(schema.bilan)
+      .set({ visioUrl, updatedAt: new Date() })
+      .where(eq(schema.bilan.id, bilanId))
+      .returning();
+
+    if (profil.userId !== user.id) {
+      await this.notifications.create({
+        userId: profil.userId,
+        type: 'bilan',
+        title: 'Lien visio ajouté au bilan',
+        detail: `${existing.label} — rejoindre : ${visioUrl}`,
+        href: '/app/bilans',
+      });
+    }
     return updated;
   }
 
