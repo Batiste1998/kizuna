@@ -79,10 +79,7 @@ export function AppShell({ me, children }: { me: Me; children: ReactNode }) {
   }
 
   return (
-    <div
-      data-role={theme}
-      className="min-h-screen bg-background md:grid md:grid-cols-[260px_1fr]"
-    >
+    <div data-role={theme} className="min-h-screen bg-background md:grid md:grid-cols-[260px_1fr]">
       <SidebarNav
         sections={sections}
         me={me}
@@ -118,7 +115,13 @@ export function AppShell({ me, children }: { me: Me; children: ReactNode }) {
         </header>
 
         {/* The floating demo bar sets --demo-bar-clearance while visible. */}
-        <div className="flex-1 pb-[var(--demo-bar-clearance,0px)]">{children}</div>
+        <main
+          id="contenu"
+          tabIndex={-1}
+          className="flex-1 pb-[var(--demo-bar-clearance,0px)] outline-none"
+        >
+          {children}
+        </main>
       </div>
 
       <AccessibilityFab />
@@ -333,7 +336,11 @@ function SchoolSwitcher({ me }: { me: Me }) {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium">{s.name}</span>
-                  {s.city && <span className="block truncate text-[11px] text-muted-foreground">{s.city}</span>}
+                  {s.city && (
+                    <span className="block truncate text-[11px] text-muted-foreground">
+                      {s.city}
+                    </span>
+                  )}
                 </span>
                 {s.id === active.id && <Check className="h-4 w-4 shrink-0 text-brand-strong" />}
               </button>

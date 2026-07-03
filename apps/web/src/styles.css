@@ -506,6 +506,25 @@
 /* ---------------------------------------------------------------------------
  * Accessibility preferences — toggled via classes on <html> by the a11y panel.
  * ------------------------------------------------------------------------- */
+/* Skip link (RGAA 12.7) — masqué jusqu'au focus clavier. */
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 100;
+  transform: translateY(-200%);
+  border-radius: var(--radius-md);
+  background: var(--sidebar);
+  color: #fff;
+  padding: 0.6rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: transform 150ms var(--ease-out);
+}
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
 :root.a11y-text-grand {
   font-size: 18px;
 }

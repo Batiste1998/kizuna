@@ -1,6 +1,10 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router';
 import { Toaster } from 'sonner';
 import type { ReactNode } from 'react';
+// Lisibilité dyslexie (option du panneau d'accessibilité) — auto-hébergée,
+// téléchargée par le navigateur seulement quand la famille est activée.
+import '@fontsource/atkinson-hyperlegible/400.css';
+import '@fontsource/atkinson-hyperlegible/700.css';
 import appCss from '../styles.css?url';
 
 export const Route = createRootRoute({
@@ -28,6 +32,9 @@ function RootDocument({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <a href="#contenu" className="skip-link">
+          Aller au contenu
+        </a>
         {children}
         <Toaster richColors position="top-right" />
         <Scripts />

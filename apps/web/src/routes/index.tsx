@@ -16,7 +16,12 @@ export const Route = createFileRoute('/')({
  */
 function HomePage() {
   return (
-    <main data-role="alternant" className="demo-stage relative overflow-hidden">
+    <main
+      id="contenu"
+      tabIndex={-1}
+      data-role="alternant"
+      className="demo-stage relative overflow-hidden outline-none"
+    >
       <section className="relative flex min-h-screen items-center justify-center px-6 py-16">
         <StageAuras />
 

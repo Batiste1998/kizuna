@@ -163,16 +163,23 @@ Points identifiés lors de la revue, assumés comme dette d'accessibilité :
    support) et publier la grille. _Priorité 1._
 3. **Pas de tests en situation réelle avec lecteur d'écran** (NVDA, VoiceOver) — la sémantique
    ARIA est posée mais non validée à l'usage ; à tester notamment sur le fil de compétences.
-4. **Police « Atkinson Hyperlegible » non embarquée** : la pile CSS y fait référence mais la
-   police n'est pas chargée par l'application (repli effectif sur Verdana/Tahoma). L'embarquer
-   en auto-hébergé pour garantir l'effet du mode dyslexie.
-5. **Panneau d'accessibilité** : la fermeture à la touche **Échap** et le piégeage du focus dans
-   le panneau ouvert ne sont pas implémentés (fermeture actuellement au clic et via le bouton
-   « Fermer »).
-6. **Pas de lien d'évitement** (« Aller au contenu ») en tête de page — à ajouter (critère
-   RGAA 12.7).
-7. **Contrastes non mesurés exhaustivement** : les textes atténués (`--muted-foreground`) hors
+4. **Contrastes non mesurés exhaustivement** : les textes atténués (`--muted-foreground`) hors
    mode renforcé doivent être vérifiés au contrastemètre sur toutes les surfaces.
+
+### Points corrigés depuis la revue initiale
+
+- ✅ **Police « Atkinson Hyperlegible » embarquée** en auto-hébergé
+  (`@fontsource/atkinson-hyperlegible`, graisses 400 et 700, importée dans
+  `apps/web/src/routes/__root.tsx`) : le mode « Police adaptée » charge
+  désormais réellement la police, avec repli Verdana/Tahoma.
+- ✅ **Panneau d'accessibilité** : fermeture à la touche **Échap**, piège à
+  focus dans le panneau ouvert (`role="dialog"`, `aria-modal`), focus déplacé
+  dans le panneau à l'ouverture et restitué au bouton flottant à la fermeture
+  (`apps/web/src/components/accessibility-fab.tsx`).
+- ✅ **Lien d'évitement** « Aller au contenu » (RGAA 12.7) en tête de document,
+  visible au focus clavier, ciblant `#contenu` sur les pages publiques et le
+  `<main>` de l'espace connecté (`apps/web/src/routes/__root.tsx`,
+  `apps/web/src/styles.css`).
 
 ---
 

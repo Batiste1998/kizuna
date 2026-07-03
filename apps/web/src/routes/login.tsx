@@ -34,8 +34,10 @@ function LoginPage() {
 
   return (
     <main
+      id="contenu"
+      tabIndex={-1}
       data-role="alternant"
-      className="demo-stage relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-16"
+      className="demo-stage relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-16 outline-none"
     >
       <StageAuras />
 

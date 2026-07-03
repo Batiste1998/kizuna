@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Accessibility, X } from 'lucide-react';
 import { cn } from '#/lib/utils';
 
@@ -53,6 +53,8 @@ function apply(s: A11ySettings) {
 export function AccessibilityFab() {
   const [open, setOpen] = useState(false);
   const [settings, setSettings] = useState<A11ySettings>(DEFAULTS);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const fabRef = useRef<HTMLButtonElement>(null);
 
   // Load + apply persisted preferences on mount.
   useEffect(() => {
@@ -60,6 +62,42 @@ export function AccessibilityFab() {
     setSettings(loaded);
     apply(loaded);
   }, []);
+
+  function close() {
+    setOpen(false);
+    fabRef.current?.focus();
+  }
+
+  // While the panel is open: Escape closes it, Tab stays trapped inside.
+  useEffect(() => {
+    if (!open) return;
+    const focusables = () =>
+      Array.from(panelRef.current?.querySelectorAll<HTMLElement>('button, [href]') ?? []);
+    focusables()[0]?.focus();
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setOpen(false);
+        fabRef.current?.focus();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const items = focusables();
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (!first || !last) return;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [open]);
 
   function update(patch: Partial<A11ySettings>) {
     setSettings((prev) => {
@@ -88,15 +126,21 @@ export function AccessibilityFab() {
     <div className="fixed right-5 bottom-5 z-40">
       {open && (
         <>
-          <div className="fixed inset-0" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 bottom-16 w-[300px] overflow-hidden rounded-2xl border border-hairline bg-popover text-popover-foreground shadow-lg">
+          <div className="fixed inset-0" onClick={close} />
+          <div
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Options d'accessibilité"
+            className="absolute right-0 bottom-16 w-[300px] overflow-hidden rounded-2xl border border-hairline bg-popover text-popover-foreground shadow-lg"
+          >
             <div className="flex items-center justify-between border-b border-hairline px-4 py-3">
               <div className="flex items-center gap-2">
                 <Accessibility className="h-5 w-5" />
                 <span className="text-[15px] font-bold tracking-tight">Accessibilité</span>
               </div>
               <button
-                onClick={() => setOpen(false)}
+                onClick={close}
                 aria-label="Fermer"
                 className="flex h-7 w-7 items-center justify-center rounded-lg border border-hairline text-muted-foreground hover:bg-muted"
               >
@@ -178,6 +222,7 @@ export function AccessibilityFab() {
       )}
 
       <button
+        ref={fabRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-label="Options d'accessibilité"
