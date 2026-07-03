@@ -5,6 +5,7 @@ import { AdminService } from './admin.service';
 import { createDbMock } from '../testing/db-mock';
 import type { DatabaseService } from '../database/database.service';
 import type { MailService } from '../mail/mail.service';
+import type { AiService } from '../ai/ai.service';
 import type { Auth } from '../auth/auth';
 import type { AuthUser } from '../auth/auth.types';
 
@@ -28,6 +29,7 @@ function makeService(options: { results?: unknown[][]; smtpConfigured?: boolean 
     { db: mock.db } as unknown as DatabaseService,
     { getOrThrow: vi.fn().mockReturnValue('https://web.test') } as unknown as ConfigService,
     { isConfigured: options.smtpConfigured ?? false } as unknown as MailService,
+    { isConfigured: false } as unknown as AiService,
     { api: { signUpEmail, requestPasswordReset } } as unknown as Auth,
   );
   return { service, mock, signUpEmail, requestPasswordReset };

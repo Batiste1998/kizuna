@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
-import { toast } from 'sonner';
 import { ArrowRight, GraduationCap, Plus } from 'lucide-react';
 import type { AdminPromotion } from '#/lib/api';
 import { Button } from '#/components/ui/button';
 import { ProgressBar } from '#/components/ui/progress-bar';
 import { PageHead } from '#/components/super-ui';
 import { PromotionForm, useAdminData } from '#/components/admin-forms';
+import { ReferentielManager } from '#/components/referentiel-manager';
 import { Slideover } from './app.admin.alternants';
 
 export const Route = createFileRoute('/app/admin/promotions')({
@@ -26,6 +26,7 @@ function periodLabel(p: AdminPromotion): string | null {
 function AdminPromotionsPage() {
   const { promotions, alternants, reload } = useAdminData();
   const [creating, setCreating] = useState(false);
+  const [managingReferentiel, setManagingReferentiel] = useState<AdminPromotion | null>(null);
 
   const statsByPromo = useMemo(() => {
     const m = new Map<string, { count: number; progress: number }>();
@@ -90,9 +91,7 @@ function AdminPromotionsPage() {
                 <ProgressBar pct={s.progress} className="mt-2" />
 
                 <button
-                  onClick={() =>
-                    toast.info('Gestion du référentiel de compétences — bientôt disponible.')
-                  }
+                  onClick={() => setManagingReferentiel(p)}
                   className="mt-4 inline-flex items-center gap-1.5 self-start text-sm font-semibold text-brand-strong hover:underline"
                 >
                   Gérer le référentiel de compétences <ArrowRight className="h-3.5 w-3.5" />
@@ -110,6 +109,16 @@ function AdminPromotionsPage() {
           onClose={() => setCreating(false)}
         >
           <PromotionForm onCreated={reload} onClose={() => setCreating(false)} />
+        </Slideover>
+      )}
+
+      {managingReferentiel && (
+        <Slideover
+          title="Référentiel de compétences"
+          subtitle={managingReferentiel.name}
+          onClose={() => setManagingReferentiel(null)}
+        >
+          <ReferentielManager promotion={managingReferentiel} />
         </Slideover>
       )}
     </div>

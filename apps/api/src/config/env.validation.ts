@@ -25,6 +25,9 @@ export const envSchema = z.object({
     .string()
     .optional()
     .transform((value) => value === 'true'),
+  // OpenAI (optional — AI features are hidden when absent).
+  OPENAI_API_KEY: z.string().optional(),
+  OPENAI_MODEL: z.string().default('gpt-5-mini'),
 });
 
 export type Env = z.infer<typeof envSchema>;

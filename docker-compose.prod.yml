@@ -39,6 +39,9 @@ services:
       SMTP_SECURE: ${SMTP_SECURE:-false}
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
+      # IA (optionnel : sans clé, les fonctions IA sont masquées).
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5-mini}
     volumes:
       - kizuna-uploads:/data/uploads
     ports:

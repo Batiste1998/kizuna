@@ -11,6 +11,7 @@ import { and, asc, eq, inArray, lt, or } from 'drizzle-orm';
 import { schema } from '@kizuna/db';
 import { DatabaseService } from '../database/database.service';
 import { MailService } from '../mail/mail.service';
+import { AiService } from '../ai/ai.service';
 import { AUTH } from '../auth/auth.constants';
 import type { Auth } from '../auth/auth';
 import type { AuthUser } from '../auth/auth.types';
@@ -38,12 +39,35 @@ export interface AdminDashboard {
   promotions: Array<{ id: string; name: string; alternantCount: number; progressPct: number }>;
 }
 
+/** A promotion's referentiel as served to the admin UI (null when not set). */
+export interface ReferentielView {
+  promotionId: string;
+  referentiel: {
+    id: string;
+    code: string;
+    title: string;
+    level: number | null;
+    blocs: Array<{
+      id: string;
+      code: string;
+      label: string;
+      competences: Array<{
+        id: string;
+        code: string | null;
+        label: string;
+        description: string | null;
+      }>;
+    }>;
+  } | null;
+}
+
 @Injectable()
 export class AdminService {
   constructor(
     private readonly database: DatabaseService,
     private readonly config: ConfigService,
     private readonly mail: MailService,
+    private readonly ai: AiService,
     @Inject(AUTH) private readonly auth: Auth,
   ) {}
 
@@ -565,6 +589,132 @@ export class AdminService {
       })
       .returning();
     return created;
+  }
+
+  /** The promotion's referentiel with its blocs and compétences, or null. */
+  async getPromotionReferentiel(user: AuthUser, promotionId: string): Promise<ReferentielView> {
+    const orgId = await this.resolveOrg(user);
+    const [promo] = await this.db
+      .select()
+      .from(schema.promotion)
+      .where(
+        and(eq(schema.promotion.id, promotionId), eq(schema.promotion.organizationId, orgId)),
+      );
+    if (!promo) throw new NotFoundException('Promotion introuvable');
+    if (!promo.referentielId) return { promotionId, referentiel: null };
+
+    const [ref] = await this.db
+      .select()
+      .from(schema.referentiel)
+      .where(eq(schema.referentiel.id, promo.referentielId));
+    if (!ref) return { promotionId, referentiel: null };
+
+    const blocs = await this.db
+      .select()
+      .from(schema.bloc)
+      .where(eq(schema.bloc.referentielId, ref.id))
+      .orderBy(asc(schema.bloc.position));
+    const competences = blocs.length
+      ? await this.db
+          .select()
+          .from(schema.competence)
+          .where(
+            inArray(
+              schema.competence.blocId,
+              blocs.map((b) => b.id),
+            ),
+          )
+          .orderBy(asc(schema.competence.position))
+      : [];
+
+    return {
+      promotionId,
+      referentiel: {
+        id: ref.id,
+        code: ref.code,
+        title: ref.title,
+        level: ref.level,
+        blocs: blocs.map((b) => ({
+          id: b.id,
+          code: b.code,
+          label: b.label,
+          competences: competences
+            .filter((c) => c.blocId === b.id)
+            .map((c) => ({ id: c.id, code: c.code, label: c.label, description: c.description })),
+        })),
+      },
+    };
+  }
+
+  /** AI-structured draft from pasted RNCP text (nothing is written yet). */
+  async extractReferentiel(user: AuthUser, text: string) {
+    await this.resolveOrg(user);
+    return this.ai.extractReferentiel(text);
+  }
+
+  /**
+   * Persists the reviewed draft as referentiel + blocs + compétences and links
+   * it to the promotion. One transaction: a failed insert leaves nothing behind.
+   */
+  async savePromotionReferentiel(
+    user: AuthUser,
+    promotionId: string,
+    input: {
+      code: string;
+      title: string;
+      level: number | null;
+      blocs: Array<{
+        code: string;
+        label: string;
+        competences: Array<{ code: string | null; label: string; description: string | null }>;
+      }>;
+    },
+  ): Promise<ReferentielView> {
+    const orgId = await this.resolveOrg(user);
+    const [promo] = await this.db
+      .select()
+      .from(schema.promotion)
+      .where(
+        and(eq(schema.promotion.id, promotionId), eq(schema.promotion.organizationId, orgId)),
+      );
+    if (!promo) throw new NotFoundException('Promotion introuvable');
+    if (promo.referentielId)
+      throw new ConflictException('Cette promotion a déjà un référentiel de compétences.');
+
+    await this.db.transaction(async (tx) => {
+      const [ref] = await tx
+        .insert(schema.referentiel)
+        .values({ organizationId: orgId, code: input.code, title: input.title, level: input.level })
+        .returning();
+      for (const [i, blocInput] of input.blocs.entries()) {
+        const [blocRow] = await tx
+          .insert(schema.bloc)
+          .values({
+            referentielId: ref.id,
+            code: blocInput.code,
+            label: blocInput.label,
+            position: i,
+          })
+          .returning();
+        if (blocInput.competences.length) {
+          await tx.insert(schema.competence).values(
+            blocInput.competences.map((c, j) => ({
+              blocId: blocRow.id,
+              code: c.code,
+              label: c.label,
+              description: c.description,
+              position: j,
+            })),
+          );
+        }
+      }
+      await tx
+        .update(schema.promotion)
+        .set({ referentielId: ref.id, updatedAt: new Date() })
+        .where(eq(schema.promotion.id, promotionId));
+    });
+
+    return this.getPromotionReferentiel(user, promotionId);
   }
 
   /**

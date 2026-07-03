@@ -11,6 +11,7 @@ import {
   UpdateMemberDto,
   UpsertAssociationDto,
 } from './dto/admin.dto';
+import { ExtractReferentielDto, SaveReferentielDto } from './dto/referentiel.dto';
 
 @UseGuards(AuthGuard)
 @Controller('admin')
@@ -102,5 +103,27 @@ export class AdminController {
   @Post('promotions')
   createPromotion(@CurrentUser() user: AuthUser, @Body() dto: CreatePromotionDto) {
     return this.service.createPromotion(user, dto);
+  }
+
+  @Get('promotions/:promotionId/referentiel')
+  promotionReferentiel(
+    @CurrentUser() user: AuthUser,
+    @Param('promotionId') promotionId: string,
+  ) {
+    return this.service.getPromotionReferentiel(user, promotionId);
+  }
+
+  @Post('referentiels/extract')
+  extractReferentiel(@CurrentUser() user: AuthUser, @Body() dto: ExtractReferentielDto) {
+    return this.service.extractReferentiel(user, dto.text);
+  }
+
+  @Post('promotions/:promotionId/referentiel')
+  saveReferentiel(
+    @CurrentUser() user: AuthUser,
+    @Param('promotionId') promotionId: string,
+    @Body() dto: SaveReferentielDto,
+  ) {
+    return this.service.savePromotionReferentiel(user, promotionId, dto);
   }
 }

@@ -209,6 +209,39 @@ export interface AdminPromotion {
   periodEnd: string | null;
 }
 
+/** Draft referentiel returned by the AI extraction, before admin review. */
+export interface ReferentielDraft {
+  code: string;
+  title: string;
+  level: number | null;
+  blocs: Array<{
+    code: string;
+    label: string;
+    competences: Array<{ code: string | null; label: string; description: string | null }>;
+  }>;
+}
+
+export interface ReferentielView {
+  promotionId: string;
+  referentiel: {
+    id: string;
+    code: string;
+    title: string;
+    level: number | null;
+    blocs: Array<{
+      id: string;
+      code: string;
+      label: string;
+      competences: Array<{
+        id: string;
+        code: string | null;
+        label: string;
+        description: string | null;
+      }>;
+    }>;
+  } | null;
+}
+
 export type NotificationType = 'journal' | 'message' | 'bilan' | 'echeance' | 'ticket' | 'system';
 
 export interface NotificationItem {
@@ -507,6 +540,19 @@ export const api = {
     periodEnd?: string;
   }) =>
     request<AdminPromotion>('/admin/promotions', { method: 'POST', body: JSON.stringify(input) }),
+  aiStatus: () => request<{ configured: boolean }>('/ai/status'),
+  getPromotionReferentiel: (promotionId: string) =>
+    request<ReferentielView>(`/admin/promotions/${promotionId}/referentiel`),
+  extractReferentiel: (text: string) =>
+    request<ReferentielDraft>('/admin/referentiels/extract', {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    }),
+  savePromotionReferentiel: (promotionId: string, draft: ReferentielDraft) =>
+    request<ReferentielView>(`/admin/promotions/${promotionId}/referentiel`, {
+      method: 'POST',
+      body: JSON.stringify(draft),
+    }),
   getNotifications: () => request<NotificationsList>('/notifications'),
   markNotificationRead: (id: string) =>
     request<{ ok: true }>(`/notifications/${id}/read`, { method: 'POST' }),

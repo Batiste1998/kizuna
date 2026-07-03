@@ -9,6 +9,7 @@ import { DatabaseModule } from './database/database.module';
 import { MailModule } from './mail/mail.module';
 import { AccessModule } from './access/access.module';
 import { AdminModule } from './admin/admin.module';
+import { AiModule } from './ai/ai.module';
 import { AuthModule } from './auth/auth.module';
 import { AlternantsModule } from './alternants/alternants.module';
 import { BilansModule } from './bilans/bilans.module';
@@ -63,6 +64,7 @@ import { HealthModule } from './health/health.module';
     MailModule,
     AccessModule,
     AdminModule,
+    AiModule,
     AuthModule,
     AlternantsModule,
     BilansModule,
