@@ -2,6 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { buttonVariants } from '#/components/ui/button';
 import { Logo } from '#/components/logo';
 import { StageAuras } from '#/components/stage-auras';
+import { LandingSections } from '#/components/landing';
 
 export const Route = createFileRoute('/')({
   component: HomePage,
@@ -10,86 +11,88 @@ export const Route = createFileRoute('/')({
 /*
  * The portal opens on the product's heart: on the left the promise, on the
  * right a living preview of the "fil à trois voix". The page is tinted to the
- * alternant's teal — the first voice of the trinôme.
+ * alternant's teal — the first voice of the trinôme. Below the hero, the
+ * story unfolds section by section (trinôme, modules, parcours).
  */
 function HomePage() {
   return (
-    <main
-      data-role="alternant"
-      className="demo-stage relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-16"
-    >
-      <StageAuras />
+    <main data-role="alternant" className="demo-stage relative overflow-hidden">
+      <section className="relative flex min-h-screen items-center justify-center px-6 py-16">
+        <StageAuras />
 
-      {/* Oversized 絆 watermark, the bond made backdrop. */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[42vw] leading-none font-bold text-foreground/[0.02] select-none"
-      >
-        絆
-      </span>
-
-      <div className="relative grid w-full max-w-6xl items-center gap-14 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
-        {/* ---- The promise ---- */}
-        <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
-          <div className="animate-in fade-in zoom-in-95 fill-mode-both duration-700">
-            <Logo className="animate-float h-16 w-16" chip={false} />
-          </div>
-
-          <p
-            className="animate-in fade-in slide-in-from-bottom-3 fill-mode-both mt-6 inline-flex items-center gap-2 rounded-full border border-hairline bg-white/70 px-3.5 py-1.5 text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase shadow-sm backdrop-blur-sm duration-700"
-            style={{ animationDelay: '0.1s' }}
-          >
-            絆 · le lien du trinôme
-          </p>
-
-          <h1
-            className="animate-in fade-in slide-in-from-bottom-4 fill-mode-both mt-5 font-display text-6xl font-bold tracking-tight duration-700 sm:text-7xl"
-            style={{ animationDelay: '0.2s' }}
-          >
-            Kizuna
-          </h1>
-
-          <p
-            className="animate-in fade-in slide-in-from-bottom-4 fill-mode-both mt-5 max-w-xl text-balance text-[15px] leading-relaxed text-secondary-foreground duration-700"
-            style={{ animationDelay: '0.32s' }}
-          >
-            Une identité par espace. L’alternant, le tuteur pédagogique et le tuteur d’entreprise,
-            réunis autour du même référentiel de compétences.
-          </p>
-
-          <div
-            className="animate-in fade-in slide-in-from-bottom-4 fill-mode-both mt-8 flex flex-wrap items-center justify-center gap-3 duration-700 lg:justify-start"
-            style={{ animationDelay: '0.44s' }}
-          >
-            <Link to="/login" className={buttonVariants({ size: 'lg' })}>
-              Se connecter
-            </Link>
-            <Link to="/demo" className={buttonVariants({ size: 'lg', variant: 'outline' })}>
-              Essayer la démo →
-            </Link>
-          </div>
-
-          <div
-            className="animate-in fade-in fill-mode-both mt-9 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 duration-700 lg:justify-start"
-            style={{ animationDelay: '0.6s' }}
-          >
-            <VoiceDot color="var(--voice-auto)">Alternant</VoiceDot>
-            <VoiceDot color="var(--voice-peda)">Tuteur école</VoiceDot>
-            <VoiceDot color="var(--voice-entreprise)">Tuteur entreprise</VoiceDot>
-          </div>
-        </div>
-
-        {/* ---- The living preview: le fil à trois voix ---- */}
-        <div
-          className="animate-in fade-in slide-in-from-bottom-6 fill-mode-both duration-700"
-          style={{ animationDelay: '0.5s' }}
+        {/* Oversized 絆 watermark, the bond made backdrop. */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[42vw] leading-none font-bold text-foreground/[0.02] select-none"
         >
-          <FilPreview />
-          <p className="mt-3 text-center text-xs font-medium text-muted-foreground">
-            Le fil à trois voix — chaque compétence, lue par le trinôme entier.
-          </p>
+          絆
+        </span>
+
+        <div className="relative grid w-full max-w-6xl items-center gap-14 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
+          {/* ---- The promise ---- */}
+          <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+            <div className="animate-in fade-in zoom-in-95 fill-mode-both duration-700">
+              <Logo className="animate-float h-16 w-16" chip={false} />
+            </div>
+
+            <p
+              className="animate-in fade-in slide-in-from-bottom-3 fill-mode-both mt-6 inline-flex items-center gap-2 rounded-full border border-hairline bg-white/70 px-3.5 py-1.5 text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase shadow-sm backdrop-blur-sm duration-700"
+              style={{ animationDelay: '0.1s' }}
+            >
+              絆 · le lien du trinôme
+            </p>
+
+            <h1
+              className="animate-in fade-in slide-in-from-bottom-4 fill-mode-both mt-5 font-display text-6xl font-bold tracking-tight duration-700 sm:text-7xl"
+              style={{ animationDelay: '0.2s' }}
+            >
+              Kizuna
+            </h1>
+
+            <p
+              className="animate-in fade-in slide-in-from-bottom-4 fill-mode-both mt-5 max-w-xl text-balance text-[15px] leading-relaxed text-secondary-foreground duration-700"
+              style={{ animationDelay: '0.32s' }}
+            >
+              Une identité par espace. L’alternant, le tuteur pédagogique et le tuteur d’entreprise,
+              réunis autour du même référentiel de compétences.
+            </p>
+
+            <div
+              className="animate-in fade-in slide-in-from-bottom-4 fill-mode-both mt-8 flex flex-wrap items-center justify-center gap-3 duration-700 lg:justify-start"
+              style={{ animationDelay: '0.44s' }}
+            >
+              <Link to="/login" className={buttonVariants({ size: 'lg' })}>
+                Se connecter
+              </Link>
+              <Link to="/demo" className={buttonVariants({ size: 'lg', variant: 'outline' })}>
+                Essayer la démo →
+              </Link>
+            </div>
+
+            <div
+              className="animate-in fade-in fill-mode-both mt-9 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 duration-700 lg:justify-start"
+              style={{ animationDelay: '0.6s' }}
+            >
+              <VoiceDot color="var(--voice-auto)">Alternant</VoiceDot>
+              <VoiceDot color="var(--voice-peda)">Tuteur école</VoiceDot>
+              <VoiceDot color="var(--voice-entreprise)">Tuteur entreprise</VoiceDot>
+            </div>
+          </div>
+
+          {/* ---- The living preview: le fil à trois voix ---- */}
+          <div
+            className="animate-in fade-in slide-in-from-bottom-6 fill-mode-both duration-700"
+            style={{ animationDelay: '0.5s' }}
+          >
+            <FilPreview />
+            <p className="mt-3 text-center text-xs font-medium text-muted-foreground">
+              Le fil à trois voix — chaque compétence, lue par le trinôme entier.
+            </p>
+          </div>
         </div>
-      </div>
+      </section>
+
+      <LandingSections />
     </main>
   );
 }

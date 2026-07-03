@@ -10,7 +10,13 @@ export const Route = createRootRoute({
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { title: 'Kizuna — Suivi d’alternance' },
     ],
-    links: [{ rel: 'stylesheet', href: appCss }],
+    links: [
+      { rel: 'stylesheet', href: appCss },
+      { rel: 'icon', type: 'image/png', sizes: '48x48', href: '/favicon.png' },
+      { rel: 'icon', type: 'image/png', sizes: '192x192', href: '/logo192.png' },
+      { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+      { rel: 'manifest', href: '/manifest.json' },
+    ],
   }),
   shellComponent: RootDocument,
 });

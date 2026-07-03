@@ -423,6 +423,31 @@
     }
   }
 
+  /* Scroll-driven entrance for the landing sections — JS toggles .is-visible. */
+  .reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+      opacity var(--dur-orchestrate) var(--ease-out),
+      transform var(--dur-orchestrate) var(--ease-out);
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Horizontal scroll-snap rail (module carousel on the landing). */
+  .snap-rail {
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .snap-rail::-webkit-scrollbar {
+    display: none;
+  }
+  .snap-rail > * {
+    scroll-snap-align: center;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .animate-rise,
     .stagger-children > *,
@@ -436,7 +461,19 @@
     .skeleton::after {
       animation: none;
     }
+    .reveal {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
   }
+}
+
+/* Accessibility switch mirrors the OS preference for the landing reveals. */
+.a11y-reduce-motion .reveal {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
 }
 
 /* --- Page transitions (View Transitions API — progressive enhancement) ------- */

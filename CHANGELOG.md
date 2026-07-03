@@ -12,6 +12,39 @@ ci-dessous.
 
 ## [Non publié]
 
+## [0.3.0] — 2026-07-03
+
+Documentation complète du projet et refonte du portail public.
+
+### Ajouté
+
+**Documentation (dossier jury RNCP)**
+
+- Cahier de recettes : 39 scénarios typés (fonctionnel/structurel/sécurité/KO)
+  ancrés dans les suites e2e, matrice rôles × modules, synthèse d'exécution
+  ([docs/CAHIER_RECETTES.md](docs/CAHIER_RECETTES.md))
+- Plan de correction des bogues : qualification, cycle de traitement, trois
+  études de cas réelles ([docs/PLAN_CORRECTION_BOGUES.md](docs/PLAN_CORRECTION_BOGUES.md))
+- Manuels de déploiement, d'utilisation (par rôle) et de mise à jour
+  ([docs/](docs/))
+- Justification du référentiel d'accessibilité RGAA 4.1 avec preuves dans le
+  code et limites assumées ([docs/ACCESSIBILITE.md](docs/ACCESSIBILITE.md))
+- Section « Documentation » dans le README
+
+**Portail public**
+
+- Page d'accueil enrichie : sections « Le trinôme » (trois voix reliées par le
+  fil), carrousel des six modules (rail scroll-snap accessible au clavier),
+  « Un semestre sur le fil » (parcours en quatre étapes) et bandeau final —
+  révélées au défilement, neutralisées sous `prefers-reduced-motion`
+
+### Modifié
+
+- Page de connexion alignée sur le langage du portail : scène teintée, auras,
+  filigrane 絆, fil à trois voix sur la carte
+- Favicon et icônes PWA générées depuis le logo Kizuna (remplacent les icônes
+  React du template), manifest nettoyé
+
 ## [0.2.0] — 2026-07-03
 
 Qualité et maintien en condition opérationnelle : harnais de tests unitaires
@@ -125,6 +158,7 @@ espaces par rôle, CI/CD et outillage de maintenance.
 - Mise à jour automatisée des dépendances via Dependabot (npm hebdomadaire,
   Actions GitHub mensuelle)
 
-[Non publié]: https://github.com/Batiste1998/kizuna/compare/v0.2.0...HEAD
+[Non publié]: https://github.com/Batiste1998/kizuna/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/Batiste1998/kizuna/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Batiste1998/kizuna/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Batiste1998/kizuna/releases/tag/v0.1.0
