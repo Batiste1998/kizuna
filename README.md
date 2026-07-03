@@ -119,3 +119,16 @@ docker compose -f docker-compose.prod.yml exec api pnpm --filter @kizuna/api see
 Auth/RBAC (Better Auth, 2FA, organisations) · Compétences (tri-évaluation) · Journal · Bilans ·
 Échéancier · Messagerie de trinôme · Documents · Support/Tickets · Notifications événementielles ·
 Espaces Alternant / Tuteur / Admin établissement / Super Admin.
+
+## Documentation
+
+| Document | Contenu |
+| --- | --- |
+| [Manuel de déploiement](docs/MANUEL_DEPLOIEMENT.md) | Pipeline CI/CD, variables de prod, déploiement manuel, rollback |
+| [Manuel d'utilisation](docs/MANUEL_UTILISATION.md) | Parcours par rôle, accessibilité, mode démo, FAQ |
+| [Manuel de mise à jour](docs/MANUEL_MISE_A_JOUR.md) | Releases, migrations Drizzle, images Docker, retour arrière |
+| [Maintenance](docs/MAINTENANCE.md) | Dépendances, audit de sécurité, supervision, anomalies |
+| [Cahier de recettes](docs/CAHIER_RECETTES.md) | 39 scénarios de recette ancrés dans les suites e2e |
+| [Plan de correction des bogues](docs/PLAN_CORRECTION_BOGUES.md) | Qualification, cycle de traitement, études de cas |
+| [Accessibilité](docs/ACCESSIBILITE.md) | Référentiel RGAA 4.1, mesures implémentées, limites |
+| [Journal des versions](CHANGELOG.md) | Historique des versions (SemVer) |
