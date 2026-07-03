@@ -464,7 +464,7 @@ function FinalSection() {
         </div>
       </Reveal>
       <p className="relative mt-16 text-center text-[11px] font-medium text-muted-foreground">
-        Kizuna — plateforme de suivi d’alternance · Projet RNCP39583 · 2026
+        © 2026 Kizuna · 絆 · le lien du trinôme
       </p>
     </section>
   );
