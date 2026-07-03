@@ -22,6 +22,7 @@ const CHAIN_METHODS = [
   'orderBy',
   'limit',
   'leftJoin',
+  'innerJoin',
   'values',
   'onConflictDoUpdate',
   'returning',
@@ -100,6 +101,7 @@ describe('BilansService', () => {
   let db: ReturnType<typeof createDbMock>;
   let access: { resolveAlternantAccess: ReturnType<typeof vi.fn> };
   let notifications: { create: ReturnType<typeof vi.fn> };
+  let ai: { complete: ReturnType<typeof vi.fn> };
   let service: BilansService;
 
   beforeEach(() => {
@@ -107,11 +109,12 @@ describe('BilansService', () => {
     db = createDbMock();
     access = { resolveAlternantAccess: vi.fn() };
     notifications = { create: vi.fn().mockResolvedValue(undefined) };
+    ai = { complete: vi.fn().mockResolvedValue('Brouillon de synthèse.') };
     service = new BilansService(
       db.database,
       access as unknown as AccessService,
       notifications as unknown as NotificationsService,
-      { isConfigured: false } as unknown as AiService,
+      ai as unknown as AiService,
     );
   });
 
@@ -240,6 +243,143 @@ describe('BilansService', () => {
         summary: 'Tout va bien',
       });
       expect(patch.scheduledAt).toEqual(new Date('2026-10-01T09:00:00.000Z'));
+    });
+  });
+
+  describe('generateVisio', () => {
+    it('throws when the bilan does not exist', async () => {
+      db.enqueue([]);
+
+      await expect(service.generateVisio(authUser(), 'bilan-x')).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+    });
+
+    it('rejects when the user cannot manage the apprentice', async () => {
+      db.enqueue([{ id: 'bilan-1', alternantProfilId: 'alt-1', visioUrl: null }]);
+      access.resolveAlternantAccess.mockResolvedValue(accessResult({ canManage: false }));
+
+      await expect(service.generateVisio(authUser(), 'bilan-1')).rejects.toBeInstanceOf(
+        ForbiddenException,
+      );
+    });
+
+    it('is idempotent: an existing link is returned untouched', async () => {
+      const existing = {
+        id: 'bilan-1',
+        alternantProfilId: 'alt-1',
+        visioUrl: 'https://meet.jit.si/kizuna-bilan-deja-la',
+      };
+      db.enqueue([existing]);
+      access.resolveAlternantAccess.mockResolvedValue(accessResult());
+
+      const result = await service.generateVisio(authUser(), 'bilan-1');
+
+      expect(result).toBe(existing);
+      expect(db.calls.filter((c) => c.method === 'update')).toHaveLength(0);
+      expect(notifications.create).not.toHaveBeenCalled();
+    });
+
+    it('generates an unguessable Jitsi room and notifies the apprentice', async () => {
+      db.enqueue([{ id: 'bilan-1', alternantProfilId: 'alt-1', label: 'Bilan S1', visioUrl: null }]);
+      access.resolveAlternantAccess.mockResolvedValue(accessResult());
+      const updated = { id: 'bilan-1', visioUrl: 'https://meet.jit.si/kizuna-bilan-x' };
+      db.enqueue([updated]);
+
+      const result = await service.generateVisio(authUser(), 'bilan-1');
+
+      expect(result).toBe(updated);
+      const patch = db.calls.find((c) => c.method === 'set')?.args[0] as { visioUrl: string };
+      expect(patch.visioUrl).toMatch(/^https:\/\/meet\.jit\.si\/kizuna-bilan-[0-9a-f-]{36}$/);
+      expect(notifications.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'alt-user',
+          type: 'bilan',
+          title: 'Lien visio ajouté au bilan',
+          detail: expect.stringContaining('Bilan S1'),
+        }),
+      );
+    });
+
+    it('does not notify when the generator is the apprentice themself', async () => {
+      db.enqueue([{ id: 'bilan-1', alternantProfilId: 'alt-1', label: 'Bilan S1', visioUrl: null }]);
+      access.resolveAlternantAccess.mockResolvedValue(
+        accessResult({
+          profil: { id: 'alt-1', userId: 'user-1', organizationId: 'org-1', promotionId: null },
+        } as Partial<AlternantAccess>),
+      );
+      db.enqueue([{ id: 'bilan-1' }]);
+
+      await service.generateVisio(authUser({ id: 'user-1' }), 'bilan-1');
+
+      expect(notifications.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('draftSummary', () => {
+    it('throws when the bilan does not exist', async () => {
+      db.enqueue([]);
+
+      await expect(service.draftSummary(authUser(), 'bilan-x')).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+    });
+
+    it('rejects when the user cannot manage the apprentice', async () => {
+      db.enqueue([{ id: 'bilan-1', alternantProfilId: 'alt-1' }]);
+      access.resolveAlternantAccess.mockResolvedValue(accessResult({ canManage: false }));
+
+      await expect(service.draftSummary(authUser(), 'bilan-1')).rejects.toBeInstanceOf(
+        ForbiddenException,
+      );
+      expect(ai.complete).not.toHaveBeenCalled();
+    });
+
+    it('grounds the prompt in the three-voice evaluations and the validated journal', async () => {
+      db.enqueue([
+        {
+          id: 'bilan-1',
+          alternantProfilId: 'alt-1',
+          label: 'Bilan S1',
+          scheduledAt: new Date('2026-09-01T10:00:00.000Z'),
+        },
+      ]);
+      access.resolveAlternantAccess.mockResolvedValue(accessResult());
+      db.enqueue([{ name: 'Léa Martin' }]); // alternant
+      db.enqueue([
+        { competenceLabel: 'Modéliser les données', blocCode: 'BC01', evaluator: 'peda', level: 'A' },
+        { competenceLabel: 'Déployer en production', blocCode: 'BC03', evaluator: 'auto', level: 'EC' },
+      ]);
+      db.enqueue([{ title: 'Sprint 1', content: 'Mise en place du CI' }]);
+
+      const result = await service.draftSummary(authUser(), 'bilan-1');
+
+      expect(result).toEqual({ draft: 'Brouillon de synthèse.' });
+      const [system, prompt] = ai.complete.mock.calls[0] as [string, string];
+      expect(system).toContain('bilan tripartite');
+      expect(prompt).toContain('Léa Martin');
+      expect(prompt).toContain('[BC01] Modéliser les données — tuteur pédagogique : acquis');
+      expect(prompt).toContain('[BC03] Déployer en production — auto-évaluation : en cours');
+      expect(prompt).toContain('Sprint 1 : Mise en place du CI');
+    });
+
+    it('signals empty data instead of inventing facts', async () => {
+      db.enqueue([
+        {
+          id: 'bilan-1',
+          alternantProfilId: 'alt-1',
+          label: 'Bilan S1',
+          scheduledAt: new Date('2026-09-01'),
+        },
+      ]);
+      access.resolveAlternantAccess.mockResolvedValue(accessResult());
+      db.enqueue([{ name: 'Léa Martin' }], [], []);
+
+      await service.draftSummary(authUser(), 'bilan-1');
+
+      const prompt = ai.complete.mock.calls[0][1] as string;
+      expect(prompt).toContain('(aucune évaluation)');
+      expect(prompt).toContain('(journal vide)');
     });
   });
 

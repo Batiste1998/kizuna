@@ -39,6 +39,8 @@ export interface DbMock {
     update: Mock;
     delete: Mock;
     execute: Mock;
+    /** Runs the callback against the same mock: queued results keep flowing. */
+    transaction: Mock;
   };
   /** Root chains in creation order, to assert on `.values()`, `.set()`, etc. */
   chains: DbChain[];
@@ -72,14 +74,17 @@ export function createDbMock(...initialResults: unknown[][]): DbMock {
     chains.push(chain);
     return chain;
   };
+  const db = {
+    select: vi.fn(root),
+    insert: vi.fn(root),
+    update: vi.fn(root),
+    delete: vi.fn(root),
+    execute: vi.fn(() => Promise.resolve(undefined)),
+    transaction: vi.fn(),
+  };
+  db.transaction.mockImplementation((fn: (tx: typeof db) => unknown) => Promise.resolve(fn(db)));
   return {
-    db: {
-      select: vi.fn(root),
-      insert: vi.fn(root),
-      update: vi.fn(root),
-      delete: vi.fn(root),
-      execute: vi.fn(() => Promise.resolve(undefined)),
-    },
+    db,
     chains,
     enqueue: (...rowSets: unknown[][]) => queue.push(...rowSets),
   };

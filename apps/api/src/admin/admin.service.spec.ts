@@ -25,14 +25,15 @@ function makeService(options: { results?: unknown[][]; smtpConfigured?: boolean 
   const mock = createDbMock(...(options.results ?? []));
   const signUpEmail = vi.fn().mockResolvedValue({ user: { id: 'new-user' } });
   const requestPasswordReset = vi.fn().mockResolvedValue(undefined);
+  const extractReferentiel = vi.fn();
   const service = new AdminService(
     { db: mock.db } as unknown as DatabaseService,
     { getOrThrow: vi.fn().mockReturnValue('https://web.test') } as unknown as ConfigService,
     { isConfigured: options.smtpConfigured ?? false } as unknown as MailService,
-    { isConfigured: false } as unknown as AiService,
+    { isConfigured: false, extractReferentiel } as unknown as AiService,
     { api: { signUpEmail, requestPasswordReset } } as unknown as Auth,
   );
-  return { service, mock, signUpEmail, requestPasswordReset };
+  return { service, mock, signUpEmail, requestPasswordReset, extractReferentiel };
 }
 
 describe('AdminService', () => {
@@ -504,6 +505,111 @@ describe('AdminService', () => {
           promotionId: 'pr-x',
         }),
       ).rejects.toThrow('Promotion introuvable');
+    });
+  });
+
+  describe('referentiel', () => {
+    const PROMO = { id: 'promo-1', organizationId: 'org-1', referentielId: null };
+    const DRAFT = {
+      code: 'RNCP39583',
+      title: 'Expert en ingénierie du logiciel',
+      level: 7,
+      blocs: [
+        {
+          code: 'BC01',
+          label: 'Concevoir et modéliser',
+          competences: [{ code: 'C1', label: 'Analyser les besoins', description: null }],
+        },
+      ],
+    };
+
+    it('getPromotionReferentiel rejects an unknown promotion', async () => {
+      const { service } = makeService({ results: [membershipRows, []] });
+      await expect(
+        service.getPromotionReferentiel(makeUser(), 'promo-x'),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('getPromotionReferentiel returns null when the promotion has no referentiel', async () => {
+      const { service } = makeService({ results: [membershipRows, [PROMO]] });
+      const view = await service.getPromotionReferentiel(makeUser(), 'promo-1');
+      expect(view).toEqual({ promotionId: 'promo-1', referentiel: null });
+    });
+
+    it('getPromotionReferentiel assembles blocs and their compétences in order', async () => {
+      const { service } = makeService({
+        results: [
+          membershipRows,
+          [{ ...PROMO, referentielId: 'ref-1' }],
+          [{ id: 'ref-1', code: 'RNCP39583', title: 'Expert', level: 7 }],
+          [
+            { id: 'b-1', code: 'BC01', label: 'Concevoir' },
+            { id: 'b-2', code: 'BC02', label: 'Développer' },
+          ],
+          [
+            { id: 'c-1', blocId: 'b-1', code: 'C1', label: 'Analyser', description: null },
+            { id: 'c-2', blocId: 'b-2', code: 'C2', label: 'Tester', description: 'Critères' },
+          ],
+        ],
+      });
+
+      const view = await service.getPromotionReferentiel(makeUser(), 'promo-1');
+
+      expect(view.referentiel?.code).toBe('RNCP39583');
+      expect(view.referentiel?.blocs).toHaveLength(2);
+      expect(view.referentiel?.blocs[0].competences).toEqual([
+        { id: 'c-1', code: 'C1', label: 'Analyser', description: null },
+      ]);
+      expect(view.referentiel?.blocs[1].competences).toEqual([
+        { id: 'c-2', code: 'C2', label: 'Tester', description: 'Critères' },
+      ]);
+    });
+
+    it('extractReferentiel checks the org then delegates to the AI gateway', async () => {
+      const { service, extractReferentiel } = makeService({ results: [membershipRows] });
+      extractReferentiel.mockResolvedValue(DRAFT);
+
+      const result = await service.extractReferentiel(makeUser(), 'Texte RNCP collé');
+
+      expect(result).toBe(DRAFT);
+      expect(extractReferentiel).toHaveBeenCalledWith('Texte RNCP collé');
+    });
+
+    it('savePromotionReferentiel refuses to overwrite an existing referentiel', async () => {
+      const { service, mock } = makeService({
+        results: [membershipRows, [{ ...PROMO, referentielId: 'ref-1' }]],
+      });
+
+      await expect(
+        service.savePromotionReferentiel(makeUser(), 'promo-1', DRAFT),
+      ).rejects.toThrow('déjà un référentiel');
+      expect(mock.db.transaction).not.toHaveBeenCalled();
+    });
+
+    it('savePromotionReferentiel persists the tree in one transaction and links the promotion', async () => {
+      const { service, mock } = makeService({
+        results: [
+          membershipRows,
+          [PROMO],
+          // Transaction : referentiel, bloc, compétences (sans returning), update promotion.
+          [{ id: 'ref-1' }],
+          [{ id: 'b-1' }],
+          [],
+          [],
+          // Relecture finale via getPromotionReferentiel.
+          membershipRows,
+          [{ ...PROMO, referentielId: 'ref-1' }],
+          [{ id: 'ref-1', code: 'RNCP39583', title: 'Expert en ingénierie du logiciel', level: 7 }],
+          [{ id: 'b-1', code: 'BC01', label: 'Concevoir et modéliser' }],
+          [{ id: 'c-1', blocId: 'b-1', code: 'C1', label: 'Analyser les besoins', description: null }],
+        ],
+      });
+
+      const view = await service.savePromotionReferentiel(makeUser(), 'promo-1', DRAFT);
+
+      expect(mock.db.transaction).toHaveBeenCalledTimes(1);
+      expect(view.referentiel?.id).toBe('ref-1');
+      expect(view.referentiel?.blocs[0].competences[0].label).toBe('Analyser les besoins');
     });
   });
 });
