@@ -541,6 +541,29 @@ export const api = {
   }) =>
     request<AdminPromotion>('/admin/promotions', { method: 'POST', body: JSON.stringify(input) }),
   aiStatus: () => request<{ configured: boolean }>('/ai/status'),
+  /** Streams the help assistant's reply; onChunk receives text as it arrives. */
+  streamAssistant: async (
+    messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+    onChunk: (text: string) => void,
+  ): Promise<void> => {
+    const res = await fetch(`${apiURL}/ai/chat`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages }),
+    });
+    if (!res.ok || !res.body) {
+      const body = (await res.json().catch(() => null)) as { message?: string } | null;
+      throw new Error(body?.message ?? `Erreur ${res.status}`);
+    }
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      onChunk(decoder.decode(value, { stream: true }));
+    }
+  },
   getPromotionReferentiel: (promotionId: string) =>
     request<ReferentielView>(`/admin/promotions/${promotionId}/referentiel`),
   extractReferentiel: (text: string) =>

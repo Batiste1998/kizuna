@@ -37,6 +37,7 @@ import { authClient, signOut } from '#/lib/auth-client';
 import { cn } from '#/lib/utils';
 import { NotificationsBell } from './notifications-bell';
 import { AccessibilityFab } from './accessibility-fab';
+import { AssistantFab } from './assistant-fab';
 import { DemoSwitcher } from './demo-switcher';
 import { Logo } from './logo';
 
@@ -125,6 +126,7 @@ export function AppShell({ me, children }: { me: Me; children: ReactNode }) {
       </div>
 
       <AccessibilityFab />
+      <AssistantFab me={me} />
       <DemoSwitcher me={me} />
 
       {/* Mobile drawer */}

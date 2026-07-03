@@ -16,6 +16,7 @@ import { Label } from '#/components/ui/label';
 import { Avatar, PageShell, Panel, StatCard } from '#/components/super-ui';
 import { Slideover } from './app.admin.alternants';
 import { selectClass } from '#/components/admin-forms';
+import { TICKET_DRAFT_KEY } from '#/components/assistant-fab';
 import { cn } from '#/lib/utils';
 
 export const Route = createFileRoute('/app/support/')({
@@ -55,6 +56,15 @@ function SupportPage() {
       .catch(() => setData({ canTriage: false, tickets: [] }));
   }
   useEffect(() => reload(), []);
+
+  // Arriving from the help assistant: open the form on its prefilled draft.
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem(TICKET_DRAFT_KEY)) setCreating(true);
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   const tickets = data?.tickets ?? [];
   const counts = useMemo(
@@ -287,11 +297,25 @@ function SupportPage() {
   );
 }
 
+/** Draft handed over by the help assistant (consumed once). */
+function consumeTicketDraft(): { subject: string; description: string } {
+  try {
+    const raw = sessionStorage.getItem(TICKET_DRAFT_KEY);
+    if (!raw) return { subject: '', description: '' };
+    sessionStorage.removeItem(TICKET_DRAFT_KEY);
+    const parsed = JSON.parse(raw) as { subject?: string; description?: string };
+    return { subject: parsed.subject ?? '', description: parsed.description ?? '' };
+  } catch {
+    return { subject: '', description: '' };
+  }
+}
+
 function CreateTicketForm({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
-  const [subject, setSubject] = useState('');
+  const [draft] = useState(consumeTicketDraft);
+  const [subject, setSubject] = useState(draft.subject);
   const [type, setType] = useState<TicketType>('demande');
   const [priority, setPriority] = useState<TicketPriority>('moyenne');
-  const [description, setDescription] = useState('');
+  const [description, setDescription] = useState(draft.description);
   const [busy, setBusy] = useState(false);
 
   async function submit(e: FormEvent) {
