@@ -30,6 +30,15 @@ services:
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set BETTER_AUTH_SECRET}
       BETTER_AUTH_URL: ${API_PUBLIC_URL:-http://localhost:3001}
       UPLOAD_DIR: /data/uploads
+      # Emails transactionnels (liens construits avec WEB_PUBLIC_URL ;
+      # sans SMTP_HOST, les emails sont simulés dans les logs).
+      WEB_PUBLIC_URL: ${WEB_PUBLIC_URL:-http://localhost:3000}
+      MAIL_FROM: ${MAIL_FROM:-Kizuna <no-reply@kizuna.dev>}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
     volumes:
       - kizuna-uploads:/data/uploads
     ports:
