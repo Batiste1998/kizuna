@@ -41,6 +41,20 @@ interface EndpointCase {
   body?: unknown;
 }
 
+/** Reviewed AI draft as saved by the admin (see ReferentielDraft). */
+const REFERENTIEL_DRAFT = {
+  code: 'RNCP39583',
+  title: 'Expert en ingénierie du logiciel',
+  level: 7,
+  blocs: [
+    {
+      code: 'BC01',
+      label: 'Concevoir et modéliser',
+      competences: [{ code: 'C1', label: 'Analyser les besoins', description: null }],
+    },
+  ],
+};
+
 const CASES: EndpointCase[] = [
   { name: 'myAlternantProfile', call: () => api.myAlternantProfile(), path: '/me/alternant' },
   {
@@ -278,6 +292,38 @@ const CASES: EndpointCase[] = [
     method: 'PATCH',
     body: { status: 'resolved' },
   },
+  {
+    name: 'generateBilanVisio',
+    call: () => api.generateBilanVisio('b-1'),
+    path: '/bilans/b-1/visio',
+    method: 'POST',
+  },
+  {
+    name: 'draftBilanSummary',
+    call: () => api.draftBilanSummary('b-1'),
+    path: '/bilans/b-1/draft-summary',
+    method: 'POST',
+  },
+  { name: 'aiStatus', call: () => api.aiStatus(), path: '/ai/status' },
+  {
+    name: 'getPromotionReferentiel',
+    call: () => api.getPromotionReferentiel('p-1'),
+    path: '/admin/promotions/p-1/referentiel',
+  },
+  {
+    name: 'extractReferentiel',
+    call: () => api.extractReferentiel('Texte du référentiel RNCP'),
+    path: '/admin/referentiels/extract',
+    method: 'POST',
+    body: { text: 'Texte du référentiel RNCP' },
+  },
+  {
+    name: 'savePromotionReferentiel',
+    call: () => api.savePromotionReferentiel('p-1', REFERENTIEL_DRAFT),
+    path: '/admin/promotions/p-1/referentiel',
+    method: 'POST',
+    body: REFERENTIEL_DRAFT,
+  },
 ];
 
 describe('api endpoint contracts', () => {
@@ -334,5 +380,51 @@ describe('multipart and binary endpoints', () => {
     fetchMock.mockResolvedValueOnce(jsonResponse(null, { ok: false, status: 500 }));
 
     await expect(api.downloadBilanPdf('b-1', 'bilan.pdf')).rejects.toThrow('Export PDF impossible');
+  });
+});
+
+describe('streamAssistant', () => {
+  function streamResponse(chunks: string[]): Response {
+    const encoder = new TextEncoder();
+    const pending = chunks.map((c) => encoder.encode(c));
+    return {
+      ok: true,
+      status: 200,
+      body: {
+        getReader: () => ({
+          read: () =>
+            Promise.resolve(
+              pending.length
+                ? { done: false, value: pending.shift() }
+                : { done: true, value: undefined },
+            ),
+        }),
+      },
+    } as unknown as Response;
+  }
+
+  it('posts the conversation to /ai/chat and forwards each streamed chunk', async () => {
+    fetchMock.mockResolvedValueOnce(streamResponse(['Bonjour', ' !']));
+    const received: string[] = [];
+    const messages = [{ role: 'user' as const, content: 'Comment créer un bilan ?' }];
+
+    await api.streamAssistant(messages, (chunk) => received.push(chunk));
+
+    const { url, init } = lastCall();
+    expect(url.endsWith('/ai/chat')).toBe(true);
+    expect(init.method).toBe('POST');
+    expect(init.credentials).toBe('include');
+    expect(JSON.parse(init.body as string)).toEqual({ messages });
+    expect(received.join('')).toBe('Bonjour !');
+  });
+
+  it('surfaces the API error message when the stream cannot start', async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({ message: 'Limite de messages atteinte' }, { ok: false, status: 429 }),
+    );
+
+    await expect(api.streamAssistant([{ role: 'user', content: 'Q' }], () => {})).rejects.toThrow(
+      'Limite de messages atteinte',
+    );
   });
 });
